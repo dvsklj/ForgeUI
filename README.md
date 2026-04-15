@@ -1,10 +1,10 @@
 # ForgeUI
 
-Dynamic web app platform for LLM-generated apps — from manifest to working app in milliseconds.
+Dynamic web app platform for LLM-generated apps. From manifest to working app in milliseconds.
 
 ## What It Does
 
-Forge renders interactive web applications from declarative JSON manifests. Any LLM generates the manifest. Forge renders it. Same manifest, same app — always.
+Forge renders interactive web applications from declarative JSON manifests. Any LLM generates the manifest. Forge renders it. Same manifest, same app, always.
 
 ```html
 <forge-app manifest='{"root":"shell","elements":{...}}'></forge-app>
