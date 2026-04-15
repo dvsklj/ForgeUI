@@ -128,7 +128,5 @@ export class ForgeElement extends LitElement {
 
   // ─── Common styles ───────────────────────────────────────────
 
-  static get styles() {
-    return [resetStyles];
-  }
+  static get styles() { return [resetStyles]; }
 }
