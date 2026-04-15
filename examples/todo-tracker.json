@@ -1,0 +1,82 @@
+{
+  "manifest": "0.1.0",
+  "id": "todo-tracker",
+  "root": "shell",
+  "schema": {
+    "version": 1,
+    "tables": {
+      "todos": {
+        "columns": {
+          "title": { "type": "string" },
+          "completed": { "type": "boolean", "default": false },
+          "createdAt": { "type": "string" }
+        }
+      }
+    }
+  },
+  "state": {
+    "view/active": "list",
+    "filter/status": "all"
+  },
+  "elements": {
+    "shell": {
+      "type": "Stack",
+      "props": { "spacing": "md", "padding": "md" },
+      "children": ["header", "add-form", "todo-list"]
+    },
+    "header": {
+      "type": "Card",
+      "props": { "variant": "elevated" },
+      "children": ["title", "subtitle"]
+    },
+    "title": {
+      "type": "Text",
+      "props": { "content": "Todo Tracker", "variant": "heading" }
+    },
+    "subtitle": {
+      "type": "Text",
+      "props": { "content": "Track your tasks", "variant": "subheading", "colorScheme": "secondary" }
+    },
+    "add-form": {
+      "type": "Stack",
+      "props": { "direction": "row", "spacing": "sm", "align": "end" },
+      "children": ["title-input", "add-btn"]
+    },
+    "title-input": {
+      "type": "TextInput",
+      "props": { "placeholder": "What needs to be done?", "label": "New task", "bind": "$state:input/title" }
+    },
+    "add-btn": {
+      "type": "Button",
+      "props": { "label": "Add", "variant": "primary", "action": "add-todo" }
+    },
+    "todo-list": {
+      "type": "List",
+      "props": { "dataPath": "todos", "emptyMessage": "No todos yet — add one above!" }
+    }
+  },
+  "actions": {
+    "add-todo": {
+      "type": "mutateState",
+      "path": "todos",
+      "operation": "append",
+      "value": { "title": "{{$state:input/title}}", "completed": false, "createdAt": "now" }
+    },
+    "toggle-todo": {
+      "type": "mutateState",
+      "path": "todos/{{id}}/completed",
+      "operation": "toggle"
+    },
+    "delete-todo": {
+      "type": "mutateState",
+      "path": "todos",
+      "operation": "delete",
+      "key": "{{id}}"
+    }
+  },
+  "meta": {
+    "title": "Todo Tracker",
+    "description": "A simple task tracker",
+    "generator": "manual"
+  }
+}

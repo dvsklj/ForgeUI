@@ -1,0 +1,47 @@
+{
+  "name": "forgeui",
+  "version": "0.1.0",
+  "description": "Dynamic web app platform for LLM-generated apps — from manifest to working app in milliseconds",
+  "type": "module",
+  "main": "dist/forge.js",
+  "types": "dist/forge.d.ts",
+  "exports": {
+    ".": "./dist/forge.js",
+    "./core": "./dist/forge-core.js",
+    "./catalog": "./dist/forge-catalog.js",
+    "./server": "./src/server/index.ts"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "build:artifact": "node build.mjs --mode=artifact",
+    "dev": "node src/server/dev.ts",
+    "test": "node --test --import tsx tests/**/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "size": "node build.mjs && gzip -c dist/forge.js | wc -c"
+  },
+  "keywords": [
+    "llm",
+    "web-components",
+    "app-builder",
+    "dynamic-ui",
+    "ai-generated",
+    "artifact",
+    "declarative-ui",
+    "a2ui"
+  ],
+  "author": "Davor Skulj",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "ajv": "^8.17.0",
+    "lit": "^3.2.0",
+    "tinybase": "^5.4.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "esbuild": "^0.21.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.5.0"
+  }
+}
