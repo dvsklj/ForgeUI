@@ -29,3 +29,6 @@ export type { ValidationResult, ValidationError } from './validation/index.js';
 
 // Re-export catalog utilities
 export { catalogPrompt, catalogToJsonSchema, isValidComponentType } from './catalog/registry.js';
+
+// Re-export A2UI adapter
+export { isA2UIPayload, ingestPayload } from './a2ui/index.js';

@@ -5,7 +5,8 @@
  * and common styles. No decorators — uses Lit's static properties API.
  */
 
-import { LitElement, css } from 'lit';
+import { LitElement } from 'lit';
+import type { CSSResult } from 'lit';
 import type { Store } from 'tinybase';
 import { resolveRef, setItemContext } from '../state/index.js';
 import { resetStyles } from '../tokens/index.js';
@@ -128,5 +129,5 @@ export class ForgeElement extends LitElement {
 
   // ─── Common styles ───────────────────────────────────────────
 
-  static get styles() { return [resetStyles]; }
+  static get styles(): CSSResult | CSSResult[] { return [resetStyles]; }
 }

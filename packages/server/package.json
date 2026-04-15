@@ -1,0 +1,35 @@
+{
+  "name": "@forge/server",
+  "version": "0.1.0",
+  "description": "Forge UI server — Hono + SQLite app hosting. Deploy LLM-generated apps as shareable URLs.",
+  "main": "dist/forge-server.js",
+  "types": "dist/forge-server.d.ts",
+  "bin": {
+    "forge-server": "bin/forge-server",
+    "forge": "bin/forge"
+  },
+  "files": [
+    "dist/",
+    "bin/",
+    "README.md"
+  ],
+  "keywords": [
+    "llm",
+    "server",
+    "app-hosting",
+    "sqlite",
+    "hono",
+    "dynamic-ui",
+    "ai-generated"
+  ],
+  "author": "Davor Skulj",
+  "license": "MIT",
+  "dependencies": {
+    "@hono/node-server": "^1.19.14",
+    "better-sqlite3": "^12.9.0",
+    "hono": "^4.12.14"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -8,7 +8,7 @@
 
 // ─── Component Types ─────────────────────────────────────────────
 
-/** All 36 component types in the Forge catalog */
+/** All 37 component types in the Forge catalog */
 export type ComponentType =
   // Layout (8)
   | 'Stack' | 'Grid' | 'Card' | 'Container' | 'Tabs' | 'Accordion' | 'Divider' | 'Spacer'
@@ -24,10 +24,12 @@ export type ComponentType =
   // Feedback (4)
   | 'Alert' | 'Dialog' | 'Progress' | 'Toast'
   // Navigation (2)
-  | 'Breadcrumb' | 'Stepper';
+  | 'Breadcrumb' | 'Stepper'
+  // Drawing (1)
+  | 'Drawing';
 
 /** Component categories for grouping */
-export type ComponentCategory = 'layout' | 'content' | 'input' | 'action' | 'data' | 'feedback' | 'navigation';
+export type ComponentCategory = 'layout' | 'content' | 'input' | 'action' | 'data' | 'feedback' | 'navigation' | 'drawing';
 
 // ─── Manifest ────────────────────────────────────────────────────
 
@@ -49,6 +51,24 @@ export interface ForgeManifest {
   actions?: Record<string, ForgeAction>;
   /** App-level metadata */
   meta?: ForgeMeta;
+  /** Persist state in IndexedDB (default: auto-detected from surface) */
+  persistState?: boolean;
+  /** Skip persistence entirely (chat artifacts) */
+  skipPersistState?: boolean;
+  /** Data access permissions for LLM read-back */
+  dataAccess?: ForgeDataAccess;
+}
+
+/** Data access configuration for LLM read-back */
+export interface ForgeDataAccess {
+  /** Whether LLM can read app data (default: false) */
+  enabled?: boolean;
+  /** Tables the LLM can read */
+  readable?: string[];
+  /** Tables the LLM must never see */
+  restricted?: string[];
+  /** Use aggregated summaries instead of raw rows */
+  summaries?: boolean;
 }
 
 /** App metadata */

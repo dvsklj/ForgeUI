@@ -1,0 +1,104 @@
+{
+  "manifest": "0.1.0",
+  "id": "onboarding-wizard",
+  "meta": {
+    "title": "Onboarding Wizard",
+    "description": "Multi-step user onboarding flow"
+  },
+  "elements": {
+    "root": {
+      "type": "Stack",
+      "props": { "gap": "20", "padding": "24" },
+      "children": ["header", "stepper-card", "wizard-content"]
+    },
+    "header": {
+      "type": "Card",
+      "props": { "title": "Welcome to Forge", "subtitle": "Let's get you set up in 4 easy steps" },
+      "children": ["header-badges"]
+    },
+    "header-badges": {
+      "type": "Stack",
+      "props": { "direction": "horizontal", "gap": "8" },
+      "children": ["badge-new", "badge-time"]
+    },
+    "badge-new": {
+      "type": "Badge",
+      "props": { "text": "New Account", "variant": "info" }
+    },
+    "badge-time": {
+      "type": "Badge",
+      "props": { "text": "~3 minutes", "variant": "warning" }
+    },
+    "stepper-card": {
+      "type": "Card",
+      "props": {},
+      "children": ["stepper"]
+    },
+    "stepper": {
+      "type": "Stepper",
+      "props": {
+        "steps": [
+          { "label": "Profile", "description": "Basic info" },
+          { "label": "Preferences", "description": "Customize your experience" },
+          { "label": "Team", "description": "Invite colleagues" },
+          { "label": "Review", "description": "Confirm and finish" }
+        ],
+        "activeStep": 0
+      }
+    },
+    "wizard-content": {
+      "type": "Card",
+      "props": { "title": "Step 1: Your Profile" },
+      "children": ["step1-fields", "step-actions"]
+    },
+    "step1-fields": {
+      "type": "Stack",
+      "props": { "gap": "12" },
+      "children": ["name-row", "input-bio", "avatar-section"]
+    },
+    "name-row": {
+      "type": "Grid",
+      "props": { "columns": 2 },
+      "children": ["input-first", "input-last"]
+    },
+    "input-first": {
+      "type": "TextInput",
+      "props": { "label": "First Name", "placeholder": "Jane", "required": true }
+    },
+    "input-last": {
+      "type": "TextInput",
+      "props": { "label": "Last Name", "placeholder": "Doe", "required": true }
+    },
+    "input-bio": {
+      "type": "TextInput",
+      "props": { "label": "Short Bio", "placeholder": "Tell us about yourself...", "multiline": true }
+    },
+    "avatar-section": {
+      "type": "Stack",
+      "props": { "direction": "horizontal", "gap": "12", "align": "center" },
+      "children": ["avatar-preview", "btn-upload"]
+    },
+    "avatar-preview": {
+      "type": "Avatar",
+      "props": { "name": "Jane Doe", "size": "lg" }
+    },
+    "btn-upload": {
+      "type": "Button",
+      "props": { "label": "Upload Photo", "variant": "secondary" }
+    },
+    "step-actions": {
+      "type": "Stack",
+      "props": { "direction": "horizontal", "gap": "8", "justify": "end" },
+      "children": ["btn-back", "btn-next"]
+    },
+    "btn-back": {
+      "type": "Button",
+      "props": { "label": "Back", "variant": "ghost", "disabled": true }
+    },
+    "btn-next": {
+      "type": "Button",
+      "props": { "label": "Next Step", "variant": "primary", "disabled": true }
+    }
+  },
+  "root": "root"
+}

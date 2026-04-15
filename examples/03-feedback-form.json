@@ -1,0 +1,123 @@
+{
+  "manifest": "0.1.0",
+  "id": "feedback-form",
+  "meta": {
+    "title": "Customer Feedback",
+    "description": "Collect and review customer feedback"
+  },
+  "state": {
+    "data": {
+      "feedback": {
+        "fb-1": { "id": "fb-1", "name": "Anna M.", "rating": 5, "category": "product", "message": "Absolutely love the new dashboard redesign!", "date": "2025-04-13", "sentiment": "positive" },
+        "fb-2": { "id": "fb-2", "name": "Tom K.", "rating": 3, "category": "support", "message": "Response time was a bit slow but issue resolved.", "date": "2025-04-14", "sentiment": "neutral" },
+        "fb-3": { "id": "fb-3", "name": "Sara L.", "rating": 4, "category": "product", "message": "Great features, minor UI bug on mobile.", "date": "2025-04-14", "sentiment": "positive" },
+        "fb-4": { "id": "fb-4", "name": "James R.", "rating": 2, "category": "pricing", "message": "Too expensive for small teams.", "date": "2025-04-14", "sentiment": "negative" }
+      }
+    }
+  },
+  "elements": {
+    "root": {
+      "type": "Stack",
+      "props": { "gap": "16", "padding": "24" },
+      "children": ["header", "alert-info", "feedback-form-card", "feedback-list"]
+    },
+    "header": {
+      "type": "Card",
+      "props": { "title": "Customer Feedback", "subtitle": "Collect and manage user feedback" },
+      "children": ["header-badges"]
+    },
+    "header-badges": {
+      "type": "Stack",
+      "props": { "direction": "horizontal", "gap": "8" },
+      "children": ["badge-open", "badge-reviews"]
+    },
+    "badge-open": {
+      "type": "Badge",
+      "props": { "text": "Open for submissions", "variant": "success" }
+    },
+    "badge-reviews": {
+      "type": "Badge",
+      "props": { "text": "4 reviews", "variant": "info" }
+    },
+    "alert-info": {
+      "type": "Alert",
+      "props": { "message": "We review all feedback within 48 hours. Your input helps us improve!", "variant": "info", "title": "Review Policy" }
+    },
+    "feedback-form-card": {
+      "type": "Card",
+      "props": { "title": "Submit Feedback" },
+      "children": ["form-fields", "form-actions"]
+    },
+    "form-fields": {
+      "type": "Stack",
+      "props": { "gap": "12" },
+      "children": ["name-row", "input-message", "slider-rating", "select-category"]
+    },
+    "name-row": {
+      "type": "Grid",
+      "props": { "columns": 2 },
+      "children": ["input-name", "input-email"]
+    },
+    "input-name": {
+      "type": "TextInput",
+      "props": { "label": "Your Name", "placeholder": "e.g. Jane Doe", "required": true }
+    },
+    "input-email": {
+      "type": "TextInput",
+      "props": { "label": "Email", "placeholder": "jane@example.com", "type": "email" }
+    },
+    "input-message": {
+      "type": "TextInput",
+      "props": { "label": "Your Feedback", "placeholder": "Tell us what you think...", "multiline": true, "required": true }
+    },
+    "slider-rating": {
+      "type": "Slider",
+      "props": { "label": "Rating", "min": 1, "max": 5, "step": 1, "value": 3, "showValue": true }
+    },
+    "select-category": {
+      "type": "Select",
+      "props": {
+        "label": "Category",
+        "options": [
+          { "value": "product", "label": "Product" },
+          { "value": "support", "label": "Support" },
+          { "value": "pricing", "label": "Pricing" },
+          { "value": "feature", "label": "Feature Request" },
+          { "value": "bug", "label": "Bug Report" }
+        ]
+      }
+    },
+    "form-actions": {
+      "type": "ButtonGroup",
+      "props": {},
+      "children": ["btn-submit", "btn-cancel"]
+    },
+    "btn-submit": {
+      "type": "Button",
+      "props": { "label": "Submit Feedback", "variant": "primary", "disabled": true }
+    },
+    "btn-cancel": {
+      "type": "Button",
+      "props": { "label": "Cancel", "variant": "ghost" }
+    },
+    "feedback-list": {
+      "type": "Card",
+      "props": { "title": "Recent Feedback" },
+      "children": ["feedback-table"]
+    },
+    "feedback-table": {
+      "type": "Table",
+      "props": {
+        "data": { "$expr": "state.data.feedback | values" },
+        "columns": [
+          { "key": "name", "label": "From", "type": "text" },
+          { "key": "rating", "label": "Rating", "type": "number" },
+          { "key": "category", "label": "Category", "type": "badge", "badgeMap": { "product": "success", "support": "info", "pricing": "warning", "feature": "info", "bug": "error" } },
+          { "key": "message", "label": "Message", "type": "text" },
+          { "key": "date", "label": "Date", "type": "text" }
+        ]
+      }
+    }
+  },
+  "root": "root"
+}

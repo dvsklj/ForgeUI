@@ -1,0 +1,133 @@
+{
+  "manifest": "0.1.0",
+  "id": "analytics-dashboard",
+  "meta": {
+    "title": "Analytics Dashboard",
+    "description": "Business metrics overview with charts and KPIs"
+  },
+  "state": {
+    "data": {
+      "revenue": [
+        { "month": "Jan", "value": 42000 },
+        { "month": "Feb", "value": 38000 },
+        { "month": "Mar", "value": 51000 },
+        { "month": "Apr", "value": 47000 },
+        { "month": "May", "value": 63000 },
+        { "month": "Jun", "value": 58000 }
+      ],
+      "visitors": [
+        { "month": "Jan", "value": 12400 },
+        { "month": "Feb", "value": 15800 },
+        { "month": "Mar", "value": 18200 },
+        { "month": "Apr", "value": 22100 },
+        { "month": "May", "value": 28500 },
+        { "month": "Jun", "value": 31200 }
+      ]
+    }
+  },
+  "elements": {
+    "root": {
+      "type": "Stack",
+      "props": { "gap": "20", "padding": "24" },
+      "children": ["top-bar", "kpi-row", "charts-row", "activity-section"]
+    },
+    "top-bar": {
+      "type": "Stack",
+      "props": { "direction": "horizontal", "gap": "12" },
+      "children": ["title", "badge-live", "date-range"]
+    },
+    "title": {
+      "type": "Text",
+      "props": { "content": "Analytics Dashboard", "variant": "heading1" }
+    },
+    "badge-live": {
+      "type": "Badge",
+      "props": { "text": "Live", "variant": "success" }
+    },
+    "date-range": {
+      "type": "Text",
+      "props": { "content": "Jan - Jun 2025", "variant": "muted" }
+    },
+    "kpi-row": {
+      "type": "Grid",
+      "props": { "columns": 4 },
+      "children": ["kpi-revenue", "kpi-users", "kpi-conversion", "kpi-churn"]
+    },
+    "kpi-revenue": {
+      "type": "Metric",
+      "props": { "label": "Total Revenue", "value": "$299K", "trend": "up", "subtitle": "+12% vs last period" }
+    },
+    "kpi-users": {
+      "type": "Metric",
+      "props": { "label": "Active Users", "value": "128K", "trend": "up", "subtitle": "+8.2% vs last period" }
+    },
+    "kpi-conversion": {
+      "type": "Metric",
+      "props": { "label": "Conversion Rate", "value": "3.42%", "trend": "up", "subtitle": "+0.3% vs last period" }
+    },
+    "kpi-churn": {
+      "type": "Metric",
+      "props": { "label": "Churn Rate", "value": "1.8%", "trend": "down", "subtitle": "-0.2% vs last period" }
+    },
+    "charts-row": {
+      "type": "Grid",
+      "props": { "columns": 2 },
+      "children": ["revenue-card", "visitors-card"]
+    },
+    "revenue-card": {
+      "type": "Card",
+      "props": { "title": "Monthly Revenue" },
+      "children": ["chart-revenue"]
+    },
+    "chart-revenue": {
+      "type": "Chart",
+      "props": {
+        "chartType": "bar",
+        "data": { "$expr": "state.data.revenue" },
+        "xKey": "month",
+        "yKey": "value",
+        "color": "#6366f1",
+        "yFormat": "$"
+      }
+    },
+    "visitors-card": {
+      "type": "Card",
+      "props": { "title": "Visitor Growth" },
+      "children": ["chart-visitors"]
+    },
+    "chart-visitors": {
+      "type": "Chart",
+      "props": {
+        "chartType": "line",
+        "data": { "$expr": "state.data.visitors" },
+        "xKey": "month",
+        "yKey": "value",
+        "color": "#10b981"
+      }
+    },
+    "activity-section": {
+      "type": "Card",
+      "props": { "title": "Recent Activity" },
+      "children": ["activity-table"]
+    },
+    "activity-table": {
+      "type": "Table",
+      "props": {
+        "data": [
+          { "event": "New user signup", "user": "alice@example.com", "time": "2 min ago", "status": "success" },
+          { "event": "Payment received", "user": "bob@example.com", "time": "5 min ago", "status": "success" },
+          { "event": "Support ticket opened", "user": "carol@example.com", "time": "12 min ago", "status": "warning" },
+          { "event": "API rate limit hit", "user": "System", "time": "18 min ago", "status": "error" },
+          { "event": "Report generated", "user": "dave@example.com", "time": "25 min ago", "status": "success" }
+        ],
+        "columns": [
+          { "key": "event", "label": "Event", "type": "text" },
+          { "key": "user", "label": "User", "type": "text" },
+          { "key": "time", "label": "Time", "type": "text" },
+          { "key": "status", "label": "Status", "type": "badge", "badgeMap": { "success": "success", "warning": "warning", "error": "error" } }
+        ]
+      }
+    }
+  },
+  "root": "root"
+}

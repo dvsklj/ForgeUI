@@ -122,6 +122,65 @@ ForgeApp (10) → Build (12) → Tests (13) → Demos (14) → Push (15)
 
 **Total: ~12-14 hours of implementation**
 
+---
+
+## Phase 2 (Sandbox + Encryption) — Weeks 13-20
+
+### Step 16: App-level sandboxing
+- CSP headers restricting script/eval/iframe
+- Sandboxed webview for user-generated manifests
+- Capability-based permissions
+
+### Step 17: Encryption layer
+- Field-level encryption for sensitive data
+- Key management (per-app, per-user)
+- Encrypted IndexedDB persistence
+
+---
+
+## Phase 3 (Data Read Channel) — Weeks 21-28
+
+### Step 18: Manifest permission declaration
+- `dataAccess` schema in manifest (enabled, readable, restricted, summaries)
+- Validation: enforce that restricted tables are never in readable
+- Default: `enabled: false` (sealed box)
+
+### Step 19: `forge_read_app_data` MCP tool
+- Accepts `{ app_id, tables, limit, since }`
+- Checks `dataAccess.enabled` and `readable` list
+- Reads rows from TinyBase via Forge Server
+- Returns `{ schema, data, rowCounts }`
+- Enforces `restricted` tables — always excluded
+
+### Step 20: `forge_query_app_data` MCP tool
+- Accepts `{ app_id, queries: [{ table, aggregate, groupBy, column, where }] }`
+- Aggregates: count, max, min, avg, sum, trend, distinct
+- Token-efficient: ~50-150 tokens vs 2000+ for raw rows
+- Validates query targets against `readable` list
+
+### Step 21: LLM instruction updates
+- `catalog.prompt('full')` already includes data access loop documentation
+- Add concrete examples: workout tracker, meal planner, habit tracker
+- Document the read-reason-update cycle
+
+### Step 22: Consent UI
+- Permission disclosure on app creation
+- "This app allows the AI to read your X data for personalized updates"
+- User can revoke consent at any time (sets `enabled: false`)
+
+### Step 23: Integration tests
+- End-to-end: LLM generates app → user interacts → LLM reads data → LLM updates app
+- Permission enforcement tests (restricted tables never leak)
+- Token budget tests (query vs read)
+
+### Step 24: Event-driven data push (optional, post-Phase 3)
+- `dataAccess.events` declaration in manifest
+- Trigger conditions using `$when` syntax
+- Minimal payload on fire (single row or aggregate)
+- Webhook/SSE delivery to LLM
+
+---
+
 ## Commit strategy:
 1. First commit: scaffolding + types + design tokens
 2. Second commit: all 36 component schemas + base component

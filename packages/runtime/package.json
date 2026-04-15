@@ -1,0 +1,38 @@
+{
+  "name": "@forge/runtime",
+  "version": "0.1.0",
+  "description": "Forge UI runtime — Web Components for LLM-generated apps. Zero dependencies, 40KB gzip.",
+  "main": "forge.js",
+  "module": "forge.js",
+  "types": "forge.d.ts",
+  "exports": {
+    ".": "./forge.js",
+    "./standalone": "./forge-standalone.js",
+    "./components": "./forge-components.js"
+  },
+  "files": [
+    "forge.js",
+    "forge.d.ts",
+    "README.md"
+  ],
+  "keywords": [
+    "llm",
+    "web-components",
+    "ui",
+    "manifest",
+    "dynamic-ui",
+    "ai-generated",
+    "artifact",
+    "declarative"
+  ],
+  "author": "Davor Skulj",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/forge-ui/forge.git"
+  },
+  "peerDependencies": {},
+  "scripts": {
+    "postinstall": "echo 'Forge UI runtime installed. See https://forgeui.dev for docs.'"
+  }
+}

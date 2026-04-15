@@ -8,20 +8,43 @@
  * 4. Component catalog enforcement
  */
 
-import Ajv, { ValidateFunction } from 'ajv';
-import type { ForgeManifest, ForgeElement, ComponentType } from '../types/index.js';
+import Ajv from 'ajv';
+import type { ForgeManifest } from '../types/index.js';
 import { isValidComponentType, ALL_COMPONENT_TYPES } from '../catalog/registry.js';
 
 /** Dangerous URL schemes that must be rejected */
-const DANGEROUS_SCHEMES = ['javascript:', 'data:text/html', 'vbscript:', 'file:'];
+const DANGEROUS_SCHEMES = ['javascript:', 'data:text/html', 'data:text/javascript', 'data:application/javascript', 'vbscript:', 'file:'];
+
+/** Allowed URL schemes (everything else is rejected) */
+const ALLOWED_SCHEMES = [
+  'https:', 'http:',            // standard web
+  'data:image/',                // inline images (PNG, JPEG, SVG, WebP, GIF)
+  'data:font/',                 // inline fonts
+  'data:application/octet-stream', // generic binary (for download links)
+  'mailto:', 'tel:',            // communication
+  '#',                          // fragment-only links
+];
 
 /** Event handler patterns that must be stripped */
 const EVENT_HANDLER_RE = /^on[a-z]+$/i;
+
+/** Dangerous text patterns that might indicate injection attempts */
+const INJECTION_PATTERNS = [
+  /<\s*script/i,
+  /<\s*iframe/i,
+  /<\s*object/i,
+  /<\s*embed/i,
+  /javascript\s*:/i,
+  /data\s*:\s*text\/html/i,
+  /expression\s*\(/i,
+  /url\s*\(\s*javascript/i,
+];
 
 /** Validation result */
 export interface ValidationResult {
   valid: boolean;
   errors: ValidationError[];
+  warnings: ValidationError[];
 }
 
 export interface ValidationError {
@@ -44,7 +67,7 @@ function createAjv(): Ajv {
 const MANIFEST_SCHEMA = {
   type: 'object',
   required: ['manifest', 'id', 'root', 'elements'],
-  additionalProperties: false,
+  additionalProperties: true,
   properties: {
     manifest: { type: 'string', pattern: '^0\\.\\d+\\.\\d+$' },
     id: { type: 'string', minLength: 1, maxLength: 128 },
@@ -74,6 +97,17 @@ const MANIFEST_SCHEMA = {
     },
     actions: { type: 'object' },
     meta: { type: 'object' },
+    persistState: { type: 'boolean' },
+    skipPersistState: { type: 'boolean' },
+    dataAccess: {
+      type: 'object',
+      properties: {
+        enabled: { type: 'boolean' },
+        readable: { type: 'array', items: { type: 'string' } },
+        restricted: { type: 'array', items: { type: 'string' } },
+        summaries: { type: 'boolean' },
+      },
+    },
   },
 };
 
@@ -98,7 +132,7 @@ export function validateManifest(data: unknown): ValidationResult {
       });
     }
     // If schema validation fails, don't bother with deeper checks
-    return { valid: false, errors };
+    return { valid: false, errors, warnings: [] };
   }
   
   const manifest = data as ForgeManifest;
@@ -127,34 +161,103 @@ export function validateManifest(data: unknown): ValidationResult {
   
   return {
     valid: !errors.some(e => e.severity === 'error'),
-    errors,
+    errors: errors.filter(e => e.severity === 'error'),
+    warnings: errors.filter(e => e.severity !== 'error'),
   };
 }
 
-/** Check all URL values for dangerous schemes */
+/** Check all URL values for dangerous schemes and allowlist enforcement */
 function validateUrls(manifest: ForgeManifest, errors: ValidationError[]) {
   for (const [id, element] of Object.entries(manifest.elements)) {
     if (!element.props) continue;
     for (const [key, value] of Object.entries(element.props)) {
-      if (typeof value === 'string' && looksLikeUrl(value)) {
+      if (typeof value !== 'string') continue;
+
+      // Check for injection patterns in any string prop
+      for (const pattern of INJECTION_PATTERNS) {
+        if (pattern.test(value)) {
+          errors.push({
+            path: `/elements/${id}/props/${key}`,
+            message: `Potentially dangerous content detected (matches ${pattern.source})`,
+            severity: 'error',
+          });
+        }
+      }
+
+      // URL-specific checks
+      if (looksLikeUrl(value)) {
         const lower = value.toLowerCase().trim();
+
+        // Blacklist check — reject known dangerous schemes
         for (const scheme of DANGEROUS_SCHEMES) {
           if (lower.startsWith(scheme)) {
             errors.push({
               path: `/elements/${id}/props/${key}`,
-              message: `Dangerous URL scheme: ${scheme}`,
+              message: `Dangerous URL scheme rejected: ${scheme}`,
               severity: 'error',
             });
           }
         }
+
+        // Allowlist check — reject schemes not explicitly allowed
+        if (!ALLOWED_SCHEMES.some(s => lower.startsWith(s))) {
+          // Check if it's a data: URL that isn't in the allowlist
+          if (lower.startsWith('data:')) {
+            errors.push({
+              path: `/elements/${id}/props/${key}`,
+              message: `Data URL scheme not in allowlist: ${lower.split(';')[0]}`,
+              severity: 'warning',
+            });
+          }
+        }
       }
-      // Strip event handler patterns
+
+      // Event handler property names
       if (EVENT_HANDLER_RE.test(key)) {
         errors.push({
           path: `/elements/${id}/props/${key}`,
           message: `Event handler property not allowed: ${key}`,
           severity: 'error',
         });
+      }
+    }
+
+    // Check children array for injected content
+    if (element.children) {
+      for (const child of element.children) {
+        if (typeof child === 'string') {
+          for (const pattern of INJECTION_PATTERNS) {
+            if (pattern.test(child)) {
+              errors.push({
+                path: `/elements/${id}/children`,
+                message: `Potentially dangerous content in children: ${pattern.source}`,
+                severity: 'error',
+              });
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Also check action definitions for URL safety
+  if (manifest.actions) {
+    for (const [actionId, action] of Object.entries(manifest.actions)) {
+      if (action.data) {
+        for (const [key, value] of Object.entries(action.data)) {
+          if (typeof value === 'string' && looksLikeUrl(value)) {
+            const lower = value.toLowerCase().trim();
+            for (const scheme of DANGEROUS_SCHEMES) {
+              if (lower.startsWith(scheme)) {
+                errors.push({
+                  path: `/actions/${actionId}/data/${key}`,
+                  message: `Dangerous URL scheme in action data: ${scheme}`,
+                  severity: 'error',
+                });
+              }
+            }
+          }
+        }
       }
     }
   }

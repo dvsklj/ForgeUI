@@ -1,0 +1,24 @@
+{
+  "name": "@forge/catalog",
+  "version": "0.1.0",
+  "description": "Forge UI component catalog — 37 pre-built components for manifest-driven web apps.",
+  "main": "forge-catalog.js",
+  "types": "forge-catalog.d.ts",
+  "files": [
+    "forge-catalog.js",
+    "README.md"
+  ],
+  "keywords": [
+    "components",
+    "catalog",
+    "llm",
+    "web-components",
+    "manifest",
+    "schema"
+  ],
+  "author": "Davor Skulj",
+  "license": "MIT",
+  "dependencies": {
+    "ajv": "^8.17.0"
+  }
+}

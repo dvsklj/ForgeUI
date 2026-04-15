@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Forge Browser Test</title>
+  <script src="../dist/forge.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; }
+    body { font-family: system-ui, sans-serif; background: #f5f5f7; padding: 20px; }
+    h2 { margin: 20px 0 8px; font-size: 16px; color: #1d1d1f; }
+    .section { margin-bottom: 24px; padding: 16px; background: white; border-radius: 12px; border: 1px solid #e5e5e7; }
+    forge-app { display: block; min-height: 100px; }
+    .status { padding: 8px 12px; border-radius: 8px; font-size: 13px; margin-top: 8px; }
+    .pass { background: #d4edda; color: #155724; }
+    .fail { background: #f8d7da; color: #721c24; }
+    .info { background: #d1ecf1; color: #0c5460; }
+    pre { background: #f5f5f7; padding: 8px; border-radius: 6px; font-size: 12px; overflow-x: auto; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>🔬 Forge Browser Test</h1>
+
+  <!-- Test 1: Dashboard -->
+  <div class="section">
+    <h2>Test 1: Dashboard (37 components)</h2>
+    <forge-app id="dashboard-app" surface="standalone"></forge-app>
+  </div>
+
+  <!-- Test 2: Drawing Component -->
+  <div class="section">
+    <h2>Test 2: Drawing Component (shapes as data)</h2>
+    <forge-app id="drawing-app" surface="chat"></forge-app>
+  </div>
+
+  <!-- Test 3: A2UI Ingest -->
+  <div class="section">
+    <h2>Test 3: A2UI Payload Ingest</h2>
+    <forge-app id="a2ui-app" surface="chat"></forge-app>
+    <div id="a2ui-status"></div>
+  </div>
+
+  <!-- Test 4: catalog.prompt() -->
+  <div class="section">
+    <h2>Test 4: catalog.prompt() Tiers</h2>
+    <div id="prompt-status"></div>
+    <details>
+      <summary>Minimal prompt</summary>
+      <pre id="prompt-minimal"></pre>
+    </details>
+  </div>
+
+  <!-- Test 5: catalogToJsonSchema() -->
+  <div class="section">
+    <h2>Test 5: catalogToJsonSchema()</h2>
+    <div id="schema-status"></div>
+  </div>
+
+  <!-- Test 6: Inline script manifest -->
+  <div class="section">
+    <h2>Test 6: Inline Script Manifest</h2>
+    <script type="forge/manifest">
+    {
+      "manifest": "0.1.0",
+      "id": "inline-test",
+      "root": "root",
+      "elements": {
+        "root": {
+          "type": "Card",
+          "props": { "title": "Inline Manifest", "variant": "elevated" },
+          "children": ["msg"]
+        },
+        "msg": {
+          "type": "Text",
+          "props": { "content": "This app was loaded from an inline script tag!", "variant": "body" }
+        }
+      }
+    }
+    </script>
+    <forge-app></forge-app>
+    <div id="inline-status"></div>
+  </div>
+
+  <script>
+    function addStatus(id, pass, msg) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.className = 'status ' + (pass ? 'pass' : 'fail');
+        el.textContent = (pass ? '✅ ' : '❌ ') + msg;
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // ── Test 1: Dashboard ──
+      const dashboard = {
+        manifest: '0.1.0', id: 'dashboard-test', root: 'root',
+        state: { 'view/active': 'overview', 'goals/revenue': 50000 },
+        schema: {
+          version: 1,
+          tables: {
+            sales: { columns: { product: { type: 'string' }, amount: { type: 'number' }, region: { type: 'string' } } }
+          }
+        },
+        elements: {
+          root: { type: 'Stack', props: { gap: 'lg' }, children: ['header', 'tabs', 'metrics', 'content'] },
+          header: { type: 'Text', props: { content: 'Sales Dashboard', variant: 'heading1', weight: 'bold' } },
+          tabs: { type: 'Tabs', props: { items: ['Overview', 'Details', 'Settings'], bind: '$state:view/active' } },
+          metrics: { type: 'Stack', props: { direction: 'horizontal', gap: 'md' }, children: ['rev-metric', 'units-metric', 'trend-metric'] },
+          'rev-metric': { type: 'Metric', props: { label: 'Revenue', value: 42500, format: 'currency', prefix: '$', trend: 'up', goal: '$state:goals/revenue' } },
+          'units-metric': { type: 'Metric', props: { label: 'Units Sold', value: 1247, format: 'number', suffix: ' units' } },
+          'trend-metric': { type: 'Metric', props: { label: 'Growth', value: 12.5, format: 'percent', trend: 'up' } },
+          content: { type: 'Stack', props: { gap: 'md' }, children: ['data-card', 'actions-card', 'alert-card'] },
+          'data-card': { type: 'Card', props: { title: 'Recent Sales', variant: 'elevated' }, children: ['sales-table'] },
+          'sales-table': { type: 'Table', props: {
+            columns: [{ key: 'product', label: 'Product' }, { key: 'amount', label: 'Amount' }, { key: 'region', label: 'Region' }],
+            data: [
+              { product: 'Widget A', amount: '$1,200', region: 'North' },
+              { product: 'Widget B', amount: '$890', region: 'South' },
+              { product: 'Widget C', amount: '$2,100', region: 'East' }
+            ],
+            emptyMessage: 'No sales data'
+          }},
+          'actions-card': { type: 'Card', props: { title: 'Quick Actions', variant: 'outlined' }, children: ['btn-group'] },
+          'btn-group': { type: 'Stack', props: { direction: 'horizontal', gap: 'sm' }, children: ['btn-export', 'btn-refresh', 'btn-settings'] },
+          'btn-export': { type: 'Button', props: { label: 'Export CSV', variant: 'secondary' } },
+          'btn-refresh': { type: 'Button', props: { label: 'Refresh', variant: 'primary' } },
+          'btn-settings': { type: 'Button', props: { label: 'Settings', variant: 'ghost' } },
+          'alert-card': { type: 'Alert', props: { title: 'System Notice', message: 'Data syncs every 5 minutes', variant: 'info', dismissible: true } },
+        },
+        actions: {
+          export: { type: 'setState', path: 'action/export', value: 'clicked' },
+          refresh: { type: 'setState', path: 'action/refresh', value: 'clicked' },
+        }
+      };
+      document.getElementById('dashboard-app').setAttribute('manifest', JSON.stringify(dashboard));
+
+      // ── Test 2: Drawing ──
+      const drawing = {
+        manifest: '0.1.0', id: 'drawing-test', root: 'root',
+        elements: {
+          root: { type: 'Stack', props: { gap: 'md' }, children: ['title', 'diagram'] },
+          title: { type: 'Text', props: { content: 'Architecture Diagram', variant: 'heading2' } },
+          diagram: { type: 'Drawing', props: {
+            width: 500, height: 200,
+            shapes: [
+              { type: 'rect', x: 20, y: 60, width: 100, height: 60, rx: 12, fill: '#3B82F6', stroke: '#1D4ED8', strokeWidth: 2 },
+              { type: 'text', x: 70, y: 95, content: 'User', fill: '#fff', fontSize: 16, fontWeight: 'bold', textAnchor: 'middle' },
+              { type: 'rect', x: 200, y: 60, width: 120, height: 60, rx: 12, fill: '#10B981', stroke: '#059669', strokeWidth: 2 },
+              { type: 'text', x: 260, y: 95, content: 'Forge', fill: '#fff', fontSize: 16, fontWeight: 'bold', textAnchor: 'middle' },
+              { type: 'rect', x: 370, y: 60, width: 110, height: 60, rx: 12, fill: '#F59E0B', stroke: '#D97706', strokeWidth: 2 },
+              { type: 'text', x: 425, y: 95, content: 'Live App', fill: '#fff', fontSize: 16, fontWeight: 'bold', textAnchor: 'middle' },
+              { type: 'line', x1: 120, y1: 90, x2: 200, y2: 90, stroke: '#9CA3AF', strokeWidth: 2 },
+              { type: 'line', x1: 320, y1: 90, x2: 370, y2: 90, stroke: '#9CA3AF', strokeWidth: 2 },
+              { type: 'circle', cx: 250, cy: 160, r: 25, fill: '#8B5CF6', opacity: 0.7 },
+              { type: 'text', x: 250, y: 165, content: '✨', fontSize: 20, textAnchor: 'middle' },
+            ]
+          }}
+        }
+      };
+      document.getElementById('drawing-app').setAttribute('manifest', JSON.stringify(drawing));
+
+      // ── Test 3: A2UI Ingest ──
+      const a2uiPayload = {
+        type: 'adaptive-card',
+        version: '0.8',
+        content: [
+          { type: 'text', text: 'Welcome to A2UI!', weight: 'bolder', size: 'large' },
+          { type: 'text', text: 'This was rendered from an A2UI payload, not a Forge manifest.' },
+          { type: 'button', title: 'Click Me', action: { type: 'submit' } }
+        ]
+      };
+
+      // Check A2UI detection
+      const isDetected = typeof window.forge !== 'undefined' && window.forge.isA2UIPayload
+        ? window.forge.isA2UIPayload(a2uiPayload)
+        : 'checking via ingestPayload';
+
+      // Set the A2UI payload directly — ForgeApp should auto-detect and convert
+      document.getElementById('a2ui-app').setAttribute('manifest', JSON.stringify(a2uiPayload));
+
+      // ── Test 4: catalog.prompt() ──
+      if (window.forge && window.forge.catalogPrompt) {
+        const minimal = window.forge.catalogPrompt('minimal');
+        const def = window.forge.catalogPrompt('default');
+        const full = window.forge.catalogPrompt('full');
+
+        document.getElementById('prompt-minimal').textContent = minimal;
+
+        addStatus('prompt-status', true,
+          `catalogPrompt works. Minimal: ${minimal.length} chars, Default: ${def.length} chars, Full: ${full.length} chars`
+        );
+      } else {
+        addStatus('prompt-status', false, 'catalogPrompt not found in window.forge');
+      }
+
+      // ── Test 5: catalogToJsonSchema() ──
+      if (window.forge && window.forge.catalogToJsonSchema) {
+        const schema = window.forge.catalogToJsonSchema();
+        const hasElements = schema.properties && schema.properties.elements;
+        const hasType = schema.properties.elements.additionalProperties.oneOf !== undefined ||
+                        schema.properties.elements.additionalProperties.properties !== undefined;
+        addStatus('schema-status', hasElements,
+          `JSON Schema generated. Has elements: ${hasElements}, type enum: ${hasType}`
+        );
+      } else {
+        addStatus('schema-status', false, 'catalogToJsonSchema not found');
+      }
+
+      // ── Test 6: Inline script ──
+      const inlineApp = document.querySelector('#inline-status').previousElementSibling;
+      setTimeout(() => {
+        const hasContent = inlineApp && inlineApp.shadowRoot;
+        addStatus('inline-status', hasContent, 'Inline script manifest rendered');
+      }, 500);
+
+      // ── Final status ──
+      setTimeout(() => {
+        const allApps = document.querySelectorAll('forge-app');
+        let rendered = 0;
+        allApps.forEach(app => {
+          if (app.shadowRoot && app.shadowRoot.querySelector('style')) rendered++;
+        });
+        console.log(`[Forge Test] ${rendered}/${allApps.length} apps rendered`);
+      }, 1000);
+    });
+  </script>
+</body>
+</html>

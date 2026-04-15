@@ -1,0 +1,187 @@
+{
+  "manifest": "0.1.0",
+  "id": "settings-panel",
+  "meta": {
+    "title": "Application Settings",
+    "description": "Manage application configuration and preferences"
+  },
+  "state": {
+    "data": {
+      "preferences": {
+        "theme": "dark",
+        "language": "en",
+        "timezone": "Europe/Zurich",
+        "notifications": true,
+        "analytics": true,
+        "autoSave": true,
+        "fontSize": 14
+      }
+    }
+  },
+  "elements": {
+    "root": {
+      "type": "Stack",
+      "props": { "gap": "16", "padding": "24" },
+      "children": ["header", "alert-saved", "tabs-settings"]
+    },
+    "header": {
+      "type": "Card",
+      "props": { "title": "Application Settings", "subtitle": "Configure your preferences and integrations" },
+      "children": ["header-meta"]
+    },
+    "header-meta": {
+      "type": "Stack",
+      "props": { "direction": "horizontal", "gap": "8" },
+      "children": ["badge-version", "badge-env"]
+    },
+    "badge-version": {
+      "type": "Badge",
+      "props": { "text": "v2.1.0", "variant": "info" }
+    },
+    "badge-env": {
+      "type": "Badge",
+      "props": { "text": "Production", "variant": "success" }
+    },
+    "alert-saved": {
+      "type": "Alert",
+      "props": { "message": "Settings are saved automatically when changed.", "variant": "info" }
+    },
+    "tabs-settings": {
+      "type": "Tabs",
+      "props": {
+        "tabs": [
+          { "label": "General", "id": "general" },
+          { "label": "Notifications", "id": "notifications" },
+          { "label": "Security", "id": "security" },
+          { "label": "Integrations", "id": "integrations" }
+        ],
+        "activeTab": "general"
+      },
+      "children": ["tab-general", "tab-notifications", "tab-security", "tab-integrations"]
+    },
+    "tab-general": {
+      "type": "Container",
+      "props": { "slot": "general", "padding": "16" },
+      "children": ["general-fields"]
+    },
+    "general-fields": {
+      "type": "Stack",
+      "props": { "gap": "16" },
+      "children": ["theme-toggle", "select-lang", "select-tz", "slider-font", "toggle-autosave"]
+    },
+    "theme-toggle": {
+      "type": "Toggle",
+      "props": { "label": "Dark Mode", "value": true, "description": "Use dark theme for the application" }
+    },
+    "select-lang": {
+      "type": "Select",
+      "props": {
+        "label": "Language",
+        "options": [
+          { "value": "en", "label": "English" },
+          { "value": "de", "label": "Deutsch" },
+          { "value": "fr", "label": "Français" },
+          { "value": "it", "label": "Italiano" }
+        ],
+        "value": "en"
+      }
+    },
+    "select-tz": {
+      "type": "Select",
+      "props": {
+        "label": "Timezone",
+        "options": [
+          { "value": "Europe/Zurich", "label": "Europe/Zurich (CET)" },
+          { "value": "Europe/London", "label": "Europe/London (GMT)" },
+          { "value": "America/New_York", "label": "America/New_York (EST)" },
+          { "value": "Asia/Tokyo", "label": "Asia/Tokyo (JST)" }
+        ],
+        "value": "Europe/Zurich"
+      }
+    },
+    "slider-font": {
+      "type": "Slider",
+      "props": { "label": "Font Size", "min": 10, "max": 24, "value": 14, "showValue": true, "unit": "px" }
+    },
+    "toggle-autosave": {
+      "type": "Toggle",
+      "props": { "label": "Auto-Save", "value": true, "description": "Automatically save changes" }
+    },
+    "tab-notifications": {
+      "type": "Container",
+      "props": { "slot": "notifications", "padding": "16" },
+      "children": ["notif-fields"]
+    },
+    "notif-fields": {
+      "type": "Stack",
+      "props": { "gap": "16" },
+      "children": ["notif-toggle", "notif-email", "notif-slack"]
+    },
+    "notif-toggle": {
+      "type": "Toggle",
+      "props": { "label": "Push Notifications", "value": true, "description": "Receive browser notifications" }
+    },
+    "notif-email": {
+      "type": "Checkbox",
+      "props": { "label": "Email Digest (Daily)", "checked": true }
+    },
+    "notif-slack": {
+      "type": "Checkbox",
+      "props": { "label": "Slack Integration Alerts", "checked": false }
+    },
+    "tab-security": {
+      "type": "Container",
+      "props": { "slot": "security", "padding": "16" },
+      "children": ["security-content"]
+    },
+    "security-content": {
+      "type": "Stack",
+      "props": { "gap": "16" },
+      "children": ["alert-security", "toggle-2fa", "toggle-sessions"]
+    },
+    "alert-security": {
+      "type": "Alert",
+      "props": { "message": "Enable two-factor authentication for enhanced security.", "variant": "warning", "title": "Security Recommendation" }
+    },
+    "toggle-2fa": {
+      "type": "Toggle",
+      "props": { "label": "Two-Factor Authentication", "value": false, "description": "Add an extra layer of security" }
+    },
+    "toggle-sessions": {
+      "type": "Toggle",
+      "props": { "label": "Session Timeout (30 min)", "value": true, "description": "Auto-logout after inactivity" }
+    },
+    "tab-integrations": {
+      "type": "Container",
+      "props": { "slot": "integrations", "padding": "16" },
+      "children": ["integrations-content"]
+    },
+    "integrations-content": {
+      "type": "Stack",
+      "props": { "gap": "16" },
+      "children": ["int-table", "btn-add-integration"]
+    },
+    "int-table": {
+      "type": "Table",
+      "props": {
+        "data": [
+          { "name": "GitHub", "type": "OAuth", "status": "connected", "lastSync": "2 min ago" },
+          { "name": "Slack", "type": "Webhook", "status": "connected", "lastSync": "5 min ago" },
+          { "name": "Stripe", "type": "API Key", "status": "disconnected", "lastSync": "Never" },
+          { "name": "Sentry", "type": "DSN", "status": "connected", "lastSync": "1 hour ago" }
+        ],
+        "columns": [
+          { "key": "name", "label": "Integration", "type": "text" },
+          { "key": "type", "label": "Auth Type", "type": "text" },
+          { "key": "status", "label": "Status", "type": "badge", "badgeMap": { "connected": "success", "disconnected": "error" } },
+          { "key": "lastSync", "label": "Last Sync", "type": "text" }
+        ]
+      }
+    },
+    "btn-add-integration": {
+      "type": "Button",
+      "props": { "label": "Add Integration", "variant": "secondary" }
+    }
+  },
+  "root": "root"
+}

@@ -1,0 +1,148 @@
+{
+  "manifest": "0.1.0",
+  "id": "nutrition-tracker",
+  "meta": {
+    "title": "Nutrition Tracker",
+    "description": "Track daily meals and nutrition intake"
+  },
+  "schema": {
+    "version": 1,
+    "tables": {
+      "meals": {
+        "columns": {
+          "id": "string",
+          "name": "string",
+          "calories": "number",
+          "protein": "number",
+          "carbs": "number",
+          "fat": "number",
+          "mealType": "string",
+          "date": "string"
+        }
+      }
+    }
+  },
+  "state": {
+    "data": {
+      "meals": {
+        "meal-1": { "id": "meal-1", "name": "Oatmeal with Berries", "calories": 350, "protein": 12, "carbs": 55, "fat": 8, "mealType": "breakfast", "date": "2025-04-14" },
+        "meal-2": { "id": "meal-2", "name": "Grilled Chicken Salad", "calories": 420, "protein": 35, "carbs": 15, "fat": 22, "mealType": "lunch", "date": "2025-04-14" },
+        "meal-3": { "id": "meal-3", "name": "Salmon with Quinoa", "calories": 580, "protein": 40, "carbs": 45, "fat": 18, "mealType": "dinner", "date": "2025-04-14" }
+      }
+    }
+  },
+  "elements": {
+    "root": {
+      "type": "Stack",
+      "props": { "gap": "16", "padding": "24" },
+      "children": ["header", "summary-row", "meal-table", "add-form"]
+    },
+    "header": {
+      "type": "Card",
+      "props": { "title": "Nutrition Tracker", "subtitle": "Track your daily meals and macros" },
+      "children": ["badges"]
+    },
+    "badges": {
+      "type": "Stack",
+      "props": { "direction": "horizontal", "gap": "8" },
+      "children": ["badge-healthy", "badge-tracker"]
+    },
+    "badge-healthy": {
+      "type": "Badge",
+      "props": { "text": "Healthy Living", "variant": "success" }
+    },
+    "badge-tracker": {
+      "type": "Badge",
+      "props": { "text": "Daily Tracker", "variant": "info" }
+    },
+    "summary-row": {
+      "type": "Grid",
+      "props": { "columns": 4 },
+      "children": ["m-cal", "m-prot", "m-carb", "m-fat"]
+    },
+    "m-cal": {
+      "type": "Metric",
+      "props": { "label": "Calories", "value": "1,350", "trend": "up", "unit": "kcal" }
+    },
+    "m-prot": {
+      "type": "Metric",
+      "props": { "label": "Protein", "value": "87", "unit": "g" }
+    },
+    "m-carb": {
+      "type": "Metric",
+      "props": { "label": "Carbs", "value": "115", "unit": "g" }
+    },
+    "m-fat": {
+      "type": "Metric",
+      "props": { "label": "Fat", "value": "48", "unit": "g" }
+    },
+    "meal-table": {
+      "type": "Card",
+      "props": { "title": "Today's Meals" },
+      "children": ["table1"]
+    },
+    "table1": {
+      "type": "Table",
+      "props": {
+        "data": { "$expr": "state.data.meals | values" },
+        "columns": [
+          { "key": "name", "label": "Meal", "type": "text" },
+          { "key": "mealType", "label": "Type", "type": "badge", "badgeMap": { "breakfast": "warning", "lunch": "success", "dinner": "info" } },
+          { "key": "calories", "label": "Calories", "type": "number" },
+          { "key": "protein", "label": "Protein (g)", "type": "number" },
+          { "key": "carbs", "label": "Carbs (g)", "type": "number" },
+          { "key": "fat", "label": "Fat (g)", "type": "number" }
+        ],
+        "selectable": true
+      }
+    },
+    "add-form": {
+      "type": "Card",
+      "props": { "title": "Add Meal" },
+      "children": ["form-fields", "form-actions"]
+    },
+    "form-fields": {
+      "type": "Grid",
+      "props": { "columns": 2 },
+      "children": ["input-name", "input-cal", "input-prot", "select-type"]
+    },
+    "input-name": {
+      "type": "TextInput",
+      "props": { "label": "Meal Name", "placeholder": "e.g. Chicken Salad", "required": true }
+    },
+    "input-cal": {
+      "type": "NumberInput",
+      "props": { "label": "Calories", "min": 0, "max": 5000 }
+    },
+    "input-prot": {
+      "type": "NumberInput",
+      "props": { "label": "Protein (g)", "min": 0, "max": 300 }
+    },
+    "select-type": {
+      "type": "Select",
+      "props": {
+        "label": "Meal Type",
+        "options": [
+          { "value": "breakfast", "label": "Breakfast" },
+          { "value": "lunch", "label": "Lunch" },
+          { "value": "dinner", "label": "Dinner" },
+          { "value": "snack", "label": "Snack" }
+        ]
+      }
+    },
+    "form-actions": {
+      "type": "ButtonGroup",
+      "props": {},
+      "children": ["btn-add", "btn-clear"]
+    },
+    "btn-add": {
+      "type": "Button",
+      "props": { "label": "Add Meal", "variant": "primary", "disabled": true }
+    },
+    "btn-clear": {
+      "type": "Button",
+      "props": { "label": "Clear", "variant": "ghost" }
+    }
+  },
+  "root": "root"
+}

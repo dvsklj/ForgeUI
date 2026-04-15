@@ -201,3 +201,119 @@ Four validation layers:
 - Weeks 5-6: Validation + persistence
 - Weeks 7-8: Forge Server
 - Weeks 9-12: Demo, testing, release
+
+### Phase 2: Sandbox + Encryption (Weeks 13-20)
+
+- App-level sandboxing for user-generated manifests
+- Encryption layer for sensitive data fields
+- Enhanced validation pipeline
+
+### Phase 3: Auth + CRDT + Data Read Channel (Weeks 21-28)
+
+#### The Missing Loop: LLM Reads App Data
+
+Right now data flows one direction:
+
+```
+LLM → manifest → Forge → user interacts → data accumulates in TinyBase
+```
+
+Phase 3 closes the loop:
+
+```
+LLM → manifest → Forge → user interacts → data accumulates in TinyBase
+ ↑                                                                    │
+ └────────────── LLM reads data, reasons, updates app ←──────────────┘
+```
+
+This turns Forge from "LLM builds app for user" into **"LLM builds app with user."**
+
+#### Three additions, nothing else changes:
+
+**1. Manifest-level permission declaration**
+
+The user (or LLM at generation time, with consent) declares what the LLM can read:
+
+```json
+{
+  "dataAccess": {
+    "enabled": true,
+    "readable": ["workouts", "exercises"],
+    "restricted": ["user_profile"],
+    "summaries": true
+  }
+}
+```
+
+- `enabled: false` (default) — LLM cannot read any app data. The app is a sealed box.
+- `enabled: true` — LLM can read tables in `readable`. Tables in `restricted` are never sent.
+- `summaries: true` — Forge Server can compute aggregates instead of sending raw rows.
+
+User sees consent prompt: "This app allows the AI to read your workout and exercise data to provide personalized updates."
+
+**2. Two MCP tools for reading**
+
+`forge_read_app_data` — returns raw rows from permitted tables:
+```
+Input: { app_id, tables: ["workouts"], limit: 20, since: "2026-04-01" }
+Output: { schema, data: { workouts: [...rows] }, rowCounts: { workouts: 147 } }
+```
+
+`forge_query_app_data` — returns aggregated summaries (token-efficient):
+```
+Input: { app_id, queries: [{ table: "workouts", aggregate: "max", column: "weight", groupBy: "exercise" }] }
+Output: { results: [{ data: { "Bench Press": 85, "Squat": 110 } }] }
+```
+
+Supported aggregates: `count`, `max`, `min`, `avg`, `trend`, `sum`, `distinct`.
+
+**3. The interaction loop in practice**
+
+Example — workout tracker:
+- **Week 1:** LLM generates manifest with workout plan, exercise table, logging form. Sets `dataAccess.enabled: true` with user consent. Deploys via `forge_create_app`.
+- **Week 3:** User asks "how am I doing?" LLM calls `forge_query_app_data` — gets trends per exercise, consistency, volume progression. Reasons: squat plateauing, bench progressing well, leg day skipped twice.
+- **LLM acts:** Calls `forge_update_app` with a manifest patch — adjusts squat scheme from 5×5 to 3×8 for deload, adds reminder Alert for leg day, updates bench press Metric goal. User sees updated plan, no manual editing.
+
+Key invariant: **The LLM never touches the user's logged data.** It reads it (with permission), reasons about it, and updates the manifest (app structure/plan). Workout logs stay untouched in TinyBase. The LLM modifies the app *around* the data.
+
+#### Token cost analysis
+
+| Approach | Tokens per interaction |
+|----------|----------------------|
+| Dump entire TinyBase store | ~2,000–10,000 (scales with data) |
+| `forge_read_app_data` with limit + since | ~200–500 (bounded) |
+| `forge_query_app_data` with aggregates | ~50–150 (minimal) |
+| Event-driven push (single row) | ~30–80 (tiny) |
+
+#### Future: Event-driven data push (post-Phase 3)
+
+For proactive updates — the app notifies the LLM when something interesting happens:
+
+```json
+{
+  "dataAccess": {
+    "enabled": true,
+    "readable": ["workouts"],
+    "events": {
+      "workout_completed": {
+        "trigger": { "$when": { "path": "workouts/_lastInsert", "exists": true } },
+        "include": { "table": "workouts", "limit": 1, "order": "desc" }
+      },
+      "streak_broken": {
+        "trigger": { "$when": { "path": "stats/daysSinceLastWorkout", "gt": 3 } },
+        "include": { "query": { "table": "workouts", "aggregate": "count", "where": { "date": { "gte": "-7d" } } } }
+      }
+    }
+  }
+}
+```
+
+When the user logs a workout, the event fires with just that one row. When they miss 3 days, the event fires with their recent frequency. The LLM can proactively send encouragement or adjust the plan.
+
+### Phase 4: Enterprise (Weeks 29-36)
+
+- Multi-tenant isolation
+- SSO/OIDC integration
+- Audit logging
+- Compliance (GDPR, SOC2)
+- Advanced Cloud features

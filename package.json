@@ -5,6 +5,9 @@
   "type": "module",
   "main": "dist/forge.js",
   "types": "dist/forge.d.ts",
+  "bin": {
+    "forge": "bin/forge"
+  },
   "exports": {
     ".": "./dist/forge.js",
     "./core": "./dist/forge-core.js",
@@ -14,7 +17,10 @@
   "scripts": {
     "build": "node build.mjs",
     "build:artifact": "node build.mjs --mode=artifact",
+    "build:server": "node build.mjs --mode=server",
+    "build:connect": "node build.mjs --mode=connect",
     "dev": "node src/server/dev.ts",
+    "serve": "node dist/forge-server.js",
     "test": "node --test --import tsx tests/**/*.test.ts",
     "typecheck": "tsc --noEmit",
     "size": "node build.mjs && gzip -c dist/forge.js | wc -c"
@@ -33,7 +39,11 @@
   "license": "MIT",
   "private": false,
   "dependencies": {
+    "@hono/node-server": "^1.19.14",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "ajv": "^8.17.0",
+    "better-sqlite3": "^12.9.0",
+    "hono": "^4.12.14",
     "lit": "^3.2.0",
     "tinybase": "^5.4.0",
     "zod": "^3.23.0"

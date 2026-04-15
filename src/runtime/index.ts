@@ -6,59 +6,78 @@
  * Creates a TinyBase store, validates the manifest, and renders the element tree.
  */
 
-import { LitElement, html, PropertyValues, nothing } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import { Store, createStore } from 'tinybase';
+import { LitElement, html } from 'lit';
+import { Store } from 'tinybase';
 import type { ForgeManifest, SurfaceMode } from '../types/index.js';
 import { createForgeStore, executeAction } from '../state/index.js';
 import { validateManifest, ValidationResult } from '../validation/index.js';
 import { renderManifest, RenderContext } from '../renderer/index.js';
 import { tokenStyles, surfaceStyles } from '../tokens/index.js';
 import { catalogPrompt, catalogToJsonSchema } from '../catalog/registry.js';
+import { ingestPayload } from '../a2ui/index.js';
+import { createForgePersister, type ForgePersister, type PersisterStatus, type PersisterMode } from './persister.js';
+import { UndoRedoStack, type UndoRedoState } from './undo-redo.js';
 
 // Import all components to register them
 import '../components/index.js';
 
-@customElement('forge-app')
 export class ForgeApp extends LitElement {
   static styles = [tokenStyles, surfaceStyles];
 
-  /** Manifest as a JS object */
-  @property({ type: Object })
-  manifest?: ForgeManifest;
+  static get properties() {
+    return {
+      manifest: { type: Object },
+      src: { type: String },
+      surface: { type: String, reflect: true },
+      colorScheme: { type: String, reflect: true },
+    };
+  }
 
-  /** Manifest as a JSON string (alternative to object) */
-  @property({ type: String })
-  src?: string;
+  declare manifest?: ForgeManifest;
+  declare src?: string;
+  declare surface: SurfaceMode;
+  declare colorScheme?: 'light' | 'dark';
 
-  /** Surface mode: chat, standalone, or embed */
-  @property({ type: String, reflect: true })
-  surface: SurfaceMode = 'standalone';
-
-  /** Color scheme override: light or dark. Auto-detects if unset. */
-  @property({ type: String, reflect: true })
-  colorScheme?: 'light' | 'dark';
-
-  /** Active view state (for navigation) */
-  @state()
   private _activeView = '';
-
-  /** TinyBase store */
   private _store?: Store;
-
-  /** Validation result */
-  @state()
   private _validation?: ValidationResult;
-
-  /** Parsed manifest */
   private _parsedManifest?: ForgeManifest;
+  private _persister: ForgePersister | null = null;
+  private _undoStack: UndoRedoStack = new UndoRedoStack(50);
+
+  constructor() {
+    super();
+    this.surface = 'standalone';
+  }
 
   connectedCallback() {
     super.connectedCallback();
+    this._readInlineManifest();
     this._initManifest();
   }
 
-  updated(changed: PropertyValues) {
+  async disconnectedCallback(): Promise<void> {
+    super.disconnectedCallback();
+    if (this._persister) {
+      await this._persister.destroy();
+      this._persister = null;
+    }
+  }
+
+  /** Read manifest from an inline <script type="application/json"> child */
+  private _readInlineManifest() {
+    if (this.manifest) return;
+    const script = this.querySelector('script[type="application/json"]');
+    if (script?.textContent) {
+      try {
+        this.manifest = JSON.parse(script.textContent);
+      } catch (e) {
+        console.error('[Forge] Failed to parse inline manifest JSON:', e);
+      }
+    }
+  }
+
+  updated(changed: Map<string, unknown>) {
     if (changed.has('manifest') || changed.has('src')) {
       this._initManifest();
     }
@@ -82,17 +101,15 @@ export class ForgeApp extends LitElement {
 
     if (!manifest) return;
 
+    // Auto-detect A2UI payloads and convert to Forge manifest
+    manifest = ingestPayload(manifest);
+
     // Validate
     const result = validateManifest(manifest);
     this._validation = result;
 
     if (!result.valid) {
       console.error('[Forge] Manifest validation failed:', result.errors);
-      this.dispatchEvent(new CustomEvent('forge-error', {
-        detail: { errors: result.errors },
-        bubbles: true,
-        composed: true,
-      }));
       // Still try to render — show errors inline
     }
 
@@ -106,6 +123,12 @@ export class ForgeApp extends LitElement {
 
     // Set initial active view from root
     this._activeView = manifest.root;
+
+    // Setup persistence (async, non-blocking)
+    this._setupPersistence(manifest);
+
+    // Push initial state to undo stack
+    this._undoStack.push(manifest);
 
     // Signal ready
     this.dispatchEvent(new CustomEvent('forge-ready', {
@@ -140,13 +163,54 @@ export class ForgeApp extends LitElement {
         <div style="color:var(--forge-color-error);font-weight:var(--forge-weight-semibold);margin-bottom:var(--forge-space-sm)">
           Manifest Validation Errors
         </div>
-        ${errors.map(e => html`
+        ${errors.map((e: any) => html`
           <div style="font-size:var(--forge-text-sm);color:var(--forge-color-text-secondary);margin-bottom:var(--forge-space-2xs)">
             <code>${e.path}</code>: ${e.message}
           </div>
         `)}
       </div>
     `;
+  }
+
+  /** ─── Persistence ──────────────────────────────────────────── */
+
+  private async _setupPersistence(manifest: ForgeManifest) {
+    if (!this._store) return;
+
+    // Destroy previous persister if any
+    if (this._persister) {
+      await this._persister.destroy();
+      this._persister = null;
+    }
+
+    // Determine mode
+    let mode: PersisterMode;
+    const surface = this.surface;
+
+    if ((manifest as any).persistState === true) {
+      mode = 'indexeddb';
+    } else if ((manifest as any).skipPersistState === true) {
+      mode = 'none';
+    } else {
+      // Auto-detect: persistent for standalone/embed, none for chat
+      mode = (surface === 'standalone' || surface === 'embed') ? 'indexeddb' : 'none';
+    }
+
+    if (mode === 'none') return;
+
+    // Create and start persister
+    this._persister = createForgePersister(this._store, manifest.id, mode);
+    try {
+      await this._persister.start();
+    } catch {
+      // IndexedDB unavailable — app still works in-memory
+      this._persister = null;
+    }
+  }
+
+  /** Get persistence status. */
+  getPersistenceStatus(): PersisterStatus | null {
+    return this._persister?.getStatus() ?? null;
   }
 
   private _handleAction(actionId: string, payload?: Record<string, unknown>) {
@@ -181,29 +245,12 @@ export class ForgeApp extends LitElement {
         break;
       }
       
-      case 'openDialog': {
-        // TODO: implement dialog management
-        break;
-      }
-      
-      case 'closeDialog': {
-        // TODO: implement dialog management
-        break;
-      }
-      
-      case 'toast': {
-        // TODO: implement toast system
-        break;
-      }
-      
       case 'callApi': {
-        // Ring 2+ feature
         console.warn('[Forge] callApi requires Forge Server (Ring 2+)');
         break;
       }
       
       default: {
-        // Dispatch as custom event for external handling
         this.dispatchEvent(new CustomEvent('forge-action', {
           detail: { action: actionId, payload, definition: action },
           bubbles: true,
@@ -215,38 +262,62 @@ export class ForgeApp extends LitElement {
 
   // ─── Public API ──────────────────────────────────────────────
 
-  /** Get the TinyBase store (for external manipulation) */
   getStore(): Store | undefined {
     return this._store;
   }
 
-  /** Get the manifest */
   getManifest(): ForgeManifest | undefined {
     return this._parsedManifest;
   }
 
-  /** Get validation results */
   getValidation(): ValidationResult | undefined {
     return this._validation;
   }
 
-  /** Programmatically trigger an action */
   dispatchAction(actionId: string, payload?: Record<string, unknown>) {
     this._handleAction(actionId, payload);
   }
 
-  // ─── Static API ──────────────────────────────────────────────
-
-  /** Get the LLM system prompt for the component catalog */
-  static catalogPrompt(): string {
-    return catalogPrompt();
+  /** Push a manifest update to the undo stack (for LLM-driven updates). */
+  pushManifestUpdate(manifest: ForgeManifest): void {
+    this._undoStack.push(manifest);
   }
 
-  /** Get the JSON Schema for LLM structured output */
+  /** Undo the last manifest change. Returns the restored manifest, or null. */
+  undo(): ForgeManifest | null {
+    const prev = this._undoStack.undo();
+    if (prev) {
+      this.manifest = prev;
+      this.requestUpdate();
+    }
+    return prev;
+  }
+
+  /** Redo an undone manifest change. Returns the restored manifest, or null. */
+  redo(): ForgeManifest | null {
+    const next = this._undoStack.redo();
+    if (next) {
+      this.manifest = next;
+      this.requestUpdate();
+    }
+    return next;
+  }
+
+  /** Get undo/redo state. */
+  getUndoRedoState(): UndoRedoState {
+    return this._undoStack.getState();
+  }
+
+  static catalogPrompt(tier?: 'minimal' | 'default' | 'full'): string {
+    return catalogPrompt(tier);
+  }
+
   static catalogJsonSchema(): object {
     return catalogToJsonSchema();
   }
 }
+
+customElements.define('forge-app', ForgeApp);
 
 declare global {
   interface HTMLElementTagNameMap {

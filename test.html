@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ForgeUI Demo — Task Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f5f5f7;
+      color: #1d1d1f;
+      padding: 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .subtitle { color: #86868b; font-size: 0.875rem; margin-bottom: 1.5rem; }
+    .surface-tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+    .surface-tab { padding: 6px 16px; border-radius: 8px; border: 1px solid #d2d2d7; background: white;
+      cursor: pointer; font: inherit; font-size: 0.8rem; transition: all 0.15s; }
+    .surface-tab:hover { background: #e8e8ed; }
+    .surface-tab.active { background: #1d1d1f; color: white; border-color: #1d1d1f; }
+  </style>
+</head>
+<body>
+  <h1>ForgeUI Demo — Task Tracker</h1>
+  <p class="subtitle">Live render from a ForgeApp manifest • Ring 0 + Ring 1</p>
+
+  <div class="surface-tabs">
+    <button class="surface-tab active" onclick="setSurface('standalone', this)">Standalone</button>
+    <button class="surface-tab" onclick="setSurface('chat', this)">Chat Artifact</button>
+    <button class="surface-tab" onclick="setSurface('embed', this)">Embedded</button>
+  </div>
+
+  <forge-app id="demo">
+    <script type="application/json">
+    {
+      "id": "demo-task-tracker",
+      "name": "Task Tracker",
+      "version": "0.1.0",
+      "manifest": "0.1.0",
+      "root": "root-layout",
+      "elements": {
+        "root-layout": {
+          "type": "Stack",
+          "props": { "direction": "column", "gap": "lg" },
+          "children": ["header-card", "add-form", "tasks-card", "filters-card"]
+        },
+        "header-card": {
+          "type": "Card",
+          "props": { "variant": "elevated" },
+          "children": ["metrics-row"]
+        },
+        "metrics-row": {
+          "type": "Stack",
+          "props": { "direction": "row", "gap": "lg" },
+          "children": ["total-metric", "completed-metric", "streak-metric"]
+        },
+        "total-metric": {
+          "type": "Metric",
+          "props": { "label": "Total Tasks", "value": 5 }
+        },
+        "completed-metric": {
+          "type": "Metric",
+          "props": { "label": "Completed", "value": 2, "trend": 12 }
+        },
+        "streak-metric": {
+          "type": "Metric",
+          "props": { "label": "Streak", "value": 7, "suffix": " days" }
+        },
+        "add-form": {
+          "type": "Card",
+          "props": { "variant": "outline" },
+          "children": ["form-text", "form-fields"]
+        },
+        "form-text": {
+          "type": "Text",
+          "props": { "content": "Add New Task", "variant": "subheading" }
+        },
+        "form-fields": {
+          "type": "Stack",
+          "props": { "direction": "row", "gap": "sm" },
+          "children": ["task-input", "priority-select", "add-btn"]
+        },
+        "task-input": {
+          "type": "TextInput",
+          "props": { "placeholder": "What needs to be done?", "value": "" }
+        },
+        "priority-select": {
+          "type": "Select",
+          "props": {
+            "options": [
+              { "value": "low", "label": "Low" },
+              { "value": "medium", "label": "Medium" },
+              { "value": "high", "label": "High" }
+            ],
+            "value": "medium"
+          }
+        },
+        "add-btn": {
+          "type": "Button",
+          "props": { "label": "Add", "variant": "primary" }
+        },
+        "tasks-card": {
+          "type": "Card",
+          "children": ["tasks-title", "tasks-table"]
+        },
+        "tasks-title": {
+          "type": "Text",
+          "props": { "content": "Task List", "variant": "subheading" }
+        },
+        "tasks-table": {
+          "type": "Table",
+          "props": {
+            "columns": [
+              { "key": "task", "label": "Task", "width": "50%" },
+              { "key": "priority", "label": "Priority" },
+              { "key": "status", "label": "Status" }
+            ],
+            "data": [
+              { "task": "Fix deployment pipeline", "priority": "High", "status": "Done" },
+              { "task": "Write unit tests", "priority": "High", "status": "In Progress" },
+              { "task": "Update documentation", "priority": "Medium", "status": "To Do" },
+              { "task": "Review PR #42", "priority": "Medium", "status": "Done" },
+              { "task": "Set up monitoring", "priority": "Low", "status": "To Do" }
+            ],
+            "emptyMessage": "No tasks yet!"
+          }
+        },
+        "filters-card": {
+          "type": "Card",
+          "props": { "variant": "compact" },
+          "children": ["filters-row"]
+        },
+        "filters-row": {
+          "type": "Stack",
+          "props": { "direction": "row", "gap": "sm" },
+          "children": ["filter-label", "all-btn", "active-btn", "done-btn"]
+        },
+        "filter-label": {
+          "type": "Text",
+          "props": { "content": "Filter:", "variant": "caption", "colorScheme": "secondary" }
+        },
+        "all-btn": {
+          "type": "Button",
+          "props": { "label": "All", "variant": "ghost", "size": "sm" }
+        },
+        "active-btn": {
+          "type": "Button",
+          "props": { "label": "Active", "variant": "ghost", "size": "sm" }
+        },
+        "done-btn": {
+          "type": "Button",
+          "props": { "label": "Done", "variant": "ghost", "size": "sm" }
+        }
+      },
+      "actions": {}
+    }
+    </script>
+  </forge-app>
+
+  <p class="subtitle" style="margin-top:2rem">ForgeUI v0.1.0 • 36 components • 281KB inline</p>
+
+  <script src="dist/forge.js"></script>
+  <script>
+    function setSurface(mode, btn) {
+      document.querySelectorAll('.surface-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const app = document.getElementById('demo');
+      if (app) app.setAttribute('surface', mode);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "name": "@forge/connect",
+  "version": "0.1.0",
+  "description": "Forge UI MCP connector — let AI agents create and manage Forge apps via Model Context Protocol.",
+  "main": "forge-connect.mjs",
+  "bin": {
+    "forge-connect": "bin/forge-connect"
+  },
+  "files": [
+    "forge-connect.mjs",
+    "bin/",
+    "README.md"
+  ],
+  "keywords": [
+    "mcp",
+    "llm",
+    "ai-agent",
+    "model-context-protocol",
+    "forge-ui"
+  ],
+  "author": "Davor Skulj",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
