@@ -167,17 +167,22 @@ happens to existing manifests when the format changes.
 
 ### Catalog: core vs extended
 
-The catalog today is **37 components**. For LLM reliability and testing
-discipline, we split it into two tiers:
+The catalog today is **39 components** (18 core + 21 extended, pending tier
+review for two). For LLM reliability and testing discipline, we split it
+into two tiers:
 
 - **Core (18):** the components the LLM is told about by default in
   `catalog.prompt('core')`, and the components every release must pass full
   a11y, LLM-reliability, and visual regression tests on. Shipped in the
   base runtime.
-- **Extended (19):** components lazy-loaded or opted-in via
+- **Extended (21):** components lazy-loaded or opted-in via
   `catalog.prompt('full')`. These must pass the same tests to stay in
   extended, but the prompt budget and reliability bar for the LLM is
   measured on the core set.
+
+> TODO(tier): `forge-error` and `forge-drawing` were added without a tier
+> assignment. Pending Davor's review, they are currently counted as
+> "extended" in the headline number (18 core + 21 extended = 39).
 
 | Tier | Category | Components |
 |------|----------|-----------|
@@ -555,9 +560,19 @@ payloads. This flips the loop from LLM-polls-app to app-pushes-LLM.
 
 ### Current state (see STATUS.md for live numbers)
 
-- `@forge/runtime` IIFE: ~308 KB raw, ~40 KB gzipped.
-- This is the *Core* runtime only — server and connector are separate
-  packages.
+| Bundle                | Raw    | Gzip    | Use case                      |
+|-----------------------|--------|---------|-------------------------------|
+| IIFE (CDN)            | 334 KB | 95 KB   | `<script>`-tag, zero build    |
+| ESM standalone        | 173 KB | 41.6 KB | Modern bundler, whole runtime |
+| ESM per-component     | 63.8 KB | 14.3 KB | Tree-shaking consumers        |
+
+The IIFE pays ~53 KB (raw) for inlining Ajv (~25 KB gzip), Zod (~14 KB
+gzip), and TinyBase (~13 KB gzip). ESM externalizes two of those three by
+default. Per-component entry points are not yet exposed — the 14.3 KB
+figure is the best case once component splitting is complete.
+
+This is the *Core* runtime only — server and connector are separate
+packages.
 
 ### Per-component code splitting
 
@@ -574,13 +589,22 @@ import '@forge/runtime/components/table';             // +~2 KB gz
 `sideEffects` is narrowly scoped to component registration files so
 tree-shakers keep everything else. Goal: a consumer importing only core
 components pays ≤25 KB gzipped; a consumer importing everything pays
-the full ~40 KB. This is what makes growing the catalog cheap for us
+the full ~41.6 KB ESM bundle (or ~95 KB IIFE on CDN). This is what makes growing the catalog cheap for us
 and for them.
 
 ### Size discipline
 
 `size-limit` CI check fails the build if any entry point exceeds its
 budget by >5%. Every new component ships with its own budget row.
+
+### Size honesty
+
+The single-number claim "~40 KB gzipped" in prior revisions of this doc
+referred specifically to the ESM standalone bundle and was reported in the
+audit as 41.6 KB — within rounding. The IIFE build is 95 KB because it
+inlines Ajv, Zod, and TinyBase, none of which need to ship on the runtime
+path. Shrinking the IIFE to match the ESM number is tracked in open work:
+`docs/performance/2026-04-bundle-audit.md §"Next steps"`.
 
 ---
 
@@ -591,7 +615,7 @@ Both under-counted reality. The numbers below are honest.
 
 ### Phase 1 — MVP (shipped)
 
-Core runtime, Ring 2 server, MCP connector, 37 components, validation
+Core runtime, Ring 2 server, MCP connector, 39 components, validation
 pipeline, design tokens, benchmarks, A2UI ingest. See STATUS.md for
 current test results. Remaining cleanup: chart z-index bug, open CORS,
 auth middleware, body size limits.
@@ -605,7 +629,7 @@ auth middleware, body size limits.
 - JSON Merge Patch for incremental updates
 - WebSocket sync for multi-device persistence
 - Declarative schema migration execution
-- Component a11y deep audit (WCAG 2.2 AA on all 37)
+- Component a11y deep audit (WCAG 2.2 AA on all 39)
 - Expression-language formal parser + fuzz harness
 
 ### Phase 3 — data read channel (specced, see §9)

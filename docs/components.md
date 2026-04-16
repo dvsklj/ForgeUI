@@ -1,6 +1,6 @@
 # Component Catalog
 
-All 37 components available in the Forge runtime, organized by category.
+All 39 components available in the Forge runtime, organized by category.
 
 ---
 
@@ -429,6 +429,30 @@ Notification banner.
 | `message` | string | — | Alert text |
 | `variant` | string | `"info"` | `"success"`, `"warning"`, `"error"`, `"info"` |
 | `title` | string | — | Optional heading |
+
+### Error
+
+(tier: TBD — pending review)
+
+Error boundary / fallback display for invalid manifests or failed renders.
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `message` | string | — | Error message to display |
+| `details` | string | — | Optional technical details |
+
+### Drawing
+
+(tier: TBD — pending review)
+
+Canvas-based drawing surface.
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `width` | number | `400` | Canvas width in px |
+| `height` | number | `300` | Canvas height in px |
+| `tool` | string | `"pen"` | Drawing tool (`"pen"`, `"eraser"`) |
+| `color` | string | `"#000"` | Stroke color |
 
 ---
 

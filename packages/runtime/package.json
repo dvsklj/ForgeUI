@@ -1,7 +1,7 @@
 {
   "name": "@forge/runtime",
   "version": "0.1.0",
-  "description": "Forge UI runtime — Web Components for LLM-generated apps. Zero dependencies, 40KB gzip.",
+  "description": "Client-side renderer for Forge declarative UI manifests. ESM bundle ~42 KB gzipped; IIFE/CDN ~95 KB gzipped.",
   "main": "forge.js",
   "module": "forge.js",
   "types": "forge.d.ts",

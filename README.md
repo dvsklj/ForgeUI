@@ -2,7 +2,7 @@
 
 **Declarative UI manifests for AI agents.**
 
-A JSON manifest describes a web app — components, state, data schema, layout. The Forge runtime renders it as a live, interactive web application. No build step. No framework lock-in. One 40KB bundle.
+A JSON manifest describes a web app — components, state, data schema, layout. The Forge runtime renders it as a live, interactive web application. No build step. No framework lock-in. One ESM bundle at ~42 KB gzipped.
 
 ```
 LLM generates JSON  →  Forge runtime renders  →  Live web app
@@ -27,11 +27,11 @@ This makes LLM-generated UIs reliable, secure, and instant to deploy.
 │  <forge-app> custom element (Lit-based Web Component)   │
 │  ├── TinyBase reactive state store                      │
 │  ├── Ajv JSON Schema validation                         │
-│  ├── 37 pre-built components                            │
+│  ├── 39 pre-built components                            │
 │  └── Expression engine ($expr: "state.data.items | values") │
 │                                                         │
-│  ~308KB uncompressed, ~40KB gzip                        │
-│  Zero external dependencies                             │
+│  173 KB raw, ~42 KB gzip (ESM)                          │
+│  IIFE/CDN: 334 KB raw, ~95 KB gzip                      │
 │  Works: artifacts, embeds, iframes, standalone pages    │
 └────────────────────────┬────────────────────────────────┘
                          │ JSON manifest
@@ -313,7 +313,7 @@ See [SECURITY-REVIEW.md](./SECURITY-REVIEW.md) for the full security analysis.
 
 | Metric | Value |
 |--------|-------|
-| Runtime bundle | 308 KB (uncompressed) / ~40 KB gzip |
+| Runtime bundle | 334 KB raw, ~95 KB gzip (IIFE); 173 KB raw, ~42 KB gzip (ESM) |
 | Parse 100-element manifest | 0.066ms |
 | Parse 1000-element manifest | 0.75ms |
 | Parse 5000-element manifest | 4.0ms |
