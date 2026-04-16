@@ -136,6 +136,12 @@ export class ForgeApp extends LitElement {
       bubbles: true,
       composed: true,
     }));
+
+    // _initManifest() runs in both connectedCallback and updated(); in the
+    // latter case Lit has already completed its render pass before we set
+    // _parsedManifest/_store, so nothing would re-render without an explicit
+    // request. This makes `app.manifest = obj` after connection work reliably.
+    this.requestUpdate();
   }
 
   render() {
