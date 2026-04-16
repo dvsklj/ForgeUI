@@ -15,35 +15,70 @@ import { ForgeElement } from './base.js';
 export class ForgeStack extends ForgeElement {
   static get properties() { return { props: { type: Object } }; }
   static get styles() { return css`
-    :host { display: flex; }
-    :host([direction="row"]) { flex-direction: row; }
+    :host { display: flex; flex-direction: column; min-width: 0; }
+    :host([direction="row"]) { flex-direction: row; flex-wrap: wrap; }
     :host([direction="column"]) { flex-direction: column; }
+    :host([align="start"]) { align-items: flex-start; }
     :host([align="center"]) { align-items: center; }
     :host([align="end"]) { align-items: flex-end; }
-    :host([wrap="true"]) { flex-wrap: wrap; }
+    :host([align="stretch"]) { align-items: stretch; }
+    :host([justify="start"]) { justify-content: flex-start; }
+    :host([justify="center"]) { justify-content: center; }
+    :host([justify="end"]) { justify-content: flex-end; }
+    :host([justify="between"]) { justify-content: space-between; }
+    :host([justify="around"]) { justify-content: space-around; }
+    :host([wrap]) { flex-wrap: wrap; }
+    :host([nowrap]) { flex-wrap: nowrap; }
   `; }
   render() {
-    const d = this.getString('direction', 'column');
+    // Normalize direction tokens (row/column + horizontal/vertical)
+    const rawDir = this.getString('direction', 'column');
+    const d = (rawDir === 'horizontal' || rawDir === 'row') ? 'row' : 'column';
     const g = this.getString('gap', 'md');
     const p = this.getString('padding', '');
     const a = this.getString('align', '');
+    const j = this.getString('justify', '');
+    const wrap = this.getBool('wrap');
     const gapCSS = this.gapValue(g);
-    const padCSS = p ? `var(--forge-space-${p}, 0)` : '0';
+    const padCSS = p ? `var(--forge-space-${p}, var(--forge-space-md))` : '0';
     this.setAttribute('direction', d);
     if (a) this.setAttribute('align', a);
-    return html`<slot style="gap:${gapCSS};padding:${padCSS}"></slot>`;
+    if (j) this.setAttribute('justify', j);
+    if (wrap) this.setAttribute('wrap', '');
+    // Apply layout CSS on the host, not the slot — slot styles don't cascade reliably
+    this.style.gap = gapCSS;
+    this.style.padding = padCSS;
+    return html`<slot></slot>`;
   }
 }
 customElements.define('forge-stack', ForgeStack);
 
 export class ForgeGrid extends ForgeElement {
   static get properties() { return { props: { type: Object } }; }
-  static get styles() { return css`:host { display: grid; }`; }
+  static get styles() { return css`
+    :host { display: grid; min-width: 0; }
+    @media (max-width: 640px) {
+      :host([responsive]) { grid-template-columns: 1fr !important; }
+    }
+  `; }
   render() {
-    const cols = this.getString('columns', '1');
+    const rawCols = this.getProp('columns');
+    let cols: string;
+    if (typeof rawCols === 'number') cols = String(rawCols);
+    else if (typeof rawCols === 'string' && rawCols) cols = rawCols;
+    else cols = '1';
+    // If cols is a plain integer, generate repeat(n, 1fr); otherwise pass as-is (e.g. "1fr 2fr auto")
+    const gridTemplate = /^\d+$/.test(cols) ? `repeat(${cols}, minmax(0, 1fr))` : cols;
     const g = this.getString('gap', 'md');
     const gapCSS = this.gapValue(g);
-    return html`<slot style="grid-template-columns:repeat(${cols},1fr);gap:${gapCSS}"></slot>`;
+    const p = this.getString('padding', '');
+    const padCSS = p ? `var(--forge-space-${p}, var(--forge-space-md))` : '0';
+    this.style.gridTemplateColumns = gridTemplate;
+    this.style.gap = gapCSS;
+    this.style.padding = padCSS;
+    // Mark for responsive collapse on small screens by default when >=2 columns
+    if (/^\d+$/.test(cols) && Number(cols) >= 2) this.setAttribute('responsive', '');
+    return html`<slot></slot>`;
   }
 }
 customElements.define('forge-grid', ForgeGrid);
@@ -52,55 +87,106 @@ export class ForgeCard extends ForgeElement {
   static get properties() { return { props: { type: Object } }; }
   static get styles() { return css`
     :host { display:block; background:var(--forge-color-surface); border:1px solid var(--forge-color-border);
-      border-radius:var(--forge-radius-lg); padding:var(--forge-space-md); }
+      border-radius:var(--forge-radius-lg); padding:var(--forge-space-md); min-width:0; }
     :host([variant="elevated"]) { box-shadow:var(--forge-shadow-md); border-color:transparent; }
     :host([variant="compact"]) { padding:var(--forge-space-sm); border-radius:var(--forge-radius-md); }
     :host([variant="outline"]) { background:transparent; }
+    :host([variant="ghost"]) { background:transparent; border-color:transparent; padding:0; }
+    .header { margin-bottom:var(--forge-space-sm); }
+    .title { font-size:var(--forge-text-lg); font-weight:var(--forge-weight-semibold); color:var(--forge-color-text); line-height:var(--forge-leading-tight); }
+    .subtitle { font-size:var(--forge-text-sm); color:var(--forge-color-text-secondary); margin-top:var(--forge-space-3xs); }
+    .body { display:flex; flex-direction:column; gap:var(--forge-space-md); min-width:0; }
   `; }
   render() {
     const v = this.getString('variant', '');
+    const title = this.getString('title', '');
+    const subtitle = this.getString('subtitle', '');
     if (v) this.setAttribute('variant', v);
-    return html`<slot></slot>`;
+    return html`
+      ${title || subtitle ? html`
+        <div class="header">
+          ${title ? html`<div class="title">${title}</div>` : nothing}
+          ${subtitle ? html`<div class="subtitle">${subtitle}</div>` : nothing}
+        </div>
+      ` : nothing}
+      <div class="body"><slot></slot></div>
+    `;
   }
 }
 customElements.define('forge-card', ForgeCard);
 
 export class ForgeContainer extends ForgeElement {
   static get properties() { return { props: { type: Object } }; }
-  static get styles() { return css`:host { display:block; }`; }
+  static get styles() { return css`:host { display:block; margin-inline:auto; width:100%; box-sizing:border-box; }`; }
   render() {
-    const mw = this.getString('maxWidth', 'none');
+    const mw = this.getString('maxWidth', '');
+    // Preset maxWidth values map to sensible widths; plain values (e.g. "800px") pass through
+    const widthMap: Record<string, string> = {
+      sm: '640px', md: '768px', lg: '1024px', xl: '1280px', '2xl': '1536px', full: '100%', none: 'none', '': ''
+    };
+    const resolvedMw = (mw in widthMap) ? widthMap[mw] : mw;
     const p = this.getString('padding', '');
-    return html`<slot style="max-width:${mw};${p ? 'padding:var(--forge-space-'+p+')' : ''}"></slot>`;
+    if (resolvedMw && resolvedMw !== 'none') this.style.maxWidth = resolvedMw;
+    else this.style.maxWidth = '';
+    this.style.padding = p ? `var(--forge-space-${p}, var(--forge-space-md))` : '';
+    return html`<slot></slot>`;
   }
 }
 customElements.define('forge-container', ForgeContainer);
 
 export class ForgeTabs extends ForgeElement {
-  static get properties() { return { props: { type: Object } }; 
-    // @ts-ignore
-    _active: { type: String }
-  }
-  _active = '';
+  static get properties() { return {
+    props: { type: Object },
+    _active: { state: true },
+  }; }
+  declare _active: string;
+  constructor() { super(); this._active = ''; }
   static get styles() { return css`
     :host { display:block; }
-    .tabs { display:flex; border-bottom:1px solid var(--forge-color-border); gap:var(--forge-space-xs); }
+    .tabs { display:flex; border-bottom:1px solid var(--forge-color-border); gap:var(--forge-space-xs); overflow-x:auto; }
     .tab { padding:var(--forge-space-sm) var(--forge-space-md); cursor:pointer; border:none; background:none;
       color:var(--forge-color-text-secondary); font:inherit; font-size:var(--forge-text-sm);
-      border-bottom:2px solid transparent; transition:var(--forge-transition-fast); }
+      border-bottom:2px solid transparent; transition:var(--forge-transition-fast); white-space:nowrap; }
     .tab:hover { color:var(--forge-color-text); background:var(--forge-color-surface-hover); }
     .tab[active] { color:var(--forge-color-primary); border-bottom-color:var(--forge-color-primary); font-weight:var(--forge-weight-medium); }
-    .panel { padding:var(--forge-space-md); }
+    .panel { padding-top:var(--forge-space-md); display:flex; flex-direction:column; gap:var(--forge-space-md); }
+    ::slotted(*) { display:none; }
+    ::slotted([data-active]) { display:block; }
   `; }
+  _itemKey(item: any): string {
+    if (typeof item === 'string') return item;
+    if (item && typeof item === 'object') return String(item.id ?? item.key ?? item.value ?? item.label ?? '');
+    return String(item ?? '');
+  }
+  _itemLabel(item: any): string {
+    if (typeof item === 'string') return item;
+    if (item && typeof item === 'object') return String(item.label ?? item.title ?? item.value ?? '');
+    return String(item ?? '');
+  }
+  updated() {
+    // Light-DOM slot filtering: mark only the active child as visible
+    const kids = Array.from(this.children).filter(c => !(c instanceof HTMLScriptElement)) as HTMLElement[];
+    kids.forEach((kid, i) => {
+      const isActive = String(i) === this._active || kid.id === this._active || kid.getAttribute('slot') === this._active;
+      if (isActive) kid.setAttribute('data-active', '');
+      else kid.removeAttribute('data-active');
+    });
+  }
   render() {
     const items: unknown = this.getProp('items') || [];
     const arr = Array.isArray(items) ? items : [];
-    if (!this._active && arr.length > 0) this._active = String(arr[0]);
+    if (!this._active && arr.length > 0) this._active = this._itemKey(arr[0]) || '0';
     return html`
-      <div class="tabs">${arr.map((item: any) => html`
-        <button class="tab" ?active=${String(item) === this._active} @click=${() => { this._active = String(item); this.dispatchAction('tab-change', { active: String(item) }); }}>${String(item)}</button>
-      `)}</div>
-      <div class="panel"><slot></slot></div>
+      <div class="tabs" role="tablist">${arr.map((item: any, i: number) => {
+        const key = this._itemKey(item) || String(i);
+        const label = this._itemLabel(item) || String(i + 1);
+        const active = key === this._active;
+        return html`
+          <button class="tab" ?active=${active} role="tab" aria-selected=${active}
+            @click=${() => { this._active = key; this.requestUpdate(); this.dispatchAction('tab-change', { active: key }); }}>${label}</button>
+        `;
+      })}</div>
+      <div class="panel" role="tabpanel"><slot></slot></div>
     `;
   }
 }
@@ -144,6 +230,34 @@ export class ForgeSpacer extends ForgeElement {
 }
 customElements.define('forge-spacer', ForgeSpacer);
 
+/**
+ * Repeater: renders a child element once per item in a data array.
+ * The renderer (not this component) handles the iteration — this element
+ * exists only so the type validates and so a clear empty state shows when
+ * the data is empty. The actual iteration lives in renderer/index.ts.
+ */
+export class ForgeRepeater extends ForgeElement {
+  static get properties() { return { props: { type: Object } }; }
+  static get styles() { return css`
+    :host { display:flex; flex-direction:column; gap:var(--forge-space-md); min-width:0; }
+    :host([direction="row"]) { flex-direction:row; flex-wrap:wrap; }
+    .empty { padding:var(--forge-space-lg); text-align:center; color:var(--forge-color-text-tertiary); font-size:var(--forge-text-sm); }
+  `; }
+  render() {
+    const data = this.getArray('data');
+    const emptyMsg = this.getString('emptyMessage', '');
+    const dir = this.getString('direction', 'column');
+    if (dir === 'row' || dir === 'horizontal') this.setAttribute('direction', 'row');
+    const g = this.getString('gap', 'md');
+    this.style.gap = this.gapValue(g);
+    if (data.length === 0 && emptyMsg) {
+      return html`<div class="empty">${emptyMsg}</div>`;
+    }
+    return html`<slot></slot>`;
+  }
+}
+customElements.define('forge-repeater', ForgeRepeater);
+
 // ═══════════════════════════════════════════════════════════════
 // CONTENT (6)
 // ═══════════════════════════════════════════════════════════════
@@ -151,21 +265,55 @@ customElements.define('forge-spacer', ForgeSpacer);
 export class ForgeText extends ForgeElement {
   static get properties() { return { props: { type: Object } }; }
   static get styles() { return css`
-    :host { display:block; }
-    .heading { font-size:var(--forge-text-2xl); font-weight:var(--forge-weight-bold); line-height:var(--forge-leading-tight); margin:0 0 var(--forge-space-sm); }
-    .subheading { font-size:var(--forge-text-lg); font-weight:var(--forge-weight-semibold); color:var(--forge-color-text-secondary); margin:0 0 var(--forge-space-xs); }
+    :host { display:block; min-width:0; }
+    .heading1 { font-size:var(--forge-text-3xl); font-weight:var(--forge-weight-bold); line-height:var(--forge-leading-tight); letter-spacing:-0.02em; margin:0; }
+    .heading2 { font-size:var(--forge-text-2xl); font-weight:var(--forge-weight-bold); line-height:var(--forge-leading-tight); letter-spacing:-0.01em; margin:0; }
+    .heading3 { font-size:var(--forge-text-xl); font-weight:var(--forge-weight-semibold); line-height:var(--forge-leading-tight); margin:0; }
+    .heading { font-size:var(--forge-text-2xl); font-weight:var(--forge-weight-bold); line-height:var(--forge-leading-tight); margin:0; }
+    .subheading { font-size:var(--forge-text-lg); font-weight:var(--forge-weight-semibold); line-height:var(--forge-leading-tight); margin:0; }
+    .label { font-size:var(--forge-text-sm); font-weight:var(--forge-weight-medium); color:var(--forge-color-text); margin:0; }
     .body { font-size:var(--forge-text-base); line-height:var(--forge-leading-normal); margin:0; }
-    .caption { font-size:var(--forge-text-xs); color:var(--forge-color-text-tertiary); }
+    .caption { font-size:var(--forge-text-xs); color:var(--forge-color-text-tertiary); margin:0; }
+    .muted { font-size:var(--forge-text-sm); color:var(--forge-color-text-secondary); margin:0; }
     .code { font-family:var(--forge-font-mono); font-size:var(--forge-text-sm); background:var(--forge-color-surface-alt);
-      padding:var(--forge-space-2xs) var(--forge-space-xs); border-radius:var(--forge-radius-sm); }
+      padding:var(--forge-space-2xs) var(--forge-space-xs); border-radius:var(--forge-radius-sm); display:inline-block; }
+    .align-left { text-align:left; }
+    .align-center { text-align:center; }
+    .align-right { text-align:right; }
   `; }
   render() {
     const content = this.getString('content', '');
     const variant = this.getString('variant', 'body');
+    // Map legacy/alias variants
+    const variantMap: Record<string, string> = {
+      h1: 'heading1', h2: 'heading2', h3: 'heading3',
+      title: 'heading2', subtitle: 'subheading',
+      paragraph: 'body', text: 'body', secondary: 'muted', tertiary: 'caption',
+    };
+    const cls = variantMap[variant] || variant;
     const colorScheme = this.getString('colorScheme', '');
-    const style = colorScheme === 'secondary' ? 'color:var(--forge-color-text-secondary)' : 
-                  colorScheme === 'primary' ? 'color:var(--forge-color-primary)' : '';
-    return html`<div class="${variant}" style="${style}">${content}<slot></slot></div>`;
+    const align = this.getString('align', '');
+    const weight = this.getString('weight', '');
+    const colorMap: Record<string, string> = {
+      primary: 'var(--forge-color-primary)',
+      secondary: 'var(--forge-color-text-secondary)',
+      tertiary: 'var(--forge-color-text-tertiary)',
+      success: 'var(--forge-color-success)',
+      warning: 'var(--forge-color-warning)',
+      error: 'var(--forge-color-error)',
+      info: 'var(--forge-color-info)',
+    };
+    const weightMap: Record<string, string> = {
+      normal: 'var(--forge-weight-normal)',
+      medium: 'var(--forge-weight-medium)',
+      semibold: 'var(--forge-weight-semibold)',
+      bold: 'var(--forge-weight-bold)',
+    };
+    const styles: string[] = [];
+    if (colorScheme && colorMap[colorScheme]) styles.push(`color:${colorMap[colorScheme]}`);
+    if (weight && weightMap[weight]) styles.push(`font-weight:${weightMap[weight]}`);
+    const alignCls = align ? `align-${align}` : '';
+    return html`<div class="${cls} ${alignCls}" style="${styles.join(';')}">${content}<slot></slot></div>`;
   }
 }
 customElements.define('forge-text', ForgeText);
@@ -545,32 +693,92 @@ customElements.define('forge-link', ForgeLink);
 
 export class ForgeTable extends ForgeElement {
   static get styles() { return css`
-    :host { display:block; margin-bottom:var(--forge-space-md); overflow-x:auto; }
+    :host { display:block; overflow-x:auto; min-width:0; width:100%; }
     table { width:100%; border-collapse:collapse; font-size:var(--forge-text-sm); }
-    th { text-align:left; padding:var(--forge-space-xs) var(--forge-space-sm); font-weight:var(--forge-weight-semibold);
-      color:var(--forge-color-text-secondary); border-bottom:2px solid var(--forge-color-border); white-space:nowrap; }
-    td { padding:var(--forge-space-xs) var(--forge-space-sm); border-bottom:1px solid var(--forge-color-border); }
-    tr:hover td { background:var(--forge-color-surface-hover); }
-    .empty { padding:var(--forge-space-lg); text-align:center; color:var(--forge-color-text-tertiary); }
-    .pagination { display:flex; justify-content:center; gap:var(--forge-space-xs); margin-top:var(--forge-space-sm); }
-    .pagination button { padding:var(--forge-space-2xs) var(--forge-space-xs); border:1px solid var(--forge-color-border);
-      border-radius:var(--forge-radius-sm); background:var(--forge-color-surface); cursor:pointer; font:inherit; }
-    .pagination button[active] { background:var(--forge-color-primary); color:var(--forge-color-text-inverse); border-color:var(--forge-color-primary); }
+    th { text-align:left; padding:var(--forge-space-sm); font-weight:var(--forge-weight-semibold);
+      color:var(--forge-color-text-secondary); border-bottom:2px solid var(--forge-color-border); white-space:nowrap;
+      text-transform:uppercase; letter-spacing:0.03em; font-size:var(--forge-text-xs); }
+    td { padding:var(--forge-space-sm); border-bottom:1px solid var(--forge-color-border); vertical-align:middle; }
+    tr:last-child td { border-bottom:none; }
+    tbody tr:hover td { background:var(--forge-color-surface-hover); }
+    .empty { padding:var(--forge-space-xl); text-align:center; color:var(--forge-color-text-tertiary); }
+    .badge { display:inline-flex; align-items:center; padding:var(--forge-space-3xs) var(--forge-space-xs);
+      border-radius:var(--forge-radius-full); font-size:var(--forge-text-xs); font-weight:var(--forge-weight-medium);
+      background:var(--forge-color-surface-alt); color:var(--forge-color-text-secondary); }
+    .badge.success { background:var(--forge-color-success-subtle); color:var(--forge-color-success); }
+    .badge.warning { background:var(--forge-color-warning-subtle); color:var(--forge-color-warning); }
+    .badge.error { background:var(--forge-color-error-subtle); color:var(--forge-color-error); }
+    .badge.info, .badge.primary { background:var(--forge-color-primary-subtle); color:var(--forge-color-primary); }
+    .badge.neutral { background:var(--forge-color-surface-alt); color:var(--forge-color-text-secondary); }
+    .align-right { text-align:right; }
+    .align-center { text-align:center; }
+    .col-right th, .col-right td { text-align:right; }
+    .col-center th, .col-center td { text-align:center; }
+    .row-action { cursor:pointer; }
+    .row-action:hover td { background:var(--forge-color-surface-hover); }
   `; }
+  _statusClass(val: unknown): string {
+    const s = String(val ?? '').toLowerCase().trim();
+    if (['done', 'complete', 'completed', 'success', 'active', 'ok', 'approved', 'paid'].includes(s)) return 'success';
+    if (['in progress', 'in-progress', 'pending', 'warning', 'waiting', 'review'].includes(s)) return 'warning';
+    if (['to do', 'to-do', 'todo', 'backlog', 'draft', 'new', 'inactive'].includes(s)) return 'neutral';
+    if (['high', 'urgent', 'critical'].includes(s)) return 'error';
+    if (['medium', 'med'].includes(s)) return 'warning';
+    if (['low'].includes(s)) return 'info';
+    if (['failed', 'error', 'rejected', 'blocked', 'overdue'].includes(s)) return 'error';
+    return 'neutral';
+  }
+  _renderCell(col: any, row: any): any {
+    const key = typeof col === 'string' ? col : col.key;
+    const raw = row[key];
+    const type = (col && typeof col === 'object') ? col.type : undefined;
+    if (raw === undefined || raw === null || raw === '') return html`<span style="color:var(--forge-color-text-tertiary)">—</span>`;
+    if (type === 'badge' || type === 'status') {
+      const variant = (col.variant && typeof col.variant === 'object' ? col.variant[String(raw).toLowerCase()] : null) || this._statusClass(raw);
+      return html`<span class="badge ${variant}">${String(raw)}</span>`;
+    }
+    if (type === 'number') {
+      return typeof raw === 'number' ? raw.toLocaleString() : String(raw);
+    }
+    if (type === 'date') {
+      const d = typeof raw === 'string' || typeof raw === 'number' ? new Date(raw) : raw;
+      if (d instanceof Date && !isNaN(d.getTime())) return d.toLocaleDateString();
+      return String(raw);
+    }
+    if (type === 'currency') {
+      const n = Number(raw);
+      if (!isNaN(n)) return n.toLocaleString(undefined, { style: 'currency', currency: col.currency || 'USD' });
+      return String(raw);
+    }
+    if (type === 'boolean') {
+      return raw ? '✓' : '✗';
+    }
+    return String(raw);
+  }
   render() {
     const data = (this.getProp('data') || []) as any[];
     const columns = (this.getProp('columns') || []) as any[];
-    const emptyMsg = this.getString('emptyMessage', 'No data');
-    if (data.length === 0 && columns.length === 0) return html`<div class="empty">${emptyMsg}</div>`;
+    const emptyMsg = this.getString('emptyMessage', 'No data yet');
+    const rowAction = this.getString('rowAction', '');
     const cols = columns.length > 0 ? columns : (data.length > 0 ? Object.keys(data[0]) : []);
+    if (cols.length === 0) return html`<div class="empty">${emptyMsg}</div>`;
     return html`
       <table>
-        <thead><tr>${cols.map((c: any) => html`<th>${typeof c === 'string' ? c : c.label || c.key}</th>`)}</tr></thead>
-        <tbody>${data.length === 0 
+        <thead><tr>${cols.map((c: any) => {
+          const label = typeof c === 'string' ? c : (c.label || c.key);
+          const align = typeof c === 'object' ? c.align : undefined;
+          const width = typeof c === 'object' ? c.width : undefined;
+          const alignCls = align === 'right' ? 'align-right' : align === 'center' ? 'align-center' : '';
+          return html`<th class="${alignCls}" style="${width ? `width:${width}` : ''}">${label}</th>`;
+        })}</tr></thead>
+        <tbody>${data.length === 0
           ? html`<tr><td colspan=${cols.length} class="empty">${emptyMsg}</td></tr>`
-          : data.map((row: any) => html`<tr>${cols.map((c: any) => {
-              const key = typeof c === 'string' ? c : c.key;
-              return html`<td>${row[key] ?? ''}</td>`;
+          : data.map((row: any, i: number) => html`<tr class="${rowAction ? 'row-action' : ''}"
+              @click=${rowAction ? () => this.dispatchAction(rowAction, { row, index: i }) : undefined}>
+            ${cols.map((c: any) => {
+              const align = typeof c === 'object' ? c.align : undefined;
+              const alignCls = align === 'right' ? 'align-right' : align === 'center' ? 'align-center' : '';
+              return html`<td class="${alignCls}">${this._renderCell(c, row)}</td>`;
             })}</tr>`)
         }</tbody>
       </table>
@@ -601,19 +809,174 @@ customElements.define('forge-list', ForgeList);
 
 export class ForgeChart extends ForgeElement {
   static get styles() { return css`
-    :host { display:block; }
-    canvas { width:100%; height:auto; }
-    .fallback { padding:var(--forge-space-md); text-align:center; color:var(--forge-color-text-secondary); font-size:var(--forge-text-sm); }
+    :host { display:block; min-width:0; }
+    .title { font-weight:var(--forge-weight-semibold); font-size:var(--forge-text-sm); margin-bottom:var(--forge-space-xs); color:var(--forge-color-text); }
+    .wrap { width:100%; }
+    svg { width:100%; height:auto; display:block; font-family:var(--forge-font-family); }
+    .grid { stroke:var(--forge-color-border); stroke-width:1; opacity:0.5; }
+    .axis { stroke:var(--forge-color-border-strong); stroke-width:1; }
+    .tick-label { fill:var(--forge-color-text-tertiary); font-size:10px; }
+    .bar { fill:var(--forge-color-primary); transition:opacity 0.15s; }
+    .bar:hover { opacity:0.85; }
+    .line { fill:none; stroke:var(--forge-color-primary); stroke-width:2; }
+    .point { fill:var(--forge-color-primary); }
+    .area { fill:var(--forge-color-primary); opacity:0.15; }
+    .slice { stroke:var(--forge-color-surface); stroke-width:2; }
+    .legend { display:flex; flex-wrap:wrap; gap:var(--forge-space-sm); margin-top:var(--forge-space-xs); font-size:var(--forge-text-xs); color:var(--forge-color-text-secondary); }
+    .legend-item { display:inline-flex; align-items:center; gap:var(--forge-space-2xs); }
+    .swatch { display:inline-block; width:0.75rem; height:0.75rem; border-radius:2px; }
+    .empty { padding:var(--forge-space-lg); text-align:center; color:var(--forge-color-text-tertiary); font-size:var(--forge-text-sm); }
   `; }
+
+  _palette = [
+    'var(--forge-color-primary)',
+    'var(--forge-color-success)',
+    'var(--forge-color-warning)',
+    'var(--forge-color-error)',
+    'var(--forge-color-info)',
+    '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6b7280',
+  ];
+
+  _niceMax(v: number): number {
+    if (v <= 0) return 1;
+    const mag = Math.pow(10, Math.floor(Math.log10(v)));
+    const n = v / mag;
+    const nice = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10;
+    return nice * mag;
+  }
+
   render() {
-    // Phase 1: simple canvas-based chart rendering
     const chartType = this.getString('chartType', 'bar');
     const data = (this.getProp('data') || []) as any[];
     const title = this.getString('title', '');
+    const xKey = this.getString('xKey', 'label') || this.getString('labelKey', 'label');
+    const yKey = this.getString('yKey', 'value') || this.getString('valueKey', 'value');
+    const colorOverride = this.getString('color', '');
+
+    if (!data || data.length === 0) {
+      return html`
+        ${title ? html`<div class="title">${title}</div>` : nothing}
+        <div class="empty">No data to display</div>
+      `;
+    }
+
+    const points = data.map((d: any) => {
+      if (typeof d === 'number') return { label: '', value: d };
+      if (d && typeof d === 'object') {
+        return {
+          label: String(d[xKey] ?? d.label ?? d.name ?? d.x ?? ''),
+          value: Number(d[yKey] ?? d.value ?? d.y ?? 0) || 0,
+          color: d.color,
+        };
+      }
+      return { label: String(d), value: 0 };
+    });
+
+    const width = 600;
+    const height = 260;
+    const margin = { top: 8, right: 16, bottom: 36, left: 48 };
+    const innerW = width - margin.left - margin.right;
+    const innerH = height - margin.top - margin.bottom;
+
+    let body: any;
+    let legend: any = nothing;
+
+    if (chartType === 'pie' || chartType === 'donut') {
+      const total = points.reduce((a, p) => a + Math.max(0, p.value), 0) || 1;
+      const cx = width / 2, cy = height / 2, r = Math.min(innerW, innerH) / 2 - 8;
+      const innerR = chartType === 'donut' ? r * 0.55 : 0;
+      let acc = -Math.PI / 2;
+      const slices: string[] = [];
+      const colors: string[] = [];
+      points.forEach((p, i) => {
+        const frac = Math.max(0, p.value) / total;
+        const a0 = acc;
+        const a1 = acc + frac * Math.PI * 2;
+        acc = a1;
+        const large = a1 - a0 > Math.PI ? 1 : 0;
+        const x0 = cx + r * Math.cos(a0), y0 = cy + r * Math.sin(a0);
+        const x1 = cx + r * Math.cos(a1), y1 = cy + r * Math.sin(a1);
+        const color = p.color || this._palette[i % this._palette.length];
+        colors.push(color);
+        if (innerR > 0) {
+          const ix0 = cx + innerR * Math.cos(a0), iy0 = cy + innerR * Math.sin(a0);
+          const ix1 = cx + innerR * Math.cos(a1), iy1 = cy + innerR * Math.sin(a1);
+          slices.push(`<path class="slice" fill="${color}" d="M ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1} L ${ix1} ${iy1} A ${innerR} ${innerR} 0 ${large} 0 ${ix0} ${iy0} Z"/>`);
+        } else {
+          slices.push(`<path class="slice" fill="${color}" d="M ${cx} ${cy} L ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1} Z"/>`);
+        }
+      });
+      body = html`<g .innerHTML=${slices.join('')}></g>`;
+      legend = html`<div class="legend">${points.map((p, i) => html`
+        <span class="legend-item"><span class="swatch" style="background:${colors[i]}"></span>${p.label} (${p.value})</span>
+      `)}</div>`;
+    } else {
+      const maxRaw = Math.max(...points.map(p => p.value), 0);
+      const yMax = this._niceMax(maxRaw);
+      const toY = (v: number) => margin.top + innerH - (v / yMax) * innerH;
+      const ticks = 4;
+
+      // Gridlines + Y-axis labels
+      const grid: string[] = [];
+      for (let i = 0; i <= ticks; i++) {
+        const v = (yMax * i) / ticks;
+        const y = toY(v);
+        grid.push(`<line class="grid" x1="${margin.left}" x2="${margin.left + innerW}" y1="${y}" y2="${y}"/>`);
+        grid.push(`<text class="tick-label" x="${margin.left - 6}" y="${y + 3}" text-anchor="end">${v.toLocaleString()}</text>`);
+      }
+
+      if (chartType === 'line' || chartType === 'area') {
+        const bandW = innerW / Math.max(1, points.length - 1);
+        const pathData = points.map((p, i) => {
+          const x = margin.left + i * bandW;
+          const y = toY(p.value);
+          return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+        }).join(' ');
+        const areaData = chartType === 'area'
+          ? pathData + ` L ${margin.left + innerW} ${margin.top + innerH} L ${margin.left} ${margin.top + innerH} Z`
+          : '';
+        const lineColor = colorOverride || 'var(--forge-color-primary)';
+        body = html`
+          <g .innerHTML=${grid.join('')}></g>
+          ${chartType === 'area' ? html`<path class="area" d="${areaData}" style="fill:${lineColor};opacity:0.15"/>` : nothing}
+          <path class="line" d="${pathData}" style="stroke:${lineColor}"/>
+          ${points.map((p, i) => {
+            const x = margin.left + i * bandW;
+            const y = toY(p.value);
+            return svg`<circle class="point" cx="${x}" cy="${y}" r="3" style="fill:${lineColor}"/>
+              <text class="tick-label" x="${x}" y="${margin.top + innerH + 14}" text-anchor="middle">${p.label}</text>`;
+          })}
+        `;
+      } else {
+        // Bar chart (default)
+        const n = points.length;
+        const bandW = innerW / n;
+        const barW = Math.max(2, bandW * 0.7);
+        const barGap = bandW - barW;
+        body = html`
+          <g .innerHTML=${grid.join('')}></g>
+          ${points.map((p, i) => {
+            const x = margin.left + i * bandW + barGap / 2;
+            const y = toY(p.value);
+            const h = Math.max(0, margin.top + innerH - y);
+            const barColor = p.color || colorOverride || 'var(--forge-color-primary)';
+            return svg`<rect class="bar" x="${x}" y="${y}" width="${barW}" height="${h}" rx="2" style="fill:${barColor}">
+                <title>${p.label}: ${p.value}</title>
+              </rect>
+              <text class="tick-label" x="${x + barW / 2}" y="${margin.top + innerH + 14}" text-anchor="middle">${p.label}</text>`;
+          })}
+        `;
+      }
+    }
+
     return html`
-      ${title ? html`<div style="font-weight:var(--forge-weight-semibold);margin-bottom:var(--forge-space-xs)">${title}</div>` : nothing}
-      <div class="fallback">Chart: ${chartType} (${data.length} data points)<br><small>Canvas rendering in Phase 2</small></div>
-      <slot></slot>
+      ${title ? html`<div class="title">${title}</div>` : nothing}
+      <div class="wrap">
+        <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${title || chartType + ' chart'}">
+          ${body}
+        </svg>
+        ${legend}
+      </div>
     `;
   }
 }
@@ -621,28 +984,69 @@ customElements.define('forge-chart', ForgeChart);
 
 export class ForgeMetric extends ForgeElement {
   static get styles() { return css`
-    :host { display:block; padding:var(--forge-space-md); background:var(--forge-color-surface);
-      border:1px solid var(--forge-color-border); border-radius:var(--forge-radius-lg); text-align:center; }
-    .label { font-size:var(--forge-text-sm); color:var(--forge-color-text-secondary); margin-bottom:var(--forge-space-2xs); }
-    .value { font-size:var(--forge-text-3xl); font-weight:var(--forge-weight-bold); color:var(--forge-color-text); line-height:1; }
-    .trend { display:flex; align-items:center; gap:var(--forge-space-2xs); justify-content:center; margin-top:var(--forge-space-xs); font-size:var(--forge-text-sm); }
-    .trend.up { color:var(--forge-color-success); }
-    .trend.down { color:var(--forge-color-error); }
-    .goal { font-size:var(--forge-text-xs); color:var(--forge-color-text-tertiary); margin-top:var(--forge-space-xs); }
+    :host { display:flex; flex-direction:column; padding:var(--forge-space-md); background:var(--forge-color-surface);
+      border:1px solid var(--forge-color-border); border-radius:var(--forge-radius-lg); min-width:0; gap:var(--forge-space-2xs); }
+    :host([variant="plain"]) { background:transparent; border:none; padding:0; }
+    .label { font-size:var(--forge-text-sm); color:var(--forge-color-text-secondary); font-weight:var(--forge-weight-medium); }
+    .value-row { display:flex; align-items:baseline; gap:var(--forge-space-2xs); flex-wrap:wrap; }
+    .value { font-size:var(--forge-text-3xl); font-weight:var(--forge-weight-bold); color:var(--forge-color-text); line-height:1.1; letter-spacing:-0.02em; }
+    .unit, .suffix { font-size:var(--forge-text-base); color:var(--forge-color-text-secondary); font-weight:var(--forge-weight-medium); }
+    .trend { display:inline-flex; align-items:center; gap:var(--forge-space-3xs); font-size:var(--forge-text-sm); font-weight:var(--forge-weight-medium);
+      padding:var(--forge-space-3xs) var(--forge-space-xs); border-radius:var(--forge-radius-sm); }
+    .trend.up { color:var(--forge-color-success); background:var(--forge-color-success-subtle); }
+    .trend.down { color:var(--forge-color-error); background:var(--forge-color-error-subtle); }
+    .trend.neutral { color:var(--forge-color-text-secondary); background:var(--forge-color-surface-alt); }
+    .subtitle { font-size:var(--forge-text-xs); color:var(--forge-color-text-tertiary); }
+    .goal { font-size:var(--forge-text-xs); color:var(--forge-color-text-tertiary); }
   `; }
+  _trendMeta(trend: unknown): { dir: 'up' | 'down' | 'neutral'; arrow: string; display: string } | null {
+    if (trend === undefined || trend === null || trend === '') return null;
+    if (typeof trend === 'number') {
+      if (trend > 0) return { dir: 'up', arrow: '↑', display: `${Math.abs(trend)}%` };
+      if (trend < 0) return { dir: 'down', arrow: '↓', display: `${Math.abs(trend)}%` };
+      return { dir: 'neutral', arrow: '→', display: '0%' };
+    }
+    if (typeof trend === 'string') {
+      const s = trend.toLowerCase();
+      // Try to parse "+12%", "-3%", "12.5"
+      const m = trend.match(/^\s*([+-]?\d+(?:\.\d+)?)\s*(%?)\s*$/);
+      if (m) {
+        const n = parseFloat(m[1]);
+        const pct = m[2];
+        if (n > 0) return { dir: 'up', arrow: '↑', display: `${Math.abs(n)}${pct}` };
+        if (n < 0) return { dir: 'down', arrow: '↓', display: `${Math.abs(n)}${pct}` };
+        return { dir: 'neutral', arrow: '→', display: `0${pct}` };
+      }
+      if (s === 'up' || s === 'positive' || s === 'increase') return { dir: 'up', arrow: '↑', display: '' };
+      if (s === 'down' || s === 'negative' || s === 'decrease') return { dir: 'down', arrow: '↓', display: '' };
+      if (s === 'flat' || s === 'neutral' || s === 'same') return { dir: 'neutral', arrow: '→', display: '' };
+      return { dir: 'neutral', arrow: '', display: trend };
+    }
+    return null;
+  }
   render() {
     const label = this.getString('label', '');
     const value = this.getProp('value');
-    const trend = this.getProp('trend') as number | undefined;
+    const trend = this.getProp('trend');
+    const trendLabel = this.getString('trendLabel', '');
     const goal = this.getProp('goal');
-    const displayValue = typeof value === 'number' ? value.toLocaleString() : String(value ?? '—');
+    const unit = this.getString('unit', '');
+    const suffix = this.getString('suffix', '');
+    const subtitle = this.getString('subtitle', '');
+    const variant = this.getString('variant', '');
+    if (variant) this.setAttribute('variant', variant);
+    const displayValue = typeof value === 'number' ? value.toLocaleString() : (value === undefined || value === null || value === '' ? '—' : String(value));
+    const tm = this._trendMeta(trend);
     return html`
-      <div class="label">${label}</div>
-      <div class="value">${displayValue}</div>
-      ${trend !== undefined ? html`<div class="trend ${trend >= 0 ? 'up' : 'down'}">
-        ${trend >= 0 ? '↑' : '↓'} ${Math.abs(trend)}%
-      </div>` : nothing}
-      ${goal !== undefined ? html`<div class="goal">Goal: ${typeof goal === 'number' ? goal.toLocaleString() : goal}</div>` : nothing}
+      ${label ? html`<div class="label">${label}</div>` : nothing}
+      <div class="value-row">
+        <span class="value">${displayValue}</span>
+        ${unit ? html`<span class="unit">${unit}</span>` : nothing}
+        ${suffix ? html`<span class="suffix">${suffix}</span>` : nothing}
+        ${tm ? html`<span class="trend ${tm.dir}">${tm.arrow}${tm.display ? html` ${tm.display}` : nothing}${trendLabel ? html` ${trendLabel}` : nothing}</span>` : nothing}
+      </div>
+      ${subtitle ? html`<div class="subtitle">${subtitle}</div>` : nothing}
+      ${goal !== undefined && goal !== null && goal !== '' ? html`<div class="goal">Goal: ${typeof goal === 'number' ? goal.toLocaleString() : goal}</div>` : nothing}
     `;
   }
 }
@@ -766,24 +1170,28 @@ customElements.define('forge-breadcrumb', ForgeBreadcrumb);
 
 export class ForgeStepper extends ForgeElement {
   static get styles() { return css`
-    :host { display:flex; width:100%; }
-    .step { flex:1; display:flex; flex-direction:column; align-items:center; position:relative; }
-    .step:not(:last-child)::after { content:''; position:absolute; top:0.75rem; left:50%; width:100%; height:2px;
-      background:var(--forge-color-border); transform:translateY(-50%); z-index:0; }
+    :host { display:flex; width:100%; gap:0; }
+    .step { flex:1; display:flex; flex-direction:column; align-items:center; position:relative; min-width:0; }
+    /* Connector line: starts from after circle midpoint, ends at the next step's circle midpoint */
+    .step:not(:last-child)::after { content:''; position:absolute; top:0.75rem;
+      left:calc(50% + 0.875rem); right:calc(-50% + 0.875rem); height:2px;
+      background:var(--forge-color-border); z-index:0; }
     .step:not(:last-child)[completed]::after { background:var(--forge-color-primary); }
-    .circle { width:1.5rem; height:1.5rem; border-radius:var(--forge-radius-full); display:flex; align-items:center;
-      justify-content:center; font-size:var(--forge-text-xs); font-weight:var(--forge-weight-medium);
-      background:var(--forge-color-surface-alt); color:var(--forge-color-text-secondary); border:2px solid var(--forge-color-border); z-index:1; }
+    .circle { width:1.75rem; height:1.75rem; border-radius:var(--forge-radius-full); display:flex; align-items:center;
+      justify-content:center; font-size:var(--forge-text-xs); font-weight:var(--forge-weight-semibold);
+      background:var(--forge-color-surface); color:var(--forge-color-text-secondary); border:2px solid var(--forge-color-border); z-index:1;
+      box-sizing:border-box; position:relative; }
     .step[active] .circle { background:var(--forge-color-primary); color:var(--forge-color-text-inverse); border-color:var(--forge-color-primary); }
-    .step[completed] .circle { background:var(--forge-color-success); color:white; border-color:var(--forge-color-success); }
-    .label { font-size:var(--forge-text-xs); color:var(--forge-color-text-secondary); margin-top:var(--forge-space-xs); text-align:center; }
-    .step[active] .label { color:var(--forge-color-text); font-weight:var(--forge-weight-medium); }
+    .step[completed] .circle { background:var(--forge-color-primary); color:var(--forge-color-text-inverse); border-color:var(--forge-color-primary); }
+    .label { font-size:var(--forge-text-xs); color:var(--forge-color-text-secondary); margin-top:var(--forge-space-xs); text-align:center; padding:0 var(--forge-space-2xs); }
+    .step[active] .label { color:var(--forge-color-text); font-weight:var(--forge-weight-semibold); }
+    .step[completed] .label { color:var(--forge-color-text); }
   `; }
   render() {
     const steps = (this.getProp('steps') || []) as any[];
     const active = this.getNumber('active', 0);
     return html`${steps.map((step: any, i: number) => {
-      const label = typeof step === 'string' ? step : step.label;
+      const label = typeof step === 'string' ? step : (step.label || step.title || `Step ${i + 1}`);
       const isActive = i === active;
       const isCompleted = i < active;
       return html`<div class="step" ?active=${isActive} ?completed=${isCompleted}>

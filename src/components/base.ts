@@ -54,10 +54,24 @@ export class ForgeElement extends LitElement {
   /** Get a prop value, resolving any references */
   protected getProp(key: string): unknown {
     const value = this.props?.[key];
-    if (typeof value === 'string' && (value.startsWith('$state:') || value.startsWith('$computed:') || value.startsWith('$item:'))) {
+    if (typeof value === 'string' && (
+      value.startsWith('$state:') ||
+      value.startsWith('$computed:') ||
+      value.startsWith('$item:') ||
+      value.startsWith('$expr:') ||
+      (value.includes('{{') && value.includes('}}'))
+    )) {
       return this.resolve(value);
     }
     return value;
+  }
+
+  /** Get a prop as an array, resolving any references */
+  protected getArray(key: string): unknown[] {
+    const val = this.getProp(key);
+    if (Array.isArray(val)) return val;
+    if (val && typeof val === 'object') return Object.values(val as Record<string, unknown>);
+    return [];
   }
 
   /** Get a prop as a string */
@@ -113,8 +127,10 @@ export class ForgeElement extends LitElement {
   }
 
   /** Alias: resolve gap token to CSS value */
-  protected gapValue(gap?: string): string {
+  protected gapValue(gap?: string | number): string {
     const tokenMap: Record<string, string> = {
+      'none': '0',
+      '0': '0',
       '3xs': 'var(--forge-space-3xs)',
       '2xs': 'var(--forge-space-2xs)',
       'xs': 'var(--forge-space-xs)',
@@ -124,7 +140,14 @@ export class ForgeElement extends LitElement {
       'xl': 'var(--forge-space-xl)',
       '2xl': 'var(--forge-space-2xl)',
     };
-    return tokenMap[gap || 'md'] || 'var(--forge-space-md)';
+    if (gap === undefined || gap === null || gap === '') return 'var(--forge-space-md)';
+    const key = String(gap);
+    if (key in tokenMap) return tokenMap[key];
+    // Numeric — treat as px
+    if (/^\d+(\.\d+)?$/.test(key)) return `${key}px`;
+    // Pass-through CSS length values (rem, px, em, %, etc.)
+    if (/^\d+(\.\d+)?(px|rem|em|%|vw|vh|ch)$/.test(key)) return key;
+    return 'var(--forge-space-md)';
   }
 
   // ─── Common styles ───────────────────────────────────────────
