@@ -8,7 +8,7 @@
 import { html, TemplateResult } from 'lit';
 import type { ForgeManifest } from '../types/index.js';
 import { Store } from 'tinybase';
-import { resolveRef } from '../state/index.js';
+import { resolveRef, setItemContext } from '../state/index.js';
 
 export interface RenderContext {
   manifest: ForgeManifest;
@@ -27,9 +27,15 @@ export function renderElement(elementId: string, ctx: RenderContext): TemplateRe
   if (!element) return html``;
   if (element.visible && !evaluateVisibility(element.visible, ctx)) return html``;
 
+  const type = element.type;
+
+  // Repeater: iterate over data and render the (first) child template per item.
+  if (type === 'Repeater') {
+    return renderRepeater(element, ctx);
+  }
+
   const resolvedProps = resolveProps(element.props || {}, ctx);
   const children = (element.children || []).map(id => renderElement(id, ctx));
-  const type = element.type;
 
   // Static dispatch — each type calls the right template literal
   switch (type) {
@@ -72,6 +78,40 @@ export function renderElement(elementId: string, ctx: RenderContext): TemplateRe
     case 'Drawing':  return html`<forge-drawing .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forge-drawing>`;
     default:         return html`<forge-error .props=${({ msg: `Unknown: ${type}` })} .store=${ctx.store}></forge-error>`;
   }
+}
+
+/** Render a Repeater element: iterate over `data`, render child template once per item. */
+function renderRepeater(element: any, ctx: RenderContext): TemplateResult {
+  const resolvedProps = resolveProps(element.props || {}, ctx);
+  const dataRaw = resolvedProps.data;
+  let items: unknown[] = [];
+  if (Array.isArray(dataRaw)) items = dataRaw;
+  else if (dataRaw && typeof dataRaw === 'object') items = Object.values(dataRaw as Record<string, unknown>);
+
+  const childIds = element.children || [];
+  if (childIds.length === 0) {
+    return html`<forge-repeater .props=${resolvedProps} .store=${ctx.store}></forge-repeater>`;
+  }
+
+  // Render each child template once per item, with item context set for resolveRef.
+  const rendered: TemplateResult[] = [];
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const itemObj = (typeof item === 'object' && item !== null) ? { ...item as Record<string, unknown>, _index: i } : { value: item, _index: i };
+    const itemCtx: RenderContext = { ...ctx, itemContext: itemObj };
+    // setItemContext is a module-level global used by resolveRef; set it around each child render.
+    setItemContext(itemObj);
+    for (const cid of childIds) {
+      rendered.push(renderElement(cid, itemCtx));
+    }
+    setItemContext(null);
+  }
+
+  // If empty, let the Repeater component render its empty state.
+  if (items.length === 0) {
+    return html`<forge-repeater .props=${resolvedProps} .store=${ctx.store}></forge-repeater>`;
+  }
+  return html`<forge-repeater .props=${resolvedProps} .store=${ctx.store}>${rendered}</forge-repeater>`;
 }
 
 function resolveProps(props: Record<string, unknown>, ctx: RenderContext): Record<string, unknown> {

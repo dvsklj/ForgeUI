@@ -102,31 +102,191 @@ export function getItemContext(): Record<string, unknown> | null {
   return currentItemContext;
 }
 
-/** 
+/**
+ * Evaluate an $expr: expression against the store.
+ * Supported patterns:
+ *   state.foo.bar           → read a nested value from state values or tables
+ *   state.table.row.col     → direct cell access
+ *   state.table | values    → return all rows of a table as an array
+ *   state.table | count     → row count
+ *   state.table | keys      → row ids
+ *   item.field              → repeater item field
+ *   literal "hello", 42, true/false/null
+ */
+function evaluateExpression(store: Store, expr: string): unknown {
+  const trimmed = expr.trim();
+  if (trimmed === '') return undefined;
+
+  // Literal strings
+  if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+    return trimmed.slice(1, -1);
+  }
+  if (trimmed === 'true') return true;
+  if (trimmed === 'false') return false;
+  if (trimmed === 'null') return null;
+  if (/^-?\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed);
+
+  // Pipe operator: `path | filter [arg]`
+  if (trimmed.includes('|')) {
+    const [lhs, ...rhsParts] = trimmed.split('|').map((s) => s.trim());
+    const base = evaluateExpression(store, lhs);
+    let result: unknown = base;
+    for (const filter of rhsParts) {
+      const [fname, ...fargs] = filter.split(/\s+/);
+      result = applyFilter(result, fname, fargs);
+    }
+    return result;
+  }
+
+  // item.field (repeater context)
+  if (trimmed.startsWith('item.') || trimmed === 'item') {
+    if (trimmed === 'item') return currentItemContext;
+    const path = trimmed.slice(5);
+    return getDeepPath(currentItemContext, path);
+  }
+
+  // state.foo.bar — try cell access, then table row, then value, then deep value lookup
+  if (trimmed.startsWith('state.') || trimmed === 'state') {
+    if (trimmed === 'state') return undefined;
+    const path = trimmed.slice(6);
+    return resolveStateDotPath(store, path);
+  }
+
+  // Fallback: treat as a plain state path
+  return resolveStatePath(store, trimmed);
+}
+
+function applyFilter(value: unknown, name: string, _args: string[]): unknown {
+  switch (name) {
+    case 'values':
+      if (Array.isArray(value)) return value;
+      if (value && typeof value === 'object') return Object.values(value as Record<string, unknown>);
+      return [];
+    case 'keys':
+      if (value && typeof value === 'object') return Object.keys(value as Record<string, unknown>);
+      return [];
+    case 'count':
+    case 'length':
+      if (Array.isArray(value)) return value.length;
+      if (value && typeof value === 'object') return Object.keys(value as Record<string, unknown>).length;
+      if (typeof value === 'string') return value.length;
+      return 0;
+    case 'sum':
+      if (Array.isArray(value)) return value.reduce((a: number, b: any) => a + (typeof b === 'number' ? b : 0), 0);
+      return 0;
+    case 'first':
+      if (Array.isArray(value)) return value[0];
+      return undefined;
+    case 'last':
+      if (Array.isArray(value)) return value[value.length - 1];
+      return undefined;
+    default:
+      return value;
+  }
+}
+
+function getDeepPath(obj: unknown, path: string): unknown {
+  if (!obj || typeof obj !== 'object' || !path) return undefined;
+  const parts = path.split('.');
+  let cur: any = obj;
+  for (const p of parts) {
+    if (cur === null || cur === undefined) return undefined;
+    cur = cur[p];
+  }
+  return cur;
+}
+
+function resolveStateDotPath(store: Store, path: string): unknown {
+  // Try value first (for simple flat keys like "state.name")
+  const direct = store.getValue(path);
+  if (direct !== undefined) return direct;
+
+  const parts = path.split('.');
+  // [table, row, col]
+  if (parts.length >= 3) {
+    const [table, row, col, ...rest] = parts;
+    if (store.hasTable(table) && store.hasRow(table, row)) {
+      const cell = store.getCell(table, row, col);
+      if (rest.length === 0) return cell;
+      if (typeof cell === 'string') {
+        try {
+          const parsed = JSON.parse(cell);
+          return getDeepPath(parsed, rest.join('.'));
+        } catch { /* not JSON */ }
+      }
+      return undefined;
+    }
+  }
+  // [table, row] — return row as object
+  if (parts.length >= 2) {
+    const [table, row, ...rest] = parts;
+    if (store.hasTable(table) && store.hasRow(table, row)) {
+      const rowObj = store.getRow(table, row);
+      return rest.length === 0 ? rowObj : getDeepPath(rowObj, rest.join('.'));
+    }
+  }
+  // [table] — return all rows keyed by row id
+  if (parts.length >= 1) {
+    const [table, ...rest] = parts;
+    if (store.hasTable(table)) {
+      const rowIds = store.getRowIds(table);
+      const tableData: Record<string, Record<string, unknown>> = {};
+      for (const rid of rowIds) tableData[rid] = store.getRow(table, rid);
+      return rest.length === 0 ? tableData : getDeepPath(tableData, rest.join('.'));
+    }
+  }
+
+  // Fallback: try parsing a JSON-valued state value at first segment
+  const rootVal = store.getValue(parts[0]);
+  if (typeof rootVal === 'string' && parts.length > 1) {
+    try {
+      const parsed = JSON.parse(rootVal);
+      return getDeepPath(parsed, parts.slice(1).join('.'));
+    } catch { /* no-op */ }
+  }
+  return undefined;
+}
+
+/**
  * Resolve any reference string to its actual value.
  * - $state:path → store value
  * - $computed:expression → computed value
  * - $item:field → current repeater item field
+ * - $expr:expression → expression evaluated against store and item context
+ * - {{state.x}} / {{item.x}} → interpolated string
  * - Plain value → returned as-is
  */
 export function resolveRef(store: Store, value: unknown): unknown {
   if (typeof value !== 'string') return value;
-  
+
   if (value.startsWith('$state:')) {
     const path = value.slice(7);
     return resolveStatePath(store, path);
   }
-  
+
   if (value.startsWith('$computed:')) {
     const expression = value.slice(10);
     return evaluateComputed(store, expression);
   }
-  
+
   if (value.startsWith('$item:')) {
     const field = value.slice(6);
     return currentItemContext?.[field];
   }
-  
+
+  if (value.startsWith('$expr:')) {
+    const expression = value.slice(6);
+    return evaluateExpression(store, expression);
+  }
+
+  // Template interpolation: "Hello {{state.name}}, you have {{item.count}} items"
+  if (value.includes('{{') && value.includes('}}')) {
+    return value.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (_, expr) => {
+      const v = evaluateExpression(store, String(expr));
+      return v === undefined || v === null ? '' : String(v);
+    });
+  }
+
   return value;
 }
 

@@ -8,10 +8,10 @@
 
 // ─── Component Types ─────────────────────────────────────────────
 
-/** All 37 component types in the Forge catalog */
+/** All component types in the Forge catalog */
 export type ComponentType =
-  // Layout (8)
-  | 'Stack' | 'Grid' | 'Card' | 'Container' | 'Tabs' | 'Accordion' | 'Divider' | 'Spacer'
+  // Layout (9)
+  | 'Stack' | 'Grid' | 'Card' | 'Container' | 'Tabs' | 'Accordion' | 'Divider' | 'Spacer' | 'Repeater'
   // Content (6)
   | 'Text' | 'Image' | 'Icon' | 'Badge' | 'Avatar' | 'EmptyState'
   // Input (9)

@@ -87,11 +87,27 @@ export const SpacerSchema = z.object({
   size: z.enum(['3xs', '2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl']).default('md'),
 }).strict();
 
+export const RepeaterSchema = z.object({
+  data: z.any().describe('Array or object to iterate. Usually a $state or $expr reference.'),
+  direction: z.enum(['row', 'column', 'horizontal', 'vertical']).default('column'),
+  gap: z.union([
+    z.enum(['none', '3xs', '2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl']),
+    z.string(),
+    z.number(),
+  ]).default('md'),
+  emptyMessage: z.string().optional(),
+}).passthrough();
+
 // ─── Content (6) ────────────────────────────────────────────────
 
 export const TextSchema = z.object({
   content: z.string().default(''),
-  variant: z.enum(['heading', 'subheading', 'body', 'caption', 'code']).default('body'),
+  variant: z.enum([
+    'heading', 'heading1', 'heading2', 'heading3',
+    'h1', 'h2', 'h3', 'title', 'subtitle',
+    'subheading', 'body', 'caption', 'code', 'label', 'muted',
+    'paragraph', 'text', 'secondary', 'tertiary',
+  ]).default('body'),
   align: z.enum(['left', 'center', 'right']).optional(),
   weight: z.enum(['normal', 'medium', 'semibold', 'bold']).optional(),
   color: z.enum(['default', 'secondary', 'tertiary', 'primary', 'success', 'warning', 'error', 'info']).optional(),
@@ -420,6 +436,7 @@ export const catalogSchemas = {
   Accordion: AccordionSchema,
   Divider: DividerSchema,
   Spacer: SpacerSchema,
+  Repeater: RepeaterSchema,
   // Content
   Text: TextSchema,
   Image: ImageSchema,

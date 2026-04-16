@@ -12,7 +12,7 @@ import type { ComponentType, ComponentCategory } from '../types/index.js';
 /** Category mapping for all 37 components */
 export const componentCategories: Record<ComponentType, ComponentCategory> = {
   Stack: 'layout', Grid: 'layout', Card: 'layout', Container: 'layout',
-  Tabs: 'layout', Accordion: 'layout', Divider: 'layout', Spacer: 'layout',
+  Tabs: 'layout', Accordion: 'layout', Divider: 'layout', Spacer: 'layout', Repeater: 'layout',
   
   Text: 'content', Image: 'content', Icon: 'content', Badge: 'content',
   Avatar: 'content', EmptyState: 'content',
@@ -33,7 +33,7 @@ export const componentCategories: Record<ComponentType, ComponentCategory> = {
 
 /** Components grouped by category */
 export const componentsByCategory: Record<ComponentCategory, ComponentType[]> = {
-  layout: ['Stack', 'Grid', 'Card', 'Container', 'Tabs', 'Accordion', 'Divider', 'Spacer'],
+  layout: ['Stack', 'Grid', 'Card', 'Container', 'Tabs', 'Accordion', 'Divider', 'Spacer', 'Repeater'],
   content: ['Text', 'Image', 'Icon', 'Badge', 'Avatar', 'EmptyState'],
   input: ['TextInput', 'NumberInput', 'Select', 'MultiSelect', 'Checkbox', 'Toggle', 'DatePicker', 'Slider', 'FileUpload'],
   action: ['Button', 'ButtonGroup', 'Link'],
