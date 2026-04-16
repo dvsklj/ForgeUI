@@ -227,7 +227,7 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
         return c.json({ error: 'App not found' }, 404);
       }
 
-      const validation = validateManifest(updated);
+      const validation = validateManifest(updated.manifest);
       if (!validation.valid) {
         return c.json({ error: 'Validation failed after patch', details: validation.errors }, 400);
       }
