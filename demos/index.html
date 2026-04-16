@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ForgeUI — Demo Gallery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b0d10;
+      --panel: #14171c;
+      --panel-2: #1b1f26;
+      --border: #262b33;
+      --text: #e6e8ec;
+      --text-dim: #8a92a1;
+      --accent: #6366f1;
+      --accent-2: #8b5cf6;
+      --success: #10b981;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(ellipse at top, #1a1d24 0%, var(--bg) 60%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 4rem 1.5rem 6rem;
+    }
+    .wrap { max-width: 1080px; margin: 0 auto; }
+    .eyebrow {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(120deg, #fff, #a5a8b3);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .lede {
+      font-size: 1.05rem;
+      color: var(--text-dim);
+      max-width: 60ch;
+      line-height: 1.55;
+      margin-bottom: 0.5rem;
+    }
+    .meta {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-bottom: 3rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .meta code { background: var(--panel); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      opacity: 0;
+      transition: opacity 120ms ease;
+    }
+    .card:hover {
+      border-color: #3a4150;
+      background: var(--panel-2);
+      transform: translateY(-2px);
+    }
+    .card:hover::before { opacity: 1; }
+    .tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(99, 102, 241, 0.12);
+      padding: 3px 8px;
+      border-radius: 4px;
+      align-self: flex-start;
+    }
+    .card h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+    .card p {
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .components {
+      margin-top: 0.75rem;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+    footer code { background: var(--panel); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="eyebrow">ForgeUI v0.1.0 · fix/layout-robustness</div>
+    <h1>Demo gallery</h1>
+    <p class="lede">
+      Each demo renders live from a declarative JSON manifest through the Forge runtime — same framework,
+      different shape. Click any card to view the rendered app.
+    </p>
+    <p class="meta">
+      Bundle · <code>dist/forge.js</code> (326 KB) · 5 manifests · Lit + TinyBase
+    </p>
+
+    <div class="grid">
+      <a class="card" href="view.html?demo=02-analytics-dashboard">
+        <span class="tag">Dashboard</span>
+        <h2>Analytics Dashboard</h2>
+        <p>KPI grid, SVG bar & line charts, typed table with status badges. Exercises <code>Grid</code>, <code>Metric</code>, <code>Chart</code>, <code>Table</code>.</p>
+        <div class="components">Grid · Metric · Chart · Table · Card · Badge</div>
+      </a>
+
+      <a class="card" href="view.html?demo=03-feedback-form">
+        <span class="tag">Form</span>
+        <h2>Feedback Form</h2>
+        <p>Inputs, select, slider, validation, reactive list rendered from state via <code>$expr</code> binding.</p>
+        <div class="components">TextInput · Select · Slider · Alert · Table · $expr</div>
+      </a>
+
+      <a class="card" href="view.html?demo=04-onboarding-wizard">
+        <span class="tag">Wizard</span>
+        <h2>Onboarding Wizard</h2>
+        <p>Multi-step flow with the Stepper connector fix and tab-based panel switching.</p>
+        <div class="components">Stepper · Tabs · Checkbox · Progress · Button</div>
+      </a>
+
+      <a class="card" href="view.html?demo=01-nutrition-tracker">
+        <span class="tag">Tracker</span>
+        <h2>Nutrition Tracker</h2>
+        <p>Mixed read/write UI — metric cards on top of editable inputs, progress bars, and a diary list.</p>
+        <div class="components">Metric · Progress · List · TextInput · Number</div>
+      </a>
+
+      <a class="card" href="view.html?demo=05-settings-panel">
+        <span class="tag">Settings</span>
+        <h2>Settings Panel</h2>
+        <p>Dense form with sections, toggles, radio groups, and help text — stress-tests Stack spacing.</p>
+        <div class="components">Stack · Switch · Radio · TextInput · Divider</div>
+      </a>
+
+      <a class="card" href="view.html?demo=todo-tracker">
+        <span class="tag">Classic</span>
+        <h2>Todo Tracker</h2>
+        <p>The minimal example — single-state CRUD with actions wired to buttons.</p>
+        <div class="components">Stack · TextInput · Button · Table · Actions</div>
+      </a>
+    </div>
+
+    <footer>
+      These demos were rebuilt on the <code>fix/layout-robustness</code> branch. The main visible improvements:
+      Stack/Grid/Container now apply layout CSS to the host (not the slot, which Shadow DOM drops silently),
+      Tabs hide inactive panels via slot filtering, Text supports <code>heading1/2/3</code> aliases,
+      Table renders typed badge cells, and Metric accepts free-form trend strings.
+    </footer>
+  </div>
+</body>
+</html>
