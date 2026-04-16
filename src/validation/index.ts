@@ -358,6 +358,63 @@ function validateReferences(manifest: ForgeManifest, errors: ValidationError[]) 
   detectCycles(manifest, errors);
 }
 
+const FORBIDDEN_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
+const KEY_RE = /^[a-zA-Z_][a-zA-Z0-9_\-]*$/;
+const MAX_PATCH_DEPTH = 8;
+const MAX_PATCH_SIZE = 100_000;
+
+/**
+ * Validate a JSON Merge Patch envelope before it is merged into the stored manifest.
+ * This is NOT a full manifest schema check — it guards the patch shape only.
+ */
+export function validateManifestPatch(patch: unknown): { valid: boolean; errors?: string[] } {
+  const errors: string[] = [];
+
+  if (patch === null || typeof patch !== 'object' || Array.isArray(patch)) {
+    return { valid: false, errors: ['Patch must be a plain object'] };
+  }
+
+  try {
+    if (JSON.stringify(patch).length > MAX_PATCH_SIZE) {
+      return { valid: false, errors: [`Patch exceeds ${MAX_PATCH_SIZE} byte limit`] };
+    }
+  } catch {
+    return { valid: false, errors: ['Patch is not serializable'] };
+  }
+
+  function walk(node: unknown, depth: number, path: string): void {
+    if (depth > MAX_PATCH_DEPTH) {
+      errors.push(`Patch nesting exceeds max depth of ${MAX_PATCH_DEPTH} at ${path || '/'}`);
+      return;
+    }
+
+    if (node === null || typeof node !== 'object') return;
+
+    if (Array.isArray(node)) {
+      for (let i = 0; i < node.length; i++) {
+        walk(node[i], depth + 1, `${path}[${i}]`);
+      }
+      return;
+    }
+
+    for (const key of Object.keys(node)) {
+      if (FORBIDDEN_KEYS.has(key)) {
+        errors.push(`Forbidden key "${key}" at ${path || '/'}`);
+        continue;
+      }
+      if (!KEY_RE.test(key)) {
+        errors.push(`Invalid key "${key}" at ${path || '/'}`);
+        continue;
+      }
+      walk((node as Record<string, unknown>)[key], depth + 1, `${path}/${key}`);
+    }
+  }
+
+  walk(patch, 0, '');
+
+  return errors.length > 0 ? { valid: false, errors } : { valid: true };
+}
+
 /** Detect cycles in the element tree */
 function detectCycles(manifest: ForgeManifest, errors: ValidationError[]) {
   const visited = new Set<string>();

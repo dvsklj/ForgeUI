@@ -35,7 +35,7 @@ import {
   generateAppId,
 } from './db.js';
 import type { ForgeManifest } from '../types/index.js';
-import { validateManifest } from '../validation/index.js';
+import { validateManifest, validateManifestPatch } from '../validation/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const VALID_APP_ID = /^[a-z0-9][a-z0-9\-_]{0,127}$/;
@@ -102,6 +102,9 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   // Serve a specific app
   app.get('/apps/:id', (c) => {
     const id = c.req.param('id');
+    if (!VALID_APP_ID.test(id)) {
+      return c.html(renderErrorPage('Invalid app ID', 'The requested app ID contains invalid characters'), 400);
+    }
     const stored = getApp(id);
 
     if (!stored) {
@@ -140,6 +143,9 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   // Get app manifest
   app.get('/api/apps/:id', (c) => {
     const id = c.req.param('id');
+    if (!VALID_APP_ID.test(id)) {
+      return c.json({ error: 'invalid id' }, 400);
+    }
     const app = getApp(id);
     if (!app) {
       return c.json({ error: 'App not found' }, 404);
@@ -205,8 +211,17 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   // Patch app (JSON Merge Patch)
   app.patch('/api/apps/:id', async (c) => {
     const id = c.req.param('id');
+    if (!VALID_APP_ID.test(id)) {
+      return c.json({ error: 'invalid id' }, 400);
+    }
     try {
       const patch = await c.req.json();
+
+      const patchValidation = validateManifestPatch(patch);
+      if (!patchValidation.valid) {
+        return c.json({ error: 'Invalid patch', details: patchValidation.errors }, 400);
+      }
+
       const updated = patchApp(id, patch);
       if (!updated) {
         return c.json({ error: 'App not found' }, 404);
@@ -230,6 +245,9 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   // Delete app
   app.delete('/api/apps/:id', (c) => {
     const id = c.req.param('id');
+    if (!VALID_APP_ID.test(id)) {
+      return c.json({ error: 'invalid id' }, 400);
+    }
     const deleted = deleteApp(id);
     if (!deleted) {
       return c.json({ error: 'App not found' }, 404);
