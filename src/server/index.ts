@@ -38,6 +38,7 @@ import type { ForgeManifest } from '../types/index.js';
 import { validateManifest } from '../validation/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const VALID_APP_ID = /^[a-z0-9][a-z0-9\-_]{0,127}$/;
 
 export interface ForgeServerOptions {
   /** Port to listen on (default: 3000) */
@@ -107,7 +108,7 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
       return c.html(renderErrorPage('App not found', `No app with ID "${id}"`), 404);
     }
 
-    const manifestJson = JSON.stringify(stored.manifest).replace(/</g, '\\u003c').replace(/"/g, '&quot;');
+    const manifestJson = JSON.stringify(stored.manifest).replace(/</g, '\\u003c');
     const base = baseUrl || `${c.req.header('x-forwarded-proto') || 'http'}://${c.req.header('host')}`;
 
     return c.html(renderAppPage(manifestJson, stored.title, base));
@@ -154,6 +155,8 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
 
       if (!manifest.id) {
         manifest.id = generateAppId();
+      } else if (!VALID_APP_ID.test(manifest.id)) {
+        return c.json({ error: 'invalid id' }, 400);
       }
 
       const stored = createApp(manifest);
@@ -171,6 +174,9 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   // Update app (full replacement)
   app.put('/api/apps/:id', async (c) => {
     const id = c.req.param('id');
+    if (!VALID_APP_ID.test(id)) {
+      return c.json({ error: 'invalid id' }, 400);
+    }
     try {
       const body = await c.req.json();
       const manifest = body as ForgeManifest;
@@ -276,7 +282,12 @@ function renderAppPage(manifestJson: string, title: string, baseUrl: string): st
   </style>
 </head>
 <body>
-  <forge-app manifest="${manifestJson}" surface="standalone"></forge-app>
+  <script type="application/json" id="forge-manifest-data">${manifestJson}</script>
+  <forge-app id="forge-app" surface="standalone"></forge-app>
+  <script>
+    const raw = document.getElementById('forge-manifest-data').textContent;
+    document.getElementById('forge-app').manifest = JSON.parse(raw);
+  </script>
   <script type="module" src="${baseUrl}/runtime/forge.js"></script>
 </body>
 </html>`;
@@ -330,5 +341,11 @@ function renderErrorPage(title: string, message: string): string {
 }
 
 function escapeHtml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return str
+    .replace(/\x00/g, '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
