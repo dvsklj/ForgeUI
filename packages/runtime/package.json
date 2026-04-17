@@ -6,9 +6,16 @@
   "module": "forge-standalone.js",
   "types": "forge-standalone.d.ts",
   "exports": {
-    ".": "./forge-standalone.js",
-    "./standalone": "./forge-standalone.js",
-    "./components": "./forge-components.js"
+    ".": {
+      "types": "./forge-standalone.d.ts",
+      "default": "./forge-standalone.js"
+    },
+    "./standalone": {
+      "types": "./forge-standalone.d.ts",
+      "default": "./forge-standalone.js"
+    },
+    "./components": "./forge-components.js",
+    "./forge.js": "./forge.js"
   },
   "files": [
     "forge.js",
@@ -51,5 +58,17 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {}
+  "peerDependencies": {
+    "ajv": "^8.17.0",
+    "lit": "^3.2.0",
+    "tinybase": "^5.4.0"
+  },
+  "peerDependenciesMeta": {
+    "ajv": { "optional": false },
+    "lit": { "optional": false },
+    "tinybase": { "optional": false }
+  },
+  "engines": {
+    "node": ">=20"
+  }
 }
