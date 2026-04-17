@@ -167,22 +167,17 @@ happens to existing manifests when the format changes.
 
 ### Catalog: core vs extended
 
-The catalog today is **39 components** (18 core + 21 extended, pending tier
-review for two). For LLM reliability and testing discipline, we split it
-into two tiers:
+The catalog today is **39 components** (19 core + 20 extended). For LLM
+reliability and testing discipline, we split it into two tiers:
 
-- **Core (18):** the components the LLM is told about by default in
+- **Core (19):** the components the LLM is told about by default in
   `catalog.prompt('core')`, and the components every release must pass full
   a11y, LLM-reliability, and visual regression tests on. Shipped in the
   base runtime.
-- **Extended (21):** components lazy-loaded or opted-in via
+- **Extended (20):** components lazy-loaded or opted-in via
   `catalog.prompt('full')`. These must pass the same tests to stay in
   extended, but the prompt budget and reliability bar for the LLM is
   measured on the core set.
-
-> TODO(tier): `forge-error` and `forge-drawing` were added without a tier
-> assignment. Pending Davor's review, they are currently counted as
-> "extended" in the headline number (18 core + 21 extended = 39).
 
 | Tier | Category | Components |
 |------|----------|-----------|
@@ -191,13 +186,14 @@ into two tiers:
 | Core | Input | TextInput, NumberInput, Select, Toggle, Checkbox |
 | Core | Action | Button |
 | Core | Data | Table, Chart, Metric |
-| Core | Feedback | Alert, Dialog, Progress |
+| Core | Feedback | Alert, Dialog, Progress, Error |
 | Extended | Layout | Container, Accordion, ButtonGroup, Divider, Spacer |
 | Extended | Content | Image, Icon, Avatar, EmptyState |
 | Extended | Input | MultiSelect, DatePicker, Slider, FileUpload |
 | Extended | Action | Link |
 | Extended | Data | List |
 | Extended | Feedback | Toast |
+| Extended | Drawing | Drawing |
 | Extended | Navigation | Breadcrumb, Stepper |
 
 Component promotions and demotions are ADR-worthy decisions. A component

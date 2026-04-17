@@ -432,8 +432,6 @@ Notification banner.
 
 ### Error
 
-(tier: TBD — pending review)
-
 Error boundary / fallback display for invalid manifests or failed renders.
 
 | Prop | Type | Default | Description |
@@ -442,8 +440,6 @@ Error boundary / fallback display for invalid manifests or failed renders.
 | `details` | string | — | Optional technical details |
 
 ### Drawing
-
-(tier: TBD — pending review)
 
 Canvas-based drawing surface.
 

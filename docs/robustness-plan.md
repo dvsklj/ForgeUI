@@ -82,7 +82,8 @@ worth doing before a public release.
   fast with a safe fallback.
 - **Catalog prompt**: the prompt in `catalog/prompt.ts` still lists 37
   components and doesn't mention Repeater, `$expr:`, or the new Text
-  variants. Refresh before shipping to LLMs.
+  variants. Refresh before shipping to LLMs. (The catalog is now 39
+  components — see STATUS.md.)
 - **JSON Schema export**: `catalogToJsonSchema()` is used by agents to
   constrain generation — regenerate after the schema additions above and
   include in the bundled catalog.

@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { catalogSchemas as componentSchemas } from '../catalog/schemas/index.js';
 import type { ComponentType, ComponentCategory } from '../types/index.js';
 
-/** Category mapping for all 37 components */
+/** Category mapping for all 39 components */
 export const componentCategories: Record<ComponentType, ComponentCategory> = {
   Stack: 'layout', Grid: 'layout', Card: 'layout', Container: 'layout',
   Tabs: 'layout', Accordion: 'layout', Divider: 'layout', Spacer: 'layout', Repeater: 'layout',

@@ -2,7 +2,7 @@
 
 ## What Is Forge UI
 
-A platform where **AI agents generate JSON manifests** and the **Forge runtime renders them as live web apps**. No framework code. No build step. One 40KB bundle.
+A platform where **AI agents generate JSON manifests** and the **Forge runtime renders them as live web apps**. No framework code. No build step. ESM standalone ~42 KB gzip; IIFE CDN ~95 KB gzip.
 
 ```
 LLM generates JSON manifest → Forge runtime → Working web app
@@ -15,8 +15,8 @@ LLM generates JSON manifest → Forge runtime → Working web app
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    @forge/runtime                        │
-│  308KB (40KB gzip) IIFE — zero dependencies              │
-│  <forge-app> Web Component + 37 pre-built components     │
+│  IIFE ~95 KB gzip / ESM standalone ~42 KB gzip           │
+│  <forge-app> Web Component + 39 pre-built components     │
 │  TinyBase reactive state + Ajv validation                │
 │  Works: artifacts, iframes, embeds, standalone pages     │
 └────────────────────────┬────────────────────────────────┘
@@ -68,11 +68,12 @@ LLM generates JSON manifest → Forge runtime → Working web app
 ## What's Built
 
 ### Runtime (@forge/runtime)
-- **37 components** across 4 categories:
+- **39 components** (19 core + 20 extended) across 4 categories:
   - Structural: Stack, Grid, Card, Container, ButtonGroup, Divider, Spacer
   - Data: Table, Chart, Metric, Text, Badge, ProgressBar
   - Input: TextInput, NumberInput, Select, Toggle, Checkbox, Slider
-  - Presentation: Button, Tabs, Modal, Alert
+  - Presentation: Button, Tabs, Modal, Alert, Error
+  - Drawing: Drawing
 - **Reactive state**: TinyBase stores, real-time re-render on state change
 - **Expressions**: `$expr: "state.data.path | values"` binding
 - **Embedding**: Works standalone, in iframes, as chat artifacts
