@@ -27,14 +27,11 @@ forgeui/
 │   ├── validation/
 │   │   ├── index.ts             # validateManifest() — 4-layer pipeline
 │   │   ├── manifest-schema.ts   # JSON Schema definition for ForgeManifest
-│   │   ├── manifest-validator.generated.ts  # Precompiled Ajv standalone validator
-│   │   └── migration.ts         # Schema migrations
+│   │   └── manifest-validator.generated.ts  # Precompiled Ajv standalone validator
 │   ├── state/
 │   │   └── index.ts             # TinyBase store creation
 │   ├── catalog/
 │   │   ├── registry.ts          # Component catalog + type definitions
-│   │   ├── schemas/
-│   │   │   └── index.ts         # Zod schemas for component props
 │   │   └── prompt.ts            # LLM system prompt generation
 │   ├── tokens/
 │   │   └── index.ts             # CSS design tokens
@@ -77,8 +74,7 @@ npm run build -- --dev           # Dev mode (sourcemaps, no minify)
 3. Register with `customElements.define()`
 4. Export from `src/components/<category>/index.ts`
 5. Add to component catalog in `src/catalog/registry.ts`
-6. Add Zod schema for props in `src/catalog/schemas/index.ts`
-7. Add example usage to `examples/`
+6. Add example usage to `examples/`
 
 Example:
 
@@ -92,7 +88,7 @@ export class ForgeMyComponent extends ForgeElement {
   `;
 
   render() {
-    const label = this.getProp('label', 'Default');
+    const label = this.getProp('label') ?? 'Default';
     return html`<div class="my-component">${label}</div>`;
   }
 }
