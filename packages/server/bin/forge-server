@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 // @forgeui/server CLI entry point
-import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Load the compiled server
-await import(join(__dirname, '..', 'dist', 'forge-server.js'));
+// Load the compiled CLI runner
+await import(join(__dirname, '..', 'dist', 'forge-cli.js'));

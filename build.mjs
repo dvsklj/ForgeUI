@@ -7,13 +7,17 @@
  */
 
 import { build } from 'esbuild';
-import { statSync } from 'fs';
+import { statSync, mkdirSync, copyFileSync, readdirSync, rmSync, existsSync } from 'fs';
+import { execSync } from 'child_process';
+import { join } from 'path';
 
 const mode = process.argv.includes('--mode=artifact') ? 'artifact'
            : process.argv.includes('--mode=standalone') ? 'standalone'
            : process.argv.includes('--mode=server') ? 'server'
+           : process.argv.includes('--mode=server-cli') ? 'server-cli'
            : process.argv.includes('--mode=connect') ? 'connect'
            : process.argv.includes('--mode=cli') ? 'cli'
+           : process.argv.includes('--mode=types') ? 'types'
            : 'all';
 
 const isDev = process.argv.includes('--dev');
@@ -83,17 +87,31 @@ async function buildCatalog() {
 }
 
 async function buildServer() {
-  console.log('📦 Building server (ESM, Hono + SQLite)...');
+  console.log('📦 Building server library (ESM, Hono + SQLite)...');
   await build({
     ...sharedConfig,
     format: 'esm',
-    entryPoints: ['src/server/cli.ts'],
+    entryPoints: ['src/server/index.ts'],
     outfile: 'dist/forge-server.js',
     platform: 'node',
     target: 'node20',
     external: ['better-sqlite3'],
   });
   console.log('✅ dist/forge-server.js');
+}
+
+async function buildServerCli() {
+  console.log('📦 Building server CLI runner...');
+  await build({
+    ...sharedConfig,
+    format: 'esm',
+    entryPoints: ['src/server/cli.ts'],
+    outfile: 'dist/forge-cli.js',
+    platform: 'node',
+    target: 'node20',
+    external: ['better-sqlite3'],
+  });
+  console.log('✅ dist/forge-cli.js');
 }
 
 async function buildConnect() {
@@ -124,6 +142,45 @@ async function buildCli() {
   console.log('✅ dist/forge.mjs');
 }
 
+async function buildTypes() {
+  console.log('📦 Emitting type declarations...');
+  const typeDir = 'dist/types';
+
+  // Clean previous
+  rmSync(typeDir, { recursive: true, force: true });
+
+  // Emit all declarations from root tsconfig
+  execSync('npx tsc --emitDeclarationOnly --outDir ' + typeDir, {
+    stdio: 'inherit',
+    cwd: process.cwd(),
+  });
+
+  // @forgeui/runtime: copy full .d.ts tree (entry re-exports from siblings)
+  for (const sub of ['runtime', 'state', 'validation', 'catalog', 'renderer', 'tokens', 'a2ui', 'components', 'types']) {
+    execSync(`rsync -a --include='*/' --include='*.d.ts' --exclude='*' ${typeDir}/${sub}/ packages/runtime/${sub}/ 2>/dev/null || true`, { stdio: 'pipe' });
+  }
+  copyFileSync(`${typeDir}/index.d.ts`, 'packages/runtime/index.d.ts');
+  copyFileSync(`${typeDir}/index.d.ts`, 'packages/runtime/forge-standalone.d.ts');
+
+  // @forgeui/catalog: needs registry.d.ts + types/ for ComponentType references
+  mkdirSync('packages/catalog/catalog', { recursive: true });
+  mkdirSync('packages/catalog/types', { recursive: true });
+  copyFileSync(`${typeDir}/catalog/registry.d.ts`, 'packages/catalog/catalog/registry.d.ts');
+  copyFileSync(`${typeDir}/types/index.d.ts`, 'packages/catalog/types/index.d.ts');
+  copyFileSync(`${typeDir}/catalog/registry.d.ts`, 'packages/catalog/forge-catalog.d.ts');
+
+  // @forgeui/server: needs server/*.d.ts + types/ for ForgeManifest
+  mkdirSync('packages/server/dist/server', { recursive: true });
+  mkdirSync('packages/server/dist/types', { recursive: true });
+  mkdirSync('packages/server/dist/validation', { recursive: true });
+  execSync(`rsync -a --include='*/' --include='*.d.ts' --exclude='*' ${typeDir}/server/ packages/server/dist/server/`, { stdio: 'pipe' });
+  copyFileSync(`${typeDir}/types/index.d.ts`, 'packages/server/dist/types/index.d.ts');
+  execSync(`rsync -a --include='*/' --include='*.d.ts' --exclude='*' ${typeDir}/validation/ packages/server/dist/validation/ 2>/dev/null || true`, { stdio: 'pipe' });
+  copyFileSync(`${typeDir}/server/index.d.ts`, 'packages/server/dist/forge-server.d.ts');
+
+  console.log('✅ Type declarations emitted');
+}
+
 async function main() {
   switch (mode) {
     case 'artifact':
@@ -135,11 +192,17 @@ async function main() {
     case 'server':
       await buildServer();
       break;
+    case 'server-cli':
+      await buildServerCli();
+      break;
     case 'connect':
       await buildConnect();
       break;
     case 'cli':
       await buildCli();
+      break;
+    case 'types':
+      await buildTypes();
       break;
     default:
       await buildArtifact();
@@ -147,13 +210,15 @@ async function main() {
       await buildCore();
       await buildCatalog();
       await buildServer();
+      await buildServerCli();
       await buildConnect();
       await buildCli();
+      await buildTypes();
       break;
   }
 
   // Report sizes
-  const files = ['dist/forge.js', 'dist/forge-standalone.js', 'dist/forge-components.js', 'dist/forge-catalog.js', 'dist/forge-server.js', 'dist/forge-connect.mjs', 'dist/forge.mjs'];
+  const files = ['dist/forge.js', 'dist/forge-standalone.js', 'dist/forge-components.js', 'dist/forge-catalog.js', 'dist/forge-server.js', 'dist/forge-cli.js', 'dist/forge-connect.mjs', 'dist/forge.mjs'];
   console.log('\n📊 Bundle sizes:');
   for (const file of files) {
     try {

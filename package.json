@@ -31,6 +31,7 @@
     "ci:size": "node scripts/check-size.mjs",
     "validate": "tsx scripts/validate-examples.mjs",
     "bench:server": "tsx scripts/bench-server.mjs",
+    "smoke:pack": "tsx scripts/pack-smoke.mjs",
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed",
     "e2e:ui": "playwright test --ui"

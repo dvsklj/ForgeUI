@@ -60,7 +60,7 @@ Three ways to use the runtime, depending on the context.
 <script src="./dist/forge.js"></script>
 ```
 
-**Bundler mode** — existing project, wants ESM. Install the runtime package and import the main entry for the full bundle, or the lighter component-only entry if you already have the runtime elsewhere.
+**Bundler mode** — existing project, wants ESM. Install the runtime package. The main entry and `/standalone` alias point to the same ESM bundle with external deps (Lit, TinyBase, Ajv) resolved by your bundler for deduplication. `/components` registers individual web components without the runtime.
 
 ```bash
 npm install @forgeui/runtime
@@ -70,7 +70,7 @@ npm install @forgeui/runtime
 import { ForgeApp, validateManifest, createForgeStore } from '@forgeui/runtime';
 // Or, components only (no validation, no state runtime):
 import '@forgeui/runtime/components';
-// Or, ESM with external deps resolved by your bundler:
+// Standalone is an alias for the same main entry (ESM, deps external):
 import { ForgeApp } from '@forgeui/runtime/standalone';
 ```
 

@@ -2,17 +2,29 @@
   "name": "@forgeui/runtime",
   "version": "0.1.0",
   "description": "Client-side renderer for Forge declarative UI manifests.",
-  "main": "forge.js",
-  "module": "forge.js",
-  "types": "forge.d.ts",
+  "main": "forge-standalone.js",
+  "module": "forge-standalone.js",
+  "types": "forge-standalone.d.ts",
   "exports": {
-    ".": "./forge.js",
+    ".": "./forge-standalone.js",
     "./standalone": "./forge-standalone.js",
     "./components": "./forge-components.js"
   },
   "files": [
     "forge.js",
-    "forge.d.ts",
+    "forge-standalone.js",
+    "forge-standalone.d.ts",
+    "forge-components.js",
+    "index.d.ts",
+    "runtime/",
+    "state/",
+    "validation/",
+    "catalog/",
+    "renderer/",
+    "tokens/",
+    "a2ui/",
+    "components/",
+    "types/",
     "README.md"
   ],
   "keywords": [
@@ -36,5 +48,5 @@
     "url": "https://github.com/dvsklj/ForgeUI/issues"
   },
   "homepage": "https://github.com/dvsklj/ForgeUI#readme",
-  "peerDependencies": {}
+  "dependencies": {}
 }

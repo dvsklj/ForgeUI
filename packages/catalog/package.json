@@ -6,6 +6,8 @@
   "types": "forge-catalog.d.ts",
   "files": [
     "forge-catalog.js",
+    "forge-catalog.d.ts",
+    "types/",
     "README.md"
   ],
   "keywords": [
@@ -28,5 +30,4 @@
   },
   "homepage": "https://github.com/dvsklj/ForgeUI#readme",
   "dependencies": {}
-
 }

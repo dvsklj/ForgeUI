@@ -8,21 +8,23 @@ npm run build
 echo ""
 echo "=== Preparing packages ==="
 
-# @forgeui/runtime
+# @forgeui/runtime — types are already emitted by build to packages/runtime/
 echo "  @forgeui/runtime..."
 cp dist/forge.js packages/runtime/
 cp dist/forge-standalone.js packages/runtime/
 cp dist/forge-components.js packages/runtime/
 echo "    forge.js: $(du -h packages/runtime/forge.js | cut -f1)"
+echo "    forge-standalone.js: $(du -h packages/runtime/forge-standalone.js | cut -f1)"
 
-# @forgeui/server
+# @forgeui/server — types are already emitted by build to packages/server/dist/
 echo "  @forgeui/server..."
 mkdir -p packages/server/dist
 cp dist/forge-server.js packages/server/dist/
-cp dist/forge.mjs packages/server/dist/
+cp dist/forge-cli.js packages/server/dist/
 echo "    forge-server.js: $(du -h packages/server/dist/forge-server.js | cut -f1)"
+echo "    forge-cli.js: $(du -h packages/server/dist/forge-cli.js | cut -f1)"
 
-# @forgeui/catalog
+# @forgeui/catalog — types are already emitted by build to packages/catalog/
 echo "  @forgeui/catalog..."
 cp dist/forge-catalog.js packages/catalog/
 echo "    forge-catalog.js: $(du -h packages/catalog/forge-catalog.js | cut -f1)"
