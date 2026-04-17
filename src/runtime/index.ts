@@ -93,7 +93,8 @@ export class ForgeApp extends LitElement {
       } catch (e) {
         this._validation = {
           valid: false,
-          errors: [{ path: '/', message: `Invalid JSON: ${(e as Error).message}`, severity: 'error' }],
+          errors: [{ path: '/', message: `Invalid JSON: ${(e as Error).message}`, severity: 'error' as const }],
+          warnings: [],
         };
         return;
       }

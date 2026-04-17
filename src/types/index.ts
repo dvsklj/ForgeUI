@@ -165,6 +165,8 @@ export interface ForgeAction {
   method?: string;
   /** Request body for API calls */
   body?: Record<string, unknown>;
+  /** Arbitrary data payload */
+  data?: Record<string, unknown>;
 }
 
 /** Action types */

@@ -269,7 +269,7 @@ function buildFullPrompt(): string {
  * Generate a JSON Schema for Forge manifest validation.
  * Useful for structured output generation by LLMs.
  */
-export function catalogToJsonSchema(): object {
+export function catalogToJsonSchema(): { type: string; required: string[]; properties: Record<string, unknown> } {
   return {
     type: 'object',
     required: ['manifest', 'id', 'elements'],

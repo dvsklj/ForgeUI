@@ -19,7 +19,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { serve } from '@hono/node-server';
-import { serveStatic } from '@hono/node-server/serve-static';
 import { readFileSync } from 'fs';
 import { randomBytes } from 'node:crypto';
 import { join, dirname } from 'path';
@@ -202,7 +201,6 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   // Landing page
   app.get('/', (c) => {
     const { apps, total } = listApps(20);
-    const base = baseUrl || `${c.req.header('x-forwarded-proto') || 'http'}://${c.req.header('host')}`;
 
     const csp = [
       `default-src 'self'`,
@@ -215,7 +213,7 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
     ].join('; ');
     c.header('Content-Security-Policy', csp);
 
-    return c.html(renderLandingPage(apps, total, base));
+    return c.html(renderLandingPage(apps, total));
   });
 
   // ─── API Routes ────────────────────────────────────────────
@@ -418,7 +416,7 @@ function renderAppPage(manifestJson: string, title: string, baseUrl: string, non
 </html>`;
 }
 
-function renderLandingPage(apps: any[], total: number, baseUrl: string): string {
+function renderLandingPage(apps: any[], total: number): string {
   const appList = apps.map(a => `
     <a href="/apps/${escapeHtml(a.id)}" class="app-card">
       <h3>${escapeHtml(a.title)}</h3>

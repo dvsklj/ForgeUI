@@ -19,7 +19,7 @@
  *   }
  */
 
-import type { ForgeSchema, Migration, MigrationOperation } from '../types/index.js';
+import type { ForgeSchema, Migration } from '../types/index.js';
 
 export interface MigrationResult {
   success: boolean;
