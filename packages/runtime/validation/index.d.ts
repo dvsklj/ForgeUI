@@ -31,4 +31,14 @@ export declare function validateManifestPatch(patch: unknown): {
     valid: boolean;
     errors?: string[];
 };
+/**
+ * Strip Markdown code fences from LLM output.
+ *
+ * LLMs routinely wrap JSON in ```json ... ``` fences.
+ * This helper returns the unfenced string so callers can
+ * pipe directly into JSON.parse → validateManifest.
+ *
+ * Never throws. Returns input unchanged if no fence is found.
+ */
+export declare function extractManifest(rawText: string): string;
 //# sourceMappingURL=index.d.ts.map
