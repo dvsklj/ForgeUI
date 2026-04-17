@@ -20,17 +20,24 @@ export interface RateLimitConfig {
 
 export interface RateLimiter {
   take(key: string): { allowed: boolean; retryAfterMs: number };
+  /** Check whether a bucket exists for the given key */
+  has(key: string): boolean;
+  /** Manually trigger a sweep of stale buckets */
+  sweep(): void;
   stop(): void;
 }
 
 export function createRateLimiter(cfg: RateLimitConfig): RateLimiter {
   const buckets = new Map<string, Bucket>();
   const now = cfg.now ?? (() => Date.now());
-  const sweep = setInterval(() => {
+
+  function sweep(): void {
     const cutoff = now() - cfg.ttlMs;
     for (const [k, b] of buckets) if (b.lastRefillMs < cutoff) buckets.delete(k);
-  }, 60_000);
-  if (typeof sweep.unref === 'function') sweep.unref();
+  }
+
+  const timer = setInterval(sweep, 60_000);
+  if (typeof timer.unref === 'function') timer.unref();
 
   return {
     take(key: string) {
@@ -50,8 +57,12 @@ export function createRateLimiter(cfg: RateLimitConfig): RateLimiter {
       const retryAfterMs = Math.ceil((1 - b.tokens) / cfg.refillPerSec * 1000);
       return { allowed: false, retryAfterMs };
     },
+    has(key: string) {
+      return buckets.has(key);
+    },
+    sweep,
     stop() {
-      clearInterval(sweep);
+      clearInterval(timer);
     },
   };
 }
