@@ -3,17 +3,7 @@
   "version": "0.1.0",
   "description": "Dynamic web app platform for LLM-generated apps — from manifest to working app in milliseconds",
   "type": "module",
-  "main": "dist/forge.js",
-  "types": "dist/forge.d.ts",
-  "bin": {
-    "forge": "bin/forge"
-  },
-  "exports": {
-    ".": "./dist/forge.js",
-    "./core": "./dist/forge-core.js",
-    "./catalog": "./dist/forge-catalog.js",
-    "./server": "./src/server/index.ts"
-  },
+  "private": true,
   "scripts": {
     "prebuild": "npm run gen:validator",
     "gen:validator": "tsx scripts/gen-validator.mjs",
@@ -57,7 +47,6 @@
     "url": "https://github.com/dvsklj/ForgeUI/issues"
   },
   "homepage": "https://github.com/dvsklj/ForgeUI#readme",
-  "private": false,
   "dependencies": {
     "@hono/node-server": "^1.19.14",
     "@modelcontextprotocol/sdk": "^1.29.0",
