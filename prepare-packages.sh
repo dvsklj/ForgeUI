@@ -21,8 +21,10 @@ echo "  @forgeui/server..."
 mkdir -p packages/server/dist
 cp dist/forgeui-server.js packages/server/dist/
 cp dist/forgeui-cli.js packages/server/dist/
+cp dist/forgeui.mjs packages/server/dist/
 echo "    forgeui-server.js: $(du -h packages/server/dist/forgeui-server.js | cut -f1)"
 echo "    forgeui-cli.js: $(du -h packages/server/dist/forgeui-cli.js | cut -f1)"
+echo "    forgeui.mjs: $(du -h packages/server/dist/forgeui.mjs | cut -f1)"
 
 # @forgeui/catalog — types are already emitted by build to packages/catalog/
 echo "  @forgeui/catalog..."
