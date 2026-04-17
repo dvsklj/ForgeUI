@@ -119,6 +119,7 @@ npm run test:watch               # Watch mode
 npm run test:coverage            # Coverage report
 npm run typecheck                # TypeScript type checking
 npm run ci:size                  # IIFE gzip size budget check
+npm run e2e                      # Playwright browser tests (Chromium, Firefox, WebKit)
 ```
 
 ## Size budget

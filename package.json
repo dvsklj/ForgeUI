@@ -29,7 +29,10 @@
     "typecheck": "tsc --noEmit",
     "size": "node build.mjs && gzip -c dist/forge.js | wc -c",
     "ci:size": "node scripts/check-size.mjs",
-    "validate": "tsx scripts/validate-examples.mjs"
+    "validate": "tsx scripts/validate-examples.mjs",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed",
+    "e2e:ui": "playwright test --ui"
   },
   "keywords": [
     "llm",
@@ -62,12 +65,14 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/node": "^25.6.0",
     "@types/supertest": "^7.2.0",
     "@vitest/coverage-v8": "^4.1.4",
     "ajv": "^8.17.0",
     "esbuild": "^0.21.0",
     "jsdom": "^29.0.2",
+    "serve": "^14.2.6",
     "supertest": "^7.2.2",
     "tsx": "^4.7.0",
     "typescript": "^5.5.0",
