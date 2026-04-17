@@ -389,25 +389,26 @@ if (existsSync(forgeServerBin)) {
   smokeFindings.push('@nedast/forgeui-server: bin/forgeui-server not found');
 }
 
-// Bin: forge
-console.log('\n  Testing bin: forge...');
-const forgeBin = join(scratchDir, 'node_modules/.bin/forge');
-if (existsSync(forgeBin)) {
-  // forge bin uses parseArgs without allowPositionals; 'forge serve' fails.
-  // This is a known CLI issue, not a packaging bug.
-  const binResult = await spawnAndSend(forgeBin, ['serve', '--port', '0', '--db', ':memory:'], null, 8000);
+// Bin: forgeui
+console.log('\n  Testing bin: forgeui...');
+const forgeuiBin = join(scratchDir, 'node_modules/.bin/forgeui');
+if (existsSync(forgeuiBin)) {
+  // forgeui bin points at the full CLI bundle (dist/forgeui.mjs).
+  // If it uses parseArgs without allowPositionals, 'forgeui serve' may still fail
+  // with ERR_PARSE_ARGS; that's a CLI issue, not a packaging bug.
+  const binResult = await spawnAndSend(forgeuiBin, ['serve', '--port', '0', '--db', ':memory:'], null, 8000);
   if (binResult.stdout.includes('listening') || binResult.stdout.includes('Forge') || binResult.stderr.includes('listening')) {
-    console.log(`  ✅ forge bin (serve) boots`);
+    console.log(`  ✅ forgeui bin (serve) boots`);
   } else if (binResult.stderr.includes('ERR_PARSE_ARGS')) {
-    console.log(`  ⚠️  forge bin: parseArgs rejects positional command (known CLI issue, not packaging)`);
+    console.log(`  ⚠️  forgeui bin: parseArgs rejects positional command (known CLI issue, not packaging)`);
   } else {
-    console.log(`  ⚠️  forge bin output unclear`);
+    console.log(`  ⚠️  forgeui bin output unclear`);
     console.log(`     stdout: ${binResult.stdout.slice(0, 200)}`);
     console.log(`     stderr: ${binResult.stderr.slice(0, 200)}`);
   }
 } else {
-  console.log(`  ❌ forge bin not found`);
-  smokeFindings.push('@nedast/forgeui-server: bin/forge not found');
+  console.log(`  ❌ forgeui bin not found`);
+  smokeFindings.push('@nedast/forgeui-server: bin/forgeui not found');
 }
 
 // ── @nedast/forgeui-connect ──
