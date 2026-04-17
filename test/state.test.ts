@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createStore } from 'tinybase';
-import { createForgeStore, resolveRef, executeAction, setItemContext, getItemContext } from '../src/state/index.js';
+import { createForgeUIStore, resolveRef, executeAction, setItemContext, getItemContext } from '../src/state/index.js';
 
-describe('createForgeStore', () => {
+describe('createForgeUIStore', () => {
   it('creates a store with no config', () => {
-    const store = createForgeStore({});
+    const store = createForgeUIStore({});
     expect(store).toBeDefined();
   });
 
   it('creates a store with schema and initial state', () => {
-    const store = createForgeStore({
+    const store = createForgeUIStore({
       schema: {
         version: 1,
         tables: {
@@ -38,7 +38,7 @@ describe('createForgeStore', () => {
   });
 
   it('serializes complex objects as JSON strings in values', () => {
-    const store = createForgeStore({
+    const store = createForgeUIStore({
       initialState: {
         config: { theme: 'dark', lang: 'en' },
       },
@@ -49,7 +49,7 @@ describe('createForgeStore', () => {
   });
 
   it('handles empty schema gracefully', () => {
-    const store = createForgeStore({ schema: undefined });
+    const store = createForgeUIStore({ schema: undefined });
     expect(store).toBeDefined();
   });
 });

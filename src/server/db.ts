@@ -7,12 +7,12 @@
 
 import Database from 'better-sqlite3';
 import { randomBytes } from 'crypto';
-import type { ForgeManifest } from '../types/index.js';
+import type { ForgeUIManifest } from '../types/index.js';
 
 export interface StoredApp {
   id: string;
   title: string;
-  manifest: ForgeManifest;
+  manifest: ForgeUIManifest;
   created_at: string;
   updated_at: string;
 }
@@ -62,7 +62,7 @@ export function generateAppId(): string {
 }
 
 /** Create an app. Returns the stored app with generated ID. */
-export function createApp(manifest: ForgeManifest): StoredApp {
+export function createApp(manifest: ForgeUIManifest): StoredApp {
   const db = getDatabase();
   const id = manifest.id || generateAppId();
   const title = manifest.meta?.title || id;
@@ -112,7 +112,7 @@ export function listApps(limit = 50, offset = 0): { apps: StoredApp[]; total: nu
 }
 
 /** Update an app's manifest. Returns the updated app. */
-export function updateApp(id: string, manifest: ForgeManifest): StoredApp | null {
+export function updateApp(id: string, manifest: ForgeUIManifest): StoredApp | null {
   const db = getDatabase();
   const title = manifest.meta?.title || id;
 
@@ -136,13 +136,13 @@ export type PatchResult =
  */
 export function patchApp(
   id: string,
-  patch: Partial<ForgeManifest>,
-  validate: (m: ForgeManifest) => { valid: boolean; errors?: string[] },
+  patch: Partial<ForgeUIManifest>,
+  validate: (m: ForgeUIManifest) => { valid: boolean; errors?: string[] },
 ): PatchResult {
   const existing = getApp(id);
   if (!existing) return { status: 'not-found' };
 
-  const merged = mergePatch(existing.manifest, patch) as ForgeManifest;
+  const merged = mergePatch(existing.manifest, patch) as ForgeUIManifest;
   const v = validate(merged);
   if (!v.valid) return { status: 'invalid', errors: v.errors ?? ['validation failed'] };
 

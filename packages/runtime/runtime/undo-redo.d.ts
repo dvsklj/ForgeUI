@@ -8,7 +8,7 @@
  *   - Stores full manifest snapshots (simple, reliable, no merge complexity)
  *   - Configurable depth (default: 50)
  *   - Memory-efficient: only stores unique states
- *   - Integrates with ForgeApp.setManifest()
+ *   - Integrates with ForgeUIApp.setManifest()
  *
  * Usage:
  *   const stack = new UndoRedoStack(50);
@@ -17,7 +17,7 @@
  *   stack.undo();  // returns manifestV1
  *   stack.redo();  // returns manifestV2
  */
-import type { ForgeManifest } from '../types/index.js';
+import type { ForgeUIManifest } from '../types/index.js';
 export interface UndoRedoState {
     /** Can undo? */
     canUndo: boolean;
@@ -35,15 +35,15 @@ export declare class UndoRedoStack {
     private _listeners;
     constructor(maxDepth?: number);
     /** Push a new manifest onto the stack. Clears any redo history. */
-    push(manifest: ForgeManifest): void;
+    push(manifest: ForgeUIManifest): void;
     /** Undo: return previous manifest, or null if at the beginning. */
-    undo(): ForgeManifest | null;
+    undo(): ForgeUIManifest | null;
     /** Redo: return next manifest, or null if at the end. */
-    redo(): ForgeManifest | null;
+    redo(): ForgeUIManifest | null;
     /** Get the current manifest without navigating. */
-    current(): ForgeManifest | null;
+    current(): ForgeUIManifest | null;
     /** Jump to a specific position. */
-    jumpTo(position: number): ForgeManifest | null;
+    jumpTo(position: number): ForgeUIManifest | null;
     /** Get current state. */
     getState(): UndoRedoState;
     /** Get all snapshots (for timeline UI). */

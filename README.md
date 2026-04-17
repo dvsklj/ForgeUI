@@ -108,7 +108,7 @@ npm install @forgeui/runtime
 ```
 
 ```js
-import { ForgeApp, validateManifest, extractManifest } from '@forgeui/runtime';
+import { ForgeUIApp, validateManifest, extractManifest } from '@forgeui/runtime';
 
 // Components-only entry (no validation, no state runtime):
 import '@forgeui/runtime/components';

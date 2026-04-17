@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { createForgeServer } from '../src/server/index.js';
+import { createForgeUIServer } from '../src/server/index.js';
 import { initDatabase, createApp, closeDatabase } from '../src/server/db.js';
 
 afterEach(() => closeDatabase());
@@ -14,7 +14,7 @@ describe('CSP on rendered app page', () => {
       elements: { main: { type: 'Text', props: { content: 'hi' } } },
       meta: { title: 'CSP' },
     } as any);
-    return createForgeServer({ baseUrl: 'http://localhost' });
+    return createForgeUIServer({ baseUrl: 'http://localhost' });
   }
 
   it('sets a Content-Security-Policy header on /apps/:id', async () => {

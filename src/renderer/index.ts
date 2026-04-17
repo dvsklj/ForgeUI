@@ -6,12 +6,12 @@
  */
 
 import { html, TemplateResult } from 'lit';
-import type { ForgeManifest } from '../types/index.js';
+import type { ForgeUIManifest } from '../types/index.js';
 import { Store } from 'tinybase';
 import { resolveRef, setItemContext } from '../state/index.js';
 
 export interface RenderContext {
-  manifest: ForgeManifest;
+  manifest: ForgeUIManifest;
   store: Store;
   activeView: string;
   onAction: (actionId: string, payload?: Record<string, unknown>) => void;

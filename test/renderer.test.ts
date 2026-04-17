@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { renderElement, renderManifest, kebabCase, evaluateVisibility } from '../src/renderer/index.js';
 import { createStore } from 'tinybase';
-import type { ForgeManifest } from '../src/types/index.js';
+import type { ForgeUIManifest } from '../src/types/index.js';
 
 describe('kebabCase', () => {
   it('converts camelCase to kebab-case', () => {
@@ -21,7 +21,7 @@ describe('evaluateVisibility', () => {
   store.setValue('name', 'Alice');
   store.setTable('items', { i1: { done: true } });
 
-  function ctx(manifest: ForgeManifest) {
+  function ctx(manifest: ForgeUIManifest) {
     return {
       manifest,
       store,
@@ -31,7 +31,7 @@ describe('evaluateVisibility', () => {
   }
 
   it('returns true for undefined/null condition', () => {
-    const manifest: ForgeManifest = {
+    const manifest: ForgeUIManifest = {
       manifest: '0.1.0', id: 't', root: 'r',
       elements: { r: { type: 'Text', props: { content: 'hi' }, visible: undefined as any } },
     };
@@ -120,7 +120,7 @@ describe('evaluateVisibility', () => {
 describe('renderElement', () => {
   const store = createStore();
 
-  function ctx(manifest: ForgeManifest) {
+  function ctx(manifest: ForgeUIManifest) {
     return {
       manifest,
       store,
@@ -130,7 +130,7 @@ describe('renderElement', () => {
   }
 
   it('returns empty template for non-existent element', () => {
-    const manifest: ForgeManifest = {
+    const manifest: ForgeUIManifest = {
       manifest: '0.1.0', id: 't', root: 'missing',
       elements: {},
     };
@@ -152,7 +152,7 @@ describe('renderElement', () => {
     for (const type of types) {
       const elements: Record<string, any> = {};
       elements['el'] = { type, props: {} };
-      const manifest: ForgeManifest = {
+      const manifest: ForgeUIManifest = {
         manifest: '0.1.0', id: 't', root: 'el', elements,
       };
       expect(() => renderElement('el', ctx(manifest))).not.toThrow();
@@ -160,7 +160,7 @@ describe('renderElement', () => {
   });
 
   it('renders unknown component type as forgeui-error', () => {
-    const manifest: ForgeManifest = {
+    const manifest: ForgeUIManifest = {
       manifest: '0.1.0', id: 't', root: 'el',
       elements: { el: { type: 'UnknownType' as any } },
     };
@@ -169,7 +169,7 @@ describe('renderElement', () => {
   });
 
   it('handles Repeater with data', () => {
-    const manifest: ForgeManifest = {
+    const manifest: ForgeUIManifest = {
       manifest: '0.1.0', id: 't', root: 'rep',
       elements: {
         rep: { type: 'Repeater', props: { data: [{ name: 'A' }, { name: 'B' }] }, children: ['item'] },
@@ -180,7 +180,7 @@ describe('renderElement', () => {
   });
 
   it('handles Repeater with empty data', () => {
-    const manifest: ForgeManifest = {
+    const manifest: ForgeUIManifest = {
       manifest: '0.1.0', id: 't', root: 'rep',
       elements: {
         rep: { type: 'Repeater', props: { data: [], emptyMessage: 'No items' } },
@@ -190,7 +190,7 @@ describe('renderElement', () => {
   });
 
   it('handles element with visibility condition', () => {
-    const manifest: ForgeManifest = {
+    const manifest: ForgeUIManifest = {
       manifest: '0.1.0', id: 't', root: 'el',
       elements: {
         el: { type: 'Text', props: { content: 'visible' }, visible: { $when: { path: 'shown', eq: true } } },

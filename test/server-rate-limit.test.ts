@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { createForgeServer } from '../src/server/index.js';
+import { createForgeUIServer } from '../src/server/index.js';
 import { initDatabase, closeDatabase } from '../src/server/db.js';
 import { createRateLimiter } from '../src/server/rate-limit.js';
 
@@ -98,7 +98,7 @@ describe('rate limiting middleware', () => {
     process.env.FORGEUI_RATE_LIMIT_RPM = '60';
     process.env.FORGEUI_RATE_LIMIT_BURST = '5'; // small burst for testing
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     // First 5 should succeed (or at least not 429)
     for (let i = 0; i < 5; i++) {
@@ -120,7 +120,7 @@ describe('rate limiting middleware', () => {
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     process.env.FORGEUI_RATE_LIMIT_BURST = '1';
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     // 200 rapid requests should all pass
     for (let i = 0; i < 200; i++) {
@@ -132,7 +132,7 @@ describe('rate limiting middleware', () => {
   it('rate limiting only applies to /api/*', async () => {
     process.env.FORGEUI_RATE_LIMIT_BURST = '1';
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     // The landing page is not under /api, so rate limit shouldn't apply
     for (let i = 0; i < 10; i++) {
@@ -149,7 +149,7 @@ describe('body size enforcement', () => {
     delete process.env.FORGEUI_MAX_BODY_BYTES;
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const res = await app.request('/api/apps', {
       method: 'POST',
@@ -168,7 +168,7 @@ describe('body size enforcement', () => {
     process.env.FORGEUI_MAX_BODY_BYTES = '1024'; // 1 KB
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     // Create a body that exceeds 1 KB but set Content-Length to trick the pre-check
     const bigBody = JSON.stringify({ data: 'x'.repeat(2000) });
@@ -187,7 +187,7 @@ describe('body size enforcement', () => {
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     delete process.env.FORGEUI_MAX_BODY_BYTES;
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const res = await app.request('/api/apps', {
       method: 'POST',
@@ -211,7 +211,7 @@ describe('trust proxy', () => {
     process.env.FORGEUI_RATE_LIMIT_BURST = '3';
     process.env.FORGEUI_RATE_LIMIT_RPM = '60';
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     // Two different X-Forwarded-For values should share one bucket (socket IP)
     for (let i = 0; i < 3; i++) {
@@ -233,7 +233,7 @@ describe('trust proxy', () => {
     process.env.FORGEUI_RATE_LIMIT_BURST = '2';
     process.env.FORGEUI_RATE_LIMIT_RPM = '60';
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     // Exhaust bucket for IP 1.2.3.4
     await app.request('/api/health', { headers: { 'x-forwarded-for': '1.2.3.4' } });
@@ -251,7 +251,7 @@ describe('trust proxy', () => {
     process.env.FORGEUI_RATE_LIMIT_BURST = '2';
     process.env.FORGEUI_RATE_LIMIT_RPM = '60';
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     await app.request('/api/health', { headers: { 'x-real-ip': '10.0.0.1' } });
     await app.request('/api/health', { headers: { 'x-real-ip': '10.0.0.1' } });
@@ -263,7 +263,7 @@ describe('trust proxy', () => {
     // Just verify the config parses correctly
     process.env.FORGEUI_TRUST_PROXY = 'yes';
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
     // If we got here without throwing, the config was parsed
     const res = await app.request('/api/health');
     expect(res.status).toBe(200);
@@ -278,7 +278,7 @@ describe('server hardening edge cases', () => {
     process.env.FORGEUI_RATE_LIMIT_RPM = '60';
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '';
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     await app.request('/api/health');
     const res = await app.request('/api/health');
@@ -293,7 +293,7 @@ describe('server hardening edge cases', () => {
   it('Content-Length: 0 on POST still works (empty body)', async () => {
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const res = await app.request('/api/apps', {
       method: 'POST',
@@ -312,7 +312,7 @@ describe('server hardening edge cases', () => {
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
     // Should not throw during server creation
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
     const res = await app.request('/api/health');
     expect(res.status).toBe(200);
   });
@@ -321,7 +321,7 @@ describe('server hardening edge cases', () => {
     process.env.FORGEUI_MAX_BODY_BYTES = '512';
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const bigBody = JSON.stringify({ data: 'x'.repeat(1000) });
     const res = await app.request('/api/apps/test', {
@@ -336,7 +336,7 @@ describe('server hardening edge cases', () => {
     process.env.FORGEUI_MAX_BODY_BYTES = '512';
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const bigBody = JSON.stringify({ data: 'x'.repeat(1000) });
     const res = await app.request('/api/apps/test', {

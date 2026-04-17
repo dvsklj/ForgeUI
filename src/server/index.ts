@@ -34,7 +34,7 @@ import {
   deleteApp,
   generateAppId,
 } from './db.js';
-import type { ForgeManifest } from '../types/index.js';
+import type { ForgeUIManifest } from '../types/index.js';
 import { validateManifest, validateManifestPatch } from '../validation/index.js';
 import { createRateLimiter, type RateLimiter } from './rate-limit.js';
 import { readBoundedJson } from './body.js';
@@ -54,7 +54,7 @@ export interface ForgeServerOptions {
   baseUrl?: string;
 }
 
-export function createForgeServer(options: ForgeServerOptions = {}) {
+export function createForgeUIServer(options: ForgeServerOptions = {}) {
   const {
     port = 3000,
     host = '0.0.0.0',
@@ -299,7 +299,7 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   // Create app
   app.post('/api/apps', async (c) => {
     try {
-      const body = await readBoundedJson<ForgeManifest>(c.req.raw, maxBodyBytes);
+      const body = await readBoundedJson<ForgeUIManifest>(c.req.raw, maxBodyBytes);
       if (body.ok !== true) {
         const code = body.reason === 'too_large' ? 413 : 400;
         return c.json({ error: body.reason === 'too_large' ? 'Request body too large' : 'Invalid JSON' }, code);
@@ -331,7 +331,7 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
       return c.json({ error: 'invalid id' }, 400);
     }
     try {
-      const body = await readBoundedJson<ForgeManifest>(c.req.raw, maxBodyBytes);
+      const body = await readBoundedJson<ForgeUIManifest>(c.req.raw, maxBodyBytes);
       if (body.ok !== true) {
         const code = body.reason === 'too_large' ? 413 : 400;
         return c.json({ error: body.reason === 'too_large' ? 'Request body too large' : 'Invalid JSON' }, code);

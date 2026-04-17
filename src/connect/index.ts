@@ -33,7 +33,7 @@ import {
   deleteApp,
   generateAppId,
 } from '../server/db.js';
-import type { ForgeManifest } from '../types/index.js';
+import type { ForgeUIManifest } from '../types/index.js';
 
 // ─── Create Server ─────────────────────────────────────────
 
@@ -68,7 +68,7 @@ server.tool(
         };
       }
 
-      const typed = manifest as unknown as ForgeManifest;
+      const typed = manifest as unknown as ForgeUIManifest;
       if (!typed.id) {
         typed.id = generateAppId();
       }
@@ -112,7 +112,7 @@ server.tool(
 
       let stored;
       if (usePatch) {
-        const result = patchApp(app_id, manifest as Partial<ForgeManifest>, (m) => {
+        const result = patchApp(app_id, manifest as Partial<ForgeUIManifest>, (m) => {
           const v = validateManifest(m);
           return { valid: v.valid, errors: v.errors.map((e) => e.message) };
         });
@@ -124,7 +124,7 @@ server.tool(
         }
         stored = result.status === 'ok' ? result.app : null;
       } else {
-        const typed = manifest as unknown as ForgeManifest;
+        const typed = manifest as unknown as ForgeUIManifest;
         typed.id = app_id;
         stored = updateApp(app_id, typed);
       }

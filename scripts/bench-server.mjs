@@ -28,7 +28,7 @@ process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
 process.env.FORGEUI_MAX_BODY_BYTES = String(10 * 1024 * 1024);
 process.env.FORGEUI_CORS_ORIGINS = '*';
 
-const { createForgeServer } = await import('../src/server/index.js');
+const { createForgeUIServer } = await import('../src/server/index.js');
 const { initDatabase, getDatabase } = await import('../src/server/db.js');
 
 function rowCount() {
@@ -36,7 +36,7 @@ function rowCount() {
 }
 
 initDatabase(':memory:');
-const { start, stop } = createForgeServer({
+const { start, stop } = createForgeUIServer({
   port: 3456,
   host: '127.0.0.1',
   baseUrl: 'http://localhost:3456',

@@ -1,19 +1,19 @@
 /**
  * Forge — Main Entry Point
  * 
- * Imports the ForgeApp component and re-exports the public API.
+ * Imports the ForgeUIApp component and re-exports the public API.
  */
 
 // Register the main component
-export { ForgeApp } from './runtime/index.js';
+export { ForgeUIApp } from './runtime/index.js';
 
 // Re-export types
 export type {
-  ForgeManifest,
-  ForgeElement,
-  ForgeSchema,
-  ForgeAction,
-  ForgeMeta,
+  ForgeUIManifest,
+  ForgeUIElement,
+  ForgeUISchema,
+  ForgeUIAction,
+  ForgeUIMeta,
   ComponentType,
   ComponentCategory,
   SurfaceMode,
@@ -21,7 +21,7 @@ export type {
 } from './types/index.js';
 
 // Re-export state utilities
-export { createForgeStore, resolveRef, executeAction } from './state/index.js';
+export { createForgeUIStore, resolveRef, executeAction } from './state/index.js';
 
 // Re-export validation
 export { validateManifest, extractManifest } from './validation/index.js';

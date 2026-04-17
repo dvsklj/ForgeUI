@@ -1,17 +1,17 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { validateManifest } from '../src/validation/index.js';
-import type { ForgeManifest } from '../src/types/index.js';
+import type { ForgeUIManifest } from '../src/types/index.js';
 import { createStore } from 'tinybase';
-import { resolveRef, createForgeStore, setItemContext } from '../src/state/index.js';
+import { resolveRef, createForgeUIStore, setItemContext } from '../src/state/index.js';
 
-function validManifest(overrides?: Partial<ForgeManifest>): ForgeManifest {
+function validManifest(overrides?: Partial<ForgeUIManifest>): ForgeUIManifest {
   return {
     manifest: '0.1.0',
     id: 'sec-test',
     root: 'main',
     elements: { main: { type: 'Text', props: { content: 'Hello' } } },
     ...overrides,
-  } as ForgeManifest;
+  } as ForgeUIManifest;
 }
 
 describe('Security — Injection vectors', () => {

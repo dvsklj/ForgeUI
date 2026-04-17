@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { createForgeServer } from '../src/server/index.js';
+import { createForgeUIServer } from '../src/server/index.js';
 import { initDatabase, createApp, getApp, closeDatabase } from '../src/server/db.js';
-import type { ForgeManifest } from '../src/types/index.js';
+import type { ForgeUIManifest } from '../src/types/index.js';
 
 const savedEnv = { ...process.env };
 
@@ -12,7 +12,7 @@ afterEach(() => {
 
 // ─── helpers ─────────────────────────────────────────────────
 
-function seedApp(overrides?: Partial<ForgeManifest>) {
+function seedApp(overrides?: Partial<ForgeUIManifest>) {
   initDatabase(':memory:');
   return createApp({
     id: 'harden-test',
@@ -31,7 +31,7 @@ function seedApp(overrides?: Partial<ForgeManifest>) {
 describe('Transactional patch', () => {
   it('PATCH producing schema-invalid merge returns 400 and DB row is unchanged', async () => {
     seedApp();
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const before = getApp('harden-test')!;
     const beforeManifest = JSON.stringify(before.manifest);
@@ -50,7 +50,7 @@ describe('Transactional patch', () => {
 
   it('PATCH with valid merge succeeds and DB row is the merged state', async () => {
     seedApp();
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const res = await app.request('/api/apps/harden-test', {
       method: 'PATCH',
@@ -73,7 +73,7 @@ describe('CORS allowlist', () => {
   it('default: OPTIONS from http://localhost:5173 reflects origin', async () => {
     delete process.env.FORGEUI_CORS_ORIGINS;
     seedApp();
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const res = await app.request('/api/apps', {
       method: 'OPTIONS',
@@ -90,7 +90,7 @@ describe('CORS allowlist', () => {
   it('default: OPTIONS from http://evil.example.com has no ACAO header', async () => {
     delete process.env.FORGEUI_CORS_ORIGINS;
     seedApp();
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const res = await app.request('/api/apps', {
       method: 'OPTIONS',
@@ -108,7 +108,7 @@ describe('CORS allowlist', () => {
   it('explicit allowlist: custom origin allowed, localhost rejected', async () => {
     process.env.FORGEUI_CORS_ORIGINS = 'https://forge.example.com';
     seedApp();
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const allowed = await app.request('/api/apps', {
       method: 'OPTIONS',
@@ -138,7 +138,7 @@ describe('Body size limit', () => {
   it('POST with Content-Length > default 1 MB returns 413', async () => {
     delete process.env.FORGEUI_MAX_BODY_BYTES;
     seedApp();
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const res = await app.request('/api/apps', {
       method: 'POST',
@@ -157,7 +157,7 @@ describe('Body size limit', () => {
   it('custom limit: FORGEUI_MAX_BODY_BYTES=2048 rejects 4 KB body', async () => {
     process.env.FORGEUI_MAX_BODY_BYTES = '2048';
     seedApp();
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const res = await app.request('/api/apps', {
       method: 'POST',
@@ -184,7 +184,7 @@ describe('Query param clamping', () => {
       elements: { main: { type: 'Text', props: { content: 'Hi' } } },
       meta: { title: 'Second' },
     } as any);
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const res = await app.request('/api/apps?limit=999999');
     expect(res.status).toBe(200);
@@ -201,7 +201,7 @@ describe('Query param clamping', () => {
       elements: { main: { type: 'Text', props: { content: 'Hi' } } },
       meta: { title: 'Second' },
     } as any);
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const res = await app.request('/api/apps?limit=-5&offset=-5');
     expect(res.status).toBe(200);
@@ -217,7 +217,7 @@ describe('API token auth', () => {
   it('unset: POST /api/apps without Authorization succeeds', async () => {
     delete process.env.FORGEUI_API_TOKEN;
     seedApp();
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const res = await app.request('/api/apps', {
       method: 'POST',
@@ -236,7 +236,7 @@ describe('API token auth', () => {
   it('token set: POST without Authorization returns 401', async () => {
     process.env.FORGEUI_API_TOKEN = 'abc123';
     seedApp();
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const res = await app.request('/api/apps', {
       method: 'POST',
@@ -255,7 +255,7 @@ describe('API token auth', () => {
   it('token set: POST with Bearer token succeeds', async () => {
     process.env.FORGEUI_API_TOKEN = 'abc123';
     seedApp();
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const res = await app.request('/api/apps', {
       method: 'POST',
@@ -277,7 +277,7 @@ describe('API token auth', () => {
   it('token set: GET /api/apps (read) is allowed without auth', async () => {
     process.env.FORGEUI_API_TOKEN = 'abc123';
     seedApp();
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const res = await app.request('/api/apps');
     expect(res.status).toBe(200);
@@ -289,7 +289,7 @@ describe('API token auth', () => {
 describe('Security headers', () => {
   it('GET /api/apps has X-Content-Type-Options and X-Frame-Options', async () => {
     seedApp();
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const res = await app.request('/api/apps');
     expect(res.status).toBe(200);

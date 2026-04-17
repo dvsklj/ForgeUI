@@ -8,7 +8,7 @@
  *   - Stores full manifest snapshots (simple, reliable, no merge complexity)
  *   - Configurable depth (default: 50)
  *   - Memory-efficient: only stores unique states
- *   - Integrates with ForgeApp.setManifest()
+ *   - Integrates with ForgeUIApp.setManifest()
  *
  * Usage:
  *   const stack = new UndoRedoStack(50);
@@ -18,7 +18,7 @@
  *   stack.redo();  // returns manifestV2
  */
 
-import type { ForgeManifest } from '../types/index.js';
+import type { ForgeUIManifest } from '../types/index.js';
 
 export interface UndoRedoState {
   /** Can undo? */
@@ -32,7 +32,7 @@ export interface UndoRedoState {
 }
 
 export class UndoRedoStack {
-  private _stack: ForgeManifest[] = [];
+  private _stack: ForgeUIManifest[] = [];
   private _position = -1; // current position (-1 = empty)
   private _maxDepth: number;
   private _listeners: Array<(state: UndoRedoState) => void> = [];
@@ -42,7 +42,7 @@ export class UndoRedoStack {
   }
 
   /** Push a new manifest onto the stack. Clears any redo history. */
-  push(manifest: ForgeManifest): void {
+  push(manifest: ForgeUIManifest): void {
     // If we're not at the top, truncate future states
     if (this._position < this._stack.length - 1) {
       this._stack = this._stack.slice(0, this._position + 1);
@@ -70,7 +70,7 @@ export class UndoRedoStack {
   }
 
   /** Undo: return previous manifest, or null if at the beginning. */
-  undo(): ForgeManifest | null {
+  undo(): ForgeUIManifest | null {
     if (this._position <= 0) return null;
     this._position--;
     this._notifyListeners();
@@ -78,7 +78,7 @@ export class UndoRedoStack {
   }
 
   /** Redo: return next manifest, or null if at the end. */
-  redo(): ForgeManifest | null {
+  redo(): ForgeUIManifest | null {
     if (this._position >= this._stack.length - 1) return null;
     this._position++;
     this._notifyListeners();
@@ -86,13 +86,13 @@ export class UndoRedoStack {
   }
 
   /** Get the current manifest without navigating. */
-  current(): ForgeManifest | null {
+  current(): ForgeUIManifest | null {
     if (this._position < 0) return null;
     return structuredClone(this._stack[this._position]);
   }
 
   /** Jump to a specific position. */
-  jumpTo(position: number): ForgeManifest | null {
+  jumpTo(position: number): ForgeUIManifest | null {
     if (position < 0 || position >= this._stack.length) return null;
     this._position = position;
     this._notifyListeners();

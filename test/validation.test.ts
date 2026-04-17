@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { validateManifest, validateManifestPatch, extractManifest } from '../src/validation/index.js';
-import type { ForgeManifest } from '../src/types/index.js';
+import type { ForgeUIManifest } from '../src/types/index.js';
 
-function validManifest(overrides?: Partial<ForgeManifest>): ForgeManifest {
+function validManifest(overrides?: Partial<ForgeUIManifest>): ForgeUIManifest {
   return {
     manifest: '0.1.0',
     id: 'test-app',
@@ -11,7 +11,7 @@ function validManifest(overrides?: Partial<ForgeManifest>): ForgeManifest {
       main: { type: 'Text', props: { content: 'Hello' } },
     },
     ...overrides,
-  } as ForgeManifest;
+  } as ForgeUIManifest;
 }
 
 describe('validateManifest — schema validation', () => {

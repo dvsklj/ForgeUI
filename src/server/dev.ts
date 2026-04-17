@@ -5,9 +5,9 @@
  * Usage: node src/server/dev.ts
  */
 
-import { createForgeServer } from './index.js';
+import { createForgeUIServer } from './index.js';
 
-const server = createForgeServer({
+const server = createForgeUIServer({
   port: 3000,
   host: '0.0.0.0',
   dbPath: './forge.db',

@@ -32,7 +32,7 @@ export declare function getItemContext(): Record<string, unknown> | null;
  */
 export declare function resolveRef(store: Store, value: unknown): unknown;
 /** Create a Forge state store from config */
-export declare function createForgeStore(config: ForgeStateConfig): Store;
+export declare function createForgeUIStore(config: ForgeStateConfig): Store;
 /** Execute a declarative action against the store */
 export declare function executeAction(store: Store, action: {
     type: string;

@@ -9,7 +9,7 @@
  * https://github.com/google/a2ui
  */
 
-import type { ForgeManifest, ForgeElement, ComponentType } from '../types/index.js';
+import type { ForgeUIManifest, ForgeUIElement, ComponentType } from '../types/index.js';
 import { isValidComponentType } from '../catalog/registry.js';
 
 /** A2UI component type → Forge component type mapping */
@@ -76,8 +76,8 @@ interface A2UIComponent {
  * 2. Maps A2UI types to Forge types
  * 3. Translates A2UI props to Forge props
  */
-export function a2uiToForge(payload: A2UIPayload): ForgeManifest {
-  const elements: Record<string, ForgeElement> = {};
+export function a2uiToForge(payload: A2UIPayload): ForgeUIManifest {
+  const elements: Record<string, ForgeUIElement> = {};
   let idCounter = 0;
 
   function flattenComponent(comp: A2UIComponent): string {
@@ -236,10 +236,10 @@ export function isA2UIPayload(data: unknown): data is A2UIPayload {
  * Ingest a payload — auto-detect A2UI vs Forge format.
  * Returns a valid Forge manifest in either case.
  */
-export function ingestPayload(data: unknown): ForgeManifest {
+export function ingestPayload(data: unknown): ForgeUIManifest {
   if (isA2UIPayload(data)) {
     return a2uiToForge(data as A2UIPayload);
   }
   // Already a Forge manifest — pass through
-  return data as ForgeManifest;
+  return data as ForgeUIManifest;
 }

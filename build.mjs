@@ -169,7 +169,7 @@ async function buildTypes() {
   copyFileSync(`${typeDir}/types/index.d.ts`, 'packages/catalog/types/index.d.ts');
   copyFileSync(`${typeDir}/catalog/registry.d.ts`, 'packages/catalog/forgeui-catalog.d.ts');
 
-  // @forgeui/server: needs server/*.d.ts + types/ for ForgeManifest
+  // @forgeui/server: needs server/*.d.ts + types/ for ForgeUIManifest
   mkdirSync('packages/server/dist/server', { recursive: true });
   mkdirSync('packages/server/dist/types', { recursive: true });
   mkdirSync('packages/server/dist/validation', { recursive: true });

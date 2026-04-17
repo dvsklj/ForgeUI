@@ -6,7 +6,7 @@
  *
  * Cascade layers: @layer tokens, base, components, surfaces
  */
-/** Design token CSS (injected into ForgeApp shadow root) */
+/** Design token CSS (injected into ForgeUIApp shadow root) */
 export declare const tokenStyles: import("lit").CSSResult;
 /** Surface-specific overrides */
 export declare const surfaceStyles: import("lit").CSSResult;

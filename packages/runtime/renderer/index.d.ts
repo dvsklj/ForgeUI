@@ -5,10 +5,10 @@
  * Uses a static dispatch map instead of dynamic tag names (Lit limitation).
  */
 import { TemplateResult } from 'lit';
-import type { ForgeManifest } from '../types/index.js';
+import type { ForgeUIManifest } from '../types/index.js';
 import { Store } from 'tinybase';
 export interface RenderContext {
-    manifest: ForgeManifest;
+    manifest: ForgeUIManifest;
     store: Store;
     activeView: string;
     onAction: (actionId: string, payload?: Record<string, unknown>) => void;

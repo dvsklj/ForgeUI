@@ -1,18 +1,18 @@
 /**
  * Forge Components — All 37 Lit Web Components
  * 
- * Each component extends ForgeElement, uses design tokens,
+ * Each component extends ForgeUIElement, uses design tokens,
  * dispatches forgeui-action events for declarative bindings.
  */
 
 import { html, css, svg, nothing } from 'lit';
-import { ForgeElement } from './base.js';
+import { ForgeUIElement } from './base.js';
 
 // ═══════════════════════════════════════════════════════════════
 // LAYOUT (8)
 // ═══════════════════════════════════════════════════════════════
 
-export class ForgeStack extends ForgeElement {
+export class ForgeStack extends ForgeUIElement {
   static get properties() { return { props: { type: Object } }; }
   static get styles() { return css`
     :host { display: flex; flex-direction: column; min-width: 0; }
@@ -53,7 +53,7 @@ export class ForgeStack extends ForgeElement {
 }
 customElements.define('forgeui-stack', ForgeStack);
 
-export class ForgeGrid extends ForgeElement {
+export class ForgeGrid extends ForgeUIElement {
   static get properties() { return { props: { type: Object } }; }
   static get styles() { return css`
     :host { display: grid; min-width: 0; }
@@ -83,7 +83,7 @@ export class ForgeGrid extends ForgeElement {
 }
 customElements.define('forgeui-grid', ForgeGrid);
 
-export class ForgeCard extends ForgeElement {
+export class ForgeCard extends ForgeUIElement {
   static get properties() { return { props: { type: Object } }; }
   static get styles() { return css`
     :host { display:block; background:var(--forgeui-color-surface); border:1px solid var(--forgeui-color-border);
@@ -115,7 +115,7 @@ export class ForgeCard extends ForgeElement {
 }
 customElements.define('forgeui-card', ForgeCard);
 
-export class ForgeContainer extends ForgeElement {
+export class ForgeContainer extends ForgeUIElement {
   static get properties() { return { props: { type: Object } }; }
   static get styles() { return css`:host { display:block; margin-inline:auto; width:100%; box-sizing:border-box; }`; }
   render() {
@@ -134,7 +134,7 @@ export class ForgeContainer extends ForgeElement {
 }
 customElements.define('forgeui-container', ForgeContainer);
 
-export class ForgeTabs extends ForgeElement {
+export class ForgeTabs extends ForgeUIElement {
   static get properties() { return {
     props: { type: Object },
     _active: { state: true },
@@ -218,7 +218,7 @@ export class ForgeTabs extends ForgeElement {
 }
 customElements.define('forgeui-tabs', ForgeTabs);
 
-export class ForgeAccordion extends ForgeElement {
+export class ForgeAccordion extends ForgeUIElement {
   static get properties() { return { props: { type: Object } }; }
   static get styles() { return css`
     :host { display:block; }
@@ -237,7 +237,7 @@ export class ForgeAccordion extends ForgeElement {
 }
 customElements.define('forgeui-accordion', ForgeAccordion);
 
-export class ForgeDivider extends ForgeElement {
+export class ForgeDivider extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; }
     hr { border:none; border-top:1px solid var(--forgeui-color-border); margin:var(--forgeui-space-sm) 0; }
@@ -246,7 +246,7 @@ export class ForgeDivider extends ForgeElement {
 }
 customElements.define('forgeui-divider', ForgeDivider);
 
-export class ForgeSpacer extends ForgeElement {
+export class ForgeSpacer extends ForgeUIElement {
   static get styles() { return css`:host { display:block; }`; }
   render() {
     const s = this.getString('size', 'md');
@@ -262,7 +262,7 @@ customElements.define('forgeui-spacer', ForgeSpacer);
  * exists only so the type validates and so a clear empty state shows when
  * the data is empty. The actual iteration lives in renderer/index.ts.
  */
-export class ForgeRepeater extends ForgeElement {
+export class ForgeRepeater extends ForgeUIElement {
   static get properties() { return { props: { type: Object } }; }
   static get styles() { return css`
     :host { display:flex; flex-direction:column; gap:var(--forgeui-space-md); min-width:0; }
@@ -288,7 +288,7 @@ customElements.define('forgeui-repeater', ForgeRepeater);
 // CONTENT (6)
 // ═══════════════════════════════════════════════════════════════
 
-export class ForgeText extends ForgeElement {
+export class ForgeText extends ForgeUIElement {
   static get properties() { return { props: { type: Object } }; }
   static get styles() { return css`
     :host { display:block; min-width:0; }
@@ -348,7 +348,7 @@ export class ForgeText extends ForgeElement {
 }
 customElements.define('forgeui-text', ForgeText);
 
-export class ForgeImage extends ForgeElement {
+export class ForgeImage extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; }
     img { max-width:100%; height:auto; display:block; border-radius:var(--forgeui-radius-md); }
@@ -363,7 +363,7 @@ export class ForgeImage extends ForgeElement {
 }
 customElements.define('forgeui-image', ForgeImage);
 
-export class ForgeIcon extends ForgeElement {
+export class ForgeIcon extends ForgeUIElement {
   static get styles() { return css`
     :host { display:inline-flex; align-items:center; justify-content:center; }
     svg { width:var(--forgeui-icon-md); height:var(--forgeui-icon-md); fill:currentColor; }
@@ -388,7 +388,7 @@ export class ForgeIcon extends ForgeElement {
 }
 customElements.define('forgeui-icon', ForgeIcon);
 
-export class ForgeBadge extends ForgeElement {
+export class ForgeBadge extends ForgeUIElement {
   static get styles() { return css`
     :host { display:inline-flex; align-items:center; }
     .badge { display:inline-flex; align-items:center; padding:var(--forgeui-space-2xs) var(--forgeui-space-xs);
@@ -406,7 +406,7 @@ export class ForgeBadge extends ForgeElement {
 }
 customElements.define('forgeui-badge', ForgeBadge);
 
-export class ForgeAvatar extends ForgeElement {
+export class ForgeAvatar extends ForgeUIElement {
   static get styles() { return css`
     :host { display:inline-flex; }
     .avatar { width:2.5rem; height:2.5rem; border-radius:var(--forgeui-radius-full); background:var(--forgeui-color-primary-subtle);
@@ -423,7 +423,7 @@ export class ForgeAvatar extends ForgeElement {
 }
 customElements.define('forgeui-avatar', ForgeAvatar);
 
-export class ForgeEmptyState extends ForgeElement {
+export class ForgeEmptyState extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; text-align:center; padding:var(--forgeui-space-2xl) var(--forgeui-space-lg); }
     .title { font-size:var(--forgeui-text-lg); font-weight:var(--forgeui-weight-semibold); margin-bottom:var(--forgeui-space-xs); }
@@ -445,7 +445,7 @@ customElements.define('forgeui-empty-state', ForgeEmptyState);
 // INPUT (9)
 // ═══════════════════════════════════════════════════════════════
 
-export class ForgeTextInput extends ForgeElement {
+export class ForgeTextInput extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); color:var(--forgeui-color-text); }
@@ -481,7 +481,7 @@ export class ForgeTextInput extends ForgeElement {
 }
 customElements.define('forgeui-text-input', ForgeTextInput);
 
-export class ForgeNumberInput extends ForgeElement {
+export class ForgeNumberInput extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); }
@@ -506,7 +506,7 @@ export class ForgeNumberInput extends ForgeElement {
 }
 customElements.define('forgeui-number-input', ForgeNumberInput);
 
-export class ForgeSelect extends ForgeElement {
+export class ForgeSelect extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); }
@@ -532,7 +532,7 @@ export class ForgeSelect extends ForgeElement {
 }
 customElements.define('forgeui-select', ForgeSelect);
 
-export class ForgeMultiSelect extends ForgeElement {
+export class ForgeMultiSelect extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); }
@@ -556,7 +556,7 @@ export class ForgeMultiSelect extends ForgeElement {
 }
 customElements.define('forgeui-multi-select', ForgeMultiSelect);
 
-export class ForgeCheckbox extends ForgeElement {
+export class ForgeCheckbox extends ForgeUIElement {
   static get styles() { return css`
     :host { display:flex; align-items:center; gap:var(--forgeui-space-xs); margin-bottom:var(--forgeui-space-xs); cursor:pointer; }
     input { width:1.125rem; height:1.125rem; accent-color:var(--forgeui-color-primary); cursor:pointer; }
@@ -574,7 +574,7 @@ export class ForgeCheckbox extends ForgeElement {
 }
 customElements.define('forgeui-checkbox', ForgeCheckbox);
 
-export class ForgeToggle extends ForgeElement {
+export class ForgeToggle extends ForgeUIElement {
   static get styles() { return css`
     :host { display:flex; align-items:center; gap:var(--forgeui-space-sm); margin-bottom:var(--forgeui-space-xs); }
     .switch { position:relative; width:2.75rem; height:1.5rem; background:var(--forgeui-color-border-strong);
@@ -633,7 +633,7 @@ export class ForgeToggle extends ForgeElement {
 }
 customElements.define('forgeui-toggle', ForgeToggle);
 
-export class ForgeDatePicker extends ForgeElement {
+export class ForgeDatePicker extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); }
@@ -653,7 +653,7 @@ export class ForgeDatePicker extends ForgeElement {
 }
 customElements.define('forgeui-date-picker', ForgeDatePicker);
 
-export class ForgeSlider extends ForgeElement {
+export class ForgeSlider extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); }
@@ -676,7 +676,7 @@ export class ForgeSlider extends ForgeElement {
 }
 customElements.define('forgeui-slider', ForgeSlider);
 
-export class ForgeFileUpload extends ForgeElement {
+export class ForgeFileUpload extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); }
@@ -706,7 +706,7 @@ customElements.define('forgeui-file-upload', ForgeFileUpload);
 // ACTION (3)
 // ═══════════════════════════════════════════════════════════════
 
-export class ForgeButton extends ForgeElement {
+export class ForgeButton extends ForgeUIElement {
   static get styles() { return css`
     :host { display:inline-flex; }
     button { display:inline-flex; align-items:center; justify-content:center; gap:var(--forgeui-space-xs);
@@ -743,7 +743,7 @@ export class ForgeButton extends ForgeElement {
 }
 customElements.define('forgeui-button', ForgeButton);
 
-export class ForgeButtonGroup extends ForgeElement {
+export class ForgeButtonGroup extends ForgeUIElement {
   static get styles() { return css`
     :host { display:flex; gap:var(--forgeui-space-xs); }
   `; }
@@ -751,7 +751,7 @@ export class ForgeButtonGroup extends ForgeElement {
 }
 customElements.define('forgeui-button-group', ForgeButtonGroup);
 
-export class ForgeLink extends ForgeElement {
+export class ForgeLink extends ForgeUIElement {
   static get styles() { return css`
     :host { display:inline-flex; }
     a { color:var(--forgeui-color-primary); text-decoration:none; font-size:var(--forgeui-text-sm); cursor:pointer; }
@@ -769,7 +769,7 @@ customElements.define('forgeui-link', ForgeLink);
 // DATA DISPLAY (4)
 // ═══════════════════════════════════════════════════════════════
 
-export class ForgeTable extends ForgeElement {
+export class ForgeTable extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; overflow-x:auto; min-width:0; width:100%; }
     table { width:100%; border-collapse:collapse; font-size:var(--forgeui-text-sm); }
@@ -877,7 +877,7 @@ export class ForgeTable extends ForgeElement {
 }
 customElements.define('forgeui-table', ForgeTable);
 
-export class ForgeList extends ForgeElement {
+export class ForgeList extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; }
     .list { display:flex; flex-direction:column; gap:var(--forgeui-space-xs); }
@@ -897,7 +897,7 @@ export class ForgeList extends ForgeElement {
 }
 customElements.define('forgeui-list', ForgeList);
 
-export class ForgeChart extends ForgeElement {
+export class ForgeChart extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; min-width:0; }
     .title { font-weight:var(--forgeui-weight-semibold); font-size:var(--forgeui-text-sm); margin-bottom:var(--forgeui-space-xs); color:var(--forgeui-color-text); }
@@ -1079,7 +1079,7 @@ export class ForgeChart extends ForgeElement {
 }
 customElements.define('forgeui-chart', ForgeChart);
 
-export class ForgeMetric extends ForgeElement {
+export class ForgeMetric extends ForgeUIElement {
   static get styles() { return css`
     :host { display:flex; flex-direction:column; padding:var(--forgeui-space-md); background:var(--forgeui-color-surface);
       border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-lg); min-width:0; gap:var(--forgeui-space-2xs); }
@@ -1153,7 +1153,7 @@ customElements.define('forgeui-metric', ForgeMetric);
 // FEEDBACK (4)
 // ═══════════════════════════════════════════════════════════════
 
-export class ForgeAlert extends ForgeElement {
+export class ForgeAlert extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; margin-bottom:var(--forgeui-space-sm); }
     .alert { padding:var(--forgeui-space-sm) var(--forgeui-space-md); border-radius:var(--forgeui-radius-md);
@@ -1175,7 +1175,7 @@ export class ForgeAlert extends ForgeElement {
 }
 customElements.define('forgeui-alert', ForgeAlert);
 
-export class ForgeDialog extends ForgeElement {
+export class ForgeDialog extends ForgeUIElement {
   static get styles() { return css`
     :host { display:none; }
     :host([open]) { display:flex; position:fixed; inset:0; z-index:50; align-items:center; justify-content:center; }
@@ -1306,7 +1306,7 @@ export class ForgeDialog extends ForgeElement {
 }
 customElements.define('forgeui-dialog', ForgeDialog);
 
-export class ForgeProgress extends ForgeElement {
+export class ForgeProgress extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; }
     .progress { height:0.5rem; background:var(--forgeui-color-surface-alt); border-radius:var(--forgeui-radius-full); overflow:hidden; }
@@ -1340,7 +1340,7 @@ export class ForgeProgress extends ForgeElement {
 }
 customElements.define('forgeui-progress', ForgeProgress);
 
-export class ForgeToast extends ForgeElement {
+export class ForgeToast extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; position:fixed; bottom:var(--forgeui-space-lg); right:var(--forgeui-space-lg); z-index:60; }
     .toast { padding:var(--forgeui-space-sm) var(--forgeui-space-md); border-radius:var(--forgeui-radius-md);
@@ -1359,7 +1359,7 @@ customElements.define('forgeui-toast', ForgeToast);
 // NAVIGATION (2)
 // ═══════════════════════════════════════════════════════════════
 
-export class ForgeBreadcrumb extends ForgeElement {
+export class ForgeBreadcrumb extends ForgeUIElement {
   static get styles() { return css`
     :host { display:flex; align-items:center; gap:var(--forgeui-space-xs); font-size:var(--forgeui-text-sm); }
     .sep { color:var(--forgeui-color-text-tertiary); }
@@ -1382,7 +1382,7 @@ export class ForgeBreadcrumb extends ForgeElement {
 }
 customElements.define('forgeui-breadcrumb', ForgeBreadcrumb);
 
-export class ForgeStepper extends ForgeElement {
+export class ForgeStepper extends ForgeUIElement {
   static get styles() { return css`
     :host { display:flex; width:100%; gap:0; }
     .step { flex:1; display:flex; flex-direction:column; align-items:center; position:relative; min-width:0; }
@@ -1418,7 +1418,7 @@ export class ForgeStepper extends ForgeElement {
 customElements.define('forgeui-stepper', ForgeStepper);
 
 // Error component for unknown/missing types
-export class ForgeError extends ForgeElement {
+export class ForgeUIError extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; }
     .error { padding:var(--forgeui-space-sm); background:var(--forgeui-color-error-subtle); color:var(--forgeui-color-error);
@@ -1429,13 +1429,13 @@ export class ForgeError extends ForgeElement {
     return html`<div class="error" role="alert">⚠ ${msg}</div>`;
   }
 }
-customElements.define('forgeui-error', ForgeError);
+customElements.define('forgeui-error', ForgeUIError);
 
 // ═══════════════════════════════════════════════════════════════
 // DRAWING (1)
 // ═══════════════════════════════════════════════════════════════
 
-export class ForgeDrawing extends ForgeElement {
+export class ForgeDrawing extends ForgeUIElement {
   static get properties() { return { props: { type: Object } }; }
   static get styles() { return css`
     :host { display:block; }

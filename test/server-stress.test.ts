@@ -1,8 +1,8 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { createForgeServer } from '../src/server/index.js';
+import { createForgeUIServer } from '../src/server/index.js';
 import { initDatabase, createApp, getApp, closeDatabase } from '../src/server/db.js';
 import { createRateLimiter } from '../src/server/rate-limit.js';
-import type { ForgeManifest } from '../src/types/index.js';
+import type { ForgeUIManifest } from '../src/types/index.js';
 import http from 'node:http';
 
 const savedEnv = { ...process.env };
@@ -14,7 +14,7 @@ afterEach(() => {
 
 // ─── helpers ─────────────────────────────────────────────────
 
-function seedApp(overrides?: Partial<ForgeManifest>) {
+function seedApp(overrides?: Partial<ForgeUIManifest>) {
   initDatabase(':memory:');
   return createApp({
     id: 'stress-test',
@@ -133,7 +133,7 @@ describe('2. Rate-limit end-to-end via HTTP', () => {
     process.env.FORGEUI_RATE_LIMIT_BURST = '5';
     delete process.env.FORGEUI_RATE_LIMIT_DISABLE;
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const results: { status: number; retryAfter: string | null }[] = [];
     for (let i = 0; i < 20; i++) {
@@ -170,14 +170,14 @@ describe('4. Body cap — spoofed / missing Content-Length (streaming)', () => {
     process.env.FORGEUI_MAX_BODY_BYTES = '1048576'; // 1 MB
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
-    const { start, stop } = createForgeServer({ port: 0, host: '127.0.0.1', baseUrl: 'http://localhost' });
+    const { start, stop } = createForgeUIServer({ port: 0, host: '127.0.0.1', baseUrl: 'http://localhost' });
     await start();
     // The @hono/node-server serve() with port 0 picks a random port.
     // We discover it by probing.
-    // Actually, createForgeServer doesn't expose the server handle externally.
+    // Actually, createForgeUIServer doesn't expose the server handle externally.
     // We need a way to stop it. Let's use the returned stop function.
     // But we also need the port. The serve callback gets the info.
-    // The problem: createForgeServer's start() calls serve() and resolves,
+    // The problem: createForgeUIServer's start() calls serve() and resolves,
     // but doesn't return the port. We need to discover it.
     // Workaround: try common approach — the handle has address().
     // Let's import serve separately and use it directly instead.
@@ -197,7 +197,7 @@ describe('4. Body cap — spoofed / missing Content-Length (streaming)', () => {
     initDatabase(':memory:');
 
     const { serve } = await import('@hono/node-server');
-    const { createForgeServer: createForge } = await import('../src/server/index.js');
+    const { createForgeUIServer: createForge } = await import('../src/server/index.js');
     const { app } = createForge({ baseUrl: 'http://localhost' });
 
     await new Promise<void>((resolve) => {
@@ -229,7 +229,7 @@ describe('4. Body cap — spoofed / missing Content-Length (streaming)', () => {
     initDatabase(':memory:');
 
     const { serve } = await import('@hono/node-server');
-    const { createForgeServer: createForge } = await import('../src/server/index.js');
+    const { createForgeUIServer: createForge } = await import('../src/server/index.js');
     const { app } = createForge({ baseUrl: 'http://localhost' });
 
     await new Promise<void>((resolve) => {
@@ -319,7 +319,7 @@ describe('5. Adversarial manifest corpus over HTTP', () => {
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     delete process.env.FORGEUI_MAX_BODY_BYTES;
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     for (const { label, body } of corpus) {
       const res = await app.request('/api/apps', {
@@ -338,7 +338,7 @@ describe('5. Adversarial manifest corpus over HTTP', () => {
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     delete process.env.FORGEUI_MAX_BODY_BYTES;
     seedApp();
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     for (const { label, body } of corpus) {
       const res = await app.request('/api/apps/stress-test', {
@@ -354,7 +354,7 @@ describe('5. Adversarial manifest corpus over HTTP', () => {
   it('PATCH with own-property __proto__ must not mutate stored manifest prototype', async () => {
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     const app = seedApp();
-    const { app: server } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app: server } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     // JSON.parse creates __proto__ as an own enumerable property (unlike object literals)
     const payload = JSON.parse('{"__proto__":{"polluted":"yes"}}');
@@ -379,7 +379,7 @@ describe('5. Adversarial manifest corpus over HTTP', () => {
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     delete process.env.FORGEUI_MAX_BODY_BYTES; // default 1 MB
     seedApp();
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     // The body-size cap is the enforcement boundary.
     // Individual field lengths are not capped beyond the overall 1 MB body limit.
@@ -397,7 +397,7 @@ describe('5. Adversarial manifest corpus over HTTP', () => {
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     delete process.env.FORGEUI_MAX_BODY_BYTES; // default 1 MB
     seedApp();
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const body = { manifest: '0.1.0', id: 'stress-test', root: 'main', elements: { main: { type: 'Text', props: { content: hugeString2m } } } };
     const res = await app.request('/api/apps/stress-test', {
@@ -412,7 +412,7 @@ describe('5. Adversarial manifest corpus over HTTP', () => {
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     delete process.env.FORGEUI_MAX_BODY_BYTES;
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     // Fire the entire corpus at POST
     for (const { body } of corpus) {
@@ -439,7 +439,7 @@ describe('6. Concurrent PATCH — write race', () => {
   it('10 concurrent patches: all 200/400, final GET meta.title matches one of the 10', async () => {
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     seedApp();
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     const titles = Array.from({ length: 10 }, (_, i) => `Concurrent Title ${i}`);
 
@@ -529,7 +529,7 @@ describe('8. Health under sustained load', () => {
   it('GET /api/health stays under 200ms while write loop runs for 3s', async () => {
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
     let writeRunning = true;
     let writeCount = 0;

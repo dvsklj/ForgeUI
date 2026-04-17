@@ -69,13 +69,13 @@ async function main() {
 // ─── forge serve ────────────────────────────────────────────
 
 async function cmdServe() {
-  const { createForgeServer } = await import('./server/index.js');
+  const { createForgeUIServer } = await import('./server/index.js');
 
   const port = parseInt(getFlag('port') || '3000');
   const host = getFlag('host') || '0.0.0.0';
   const dbPath = getFlag('db') || './forge.db';
 
-  const server = createForgeServer({ port, host, dbPath });
+  const server = createForgeUIServer({ port, host, dbPath });
   process.on('SIGINT', () => { server.stop(); process.exit(0); });
   process.on('SIGTERM', () => { server.stop(); process.exit(0); });
   await server.start();
@@ -245,9 +245,9 @@ async function cmdDev() {
   const dbPath = getFlag('db') || './forge.db';
 
   // Import build to do initial build
-  const { createForgeServer } = await import('./server/index.js');
+  const { createForgeUIServer } = await import('./server/index.js');
 
-  const server = createForgeServer({ port, host, dbPath });
+  const server = createForgeUIServer({ port, host, dbPath });
   process.on('SIGINT', () => { server.stop(); process.exit(0); });
   process.on('SIGTERM', () => { server.stop(); process.exit(0); });
   await server.start();

@@ -341,7 +341,7 @@ function replaceTemplates(input: string, store: Store): string {
   return out;
 }
 
-/** Convert ForgeSchema to TinyBase TablesSchema */
+/** Convert ForgeUISchema to TinyBase TablesSchema */
 function forgeSchemaToTinyBase(schema: ForgeStateConfig['schema']): TablesSchema {
   if (!schema) return {};
   
@@ -356,7 +356,7 @@ function forgeSchemaToTinyBase(schema: ForgeStateConfig['schema']): TablesSchema
 }
 
 /** Create a Forge state store from config */
-export function createForgeStore(config: ForgeStateConfig): Store {
+export function createForgeUIStore(config: ForgeStateConfig): Store {
   const store = createStore();
   
   if (config.schema) {

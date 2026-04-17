@@ -1,5 +1,5 @@
 /**
- * ForgeElement — Base class for all Forge components
+ * ForgeUIElement — Base class for all Forge components
  * 
  * Provides state binding resolution, action dispatching,
  * and common styles. No decorators — uses Lit's static properties API.
@@ -11,13 +11,13 @@ import type { Store } from 'tinybase';
 import { resolveRef, setItemContext } from '../state/index.js';
 import { resetStyles } from '../tokens/index.js';
 
-export class ForgeElement extends LitElement {
+export class ForgeUIElement extends LitElement {
   // ─── Instance ID (stable per component instance) ───────────
 
   /** Monotonic counter for generating unique instance IDs */
   static _instanceCounter = 0;
   /** Stable unique ID for this component instance — used for label linkage */
-  protected readonly _instanceId: string = `forge-${++(ForgeElement as any)._instanceCounter}`;
+  protected readonly _instanceId: string = `forge-${++(ForgeUIElement as any)._instanceCounter}`;
 
   // ─── Properties (set by renderer) ────────────────────────────
 

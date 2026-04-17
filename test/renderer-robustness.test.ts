@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderElement, renderManifest } from '../src/renderer/index.js';
 import * as stateModule from '../src/state/index.js';
 import { createStore } from 'tinybase';
-import type { ForgeManifest } from '../src/types/index.js';
+import type { ForgeUIManifest } from '../src/types/index.js';
 
 describe('renderer robustness', () => {
   const store = createStore();
 
-  function ctx(manifest: ForgeManifest) {
+  function ctx(manifest: ForgeUIManifest) {
     return {
       manifest,
       store,
@@ -17,7 +17,7 @@ describe('renderer robustness', () => {
   }
 
   it('renderElement catches thrown errors and returns <forgeui-error>', () => {
-    const manifest: ForgeManifest = {
+    const manifest: ForgeUIManifest = {
       id: 'r1',
       manifest: '0.1.0',
       root: 'bad',
@@ -36,7 +36,7 @@ describe('renderer robustness', () => {
     const calls: unknown[] = [];
     const spy = vi.spyOn(stateModule, 'setItemContext').mockImplementation((v: any) => { calls.push(v); });
 
-    const manifest: ForgeManifest = {
+    const manifest: ForgeUIManifest = {
       id: 'r2',
       manifest: '0.1.0',
       root: 'rep',
@@ -62,7 +62,7 @@ describe('renderer robustness', () => {
   });
 
   it('evaluateVisibility fail-visibles on missing $when wrapper', () => {
-    const manifest: ForgeManifest = {
+    const manifest: ForgeUIManifest = {
       id: 'r3',
       manifest: '0.1.0',
       root: 'e1',
@@ -79,7 +79,7 @@ describe('renderer robustness', () => {
   });
 
   it('evaluateVisibility returns true for null/undefined/non-object condition', () => {
-    const manifest: ForgeManifest = {
+    const manifest: ForgeUIManifest = {
       id: 'r4',
       manifest: '0.1.0',
       root: 'e1',

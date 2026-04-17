@@ -5,7 +5,7 @@
  */
 
 import { parseArgs } from 'util';
-import { createForgeServer } from './index.js';
+import { createForgeUIServer } from './index.js';
 
 const { values } = parseArgs({
   options: {
@@ -16,7 +16,7 @@ const { values } = parseArgs({
   allowPositionals: false,
 });
 
-const server = createForgeServer({
+const server = createForgeUIServer({
   port: parseInt(values.port!),
   host: values.host!,
   dbPath: values.db!,

@@ -8,7 +8,7 @@
  * Reference: Google's A2UI protocol v0.8+
  * https://github.com/google/a2ui
  */
-import type { ForgeManifest } from '../types/index.js';
+import type { ForgeUIManifest } from '../types/index.js';
 /** A2UI input payload format */
 interface A2UIPayload {
     /** A2UI version string (e.g., "a2ui/v0.8", "0.8") */
@@ -42,7 +42,7 @@ interface A2UIComponent {
  * 2. Maps A2UI types to Forge types
  * 3. Translates A2UI props to Forge props
  */
-export declare function a2uiToForge(payload: A2UIPayload): ForgeManifest;
+export declare function a2uiToForge(payload: A2UIPayload): ForgeUIManifest;
 /**
  * Detect if a JSON payload is an A2UI payload (vs a Forge manifest).
  *
@@ -56,6 +56,6 @@ export declare function isA2UIPayload(data: unknown): data is A2UIPayload;
  * Ingest a payload — auto-detect A2UI vs Forge format.
  * Returns a valid Forge manifest in either case.
  */
-export declare function ingestPayload(data: unknown): ForgeManifest;
+export declare function ingestPayload(data: unknown): ForgeUIManifest;
 export {};
 //# sourceMappingURL=index.d.ts.map

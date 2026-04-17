@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { createForgeServer } from '../src/server/index.js';
+import { createForgeUIServer } from '../src/server/index.js';
 import { initDatabase, createApp, closeDatabase } from '../src/server/db.js';
-import type { ForgeManifest } from '../src/types/index.js';
+import type { ForgeUIManifest } from '../src/types/index.js';
 
 afterEach(() => {
   closeDatabase();
@@ -10,13 +10,13 @@ afterEach(() => {
 describe('renderAppPage XSS defense', () => {
   it('embeds manifest inside a <script type="application/json"> tag, not an HTML attribute', async () => {
     initDatabase(':memory:');
-    const manifest: ForgeManifest = {
+    const manifest: ForgeUIManifest = {
       id: 'xss-structural-test',
       meta: { title: 'Safe Title' },
       ui: { kind: 'standalone', children: [] },
     } as any;
     createApp(manifest);
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
     const res = await app.request('/apps/xss-structural-test');
     const html = await res.text();
     expect(res.status).toBe(200);
@@ -26,13 +26,13 @@ describe('renderAppPage XSS defense', () => {
 
   it('escapes </script> sequences inside the manifest JSON payload', async () => {
     initDatabase(':memory:');
-    const manifest: ForgeManifest = {
+    const manifest: ForgeUIManifest = {
       id: 'script-breakout-test',
       meta: { title: '</script><script>alert(1)</script>' },
       ui: { kind: 'standalone', children: [] },
     } as any;
     createApp(manifest);
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
     const res = await app.request('/apps/script-breakout-test');
     const html = await res.text();
     expect(html).not.toMatch(/<\/script><script>alert\(1\)<\/script>/);
@@ -41,13 +41,13 @@ describe('renderAppPage XSS defense', () => {
 
   it('escapeHtml handles single quotes, ampersands, angle brackets, and NULs', async () => {
     initDatabase(':memory:');
-    const manifest: ForgeManifest = {
+    const manifest: ForgeUIManifest = {
       id: 'escape-title-test',
       meta: { title: "<'&>" + '\x00' + 'end' },
       ui: { kind: 'standalone', children: [] },
     } as any;
     createApp(manifest);
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
     const res = await app.request('/apps/escape-title-test');
     const html = await res.text();
     expect(html).toContain('&lt;');

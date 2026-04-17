@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { createForgeServer } from '../src/server/index.js';
+import { createForgeUIServer } from '../src/server/index.js';
 import { initDatabase, createApp, closeDatabase } from '../src/server/db.js';
 
 afterEach(() => {
@@ -18,7 +18,7 @@ describe('PATCH /api/apps/:id — integration', () => {
       },
       meta: { title: 'Original' },
     } as any);
-    return createForgeServer({ baseUrl: 'http://localhost' });
+    return createForgeUIServer({ baseUrl: 'http://localhost' });
   }
 
   it('applies a clean patch successfully', async () => {

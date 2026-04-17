@@ -9,7 +9,7 @@
  */
 
 import type { ErrorObject, ValidateFunction } from 'ajv';
-import type { ForgeManifest } from '../types/index.js';
+import type { ForgeUIManifest } from '../types/index.js';
 import { isValidComponentType } from '../catalog/registry.js';
 import _validate from './manifest-validator.generated.js';
 
@@ -78,7 +78,7 @@ export function validateManifest(data: unknown): ValidationResult {
     return { valid: false, errors, warnings: [] };
   }
   
-  const manifest = data as ForgeManifest;
+  const manifest = data as ForgeUIManifest;
   
   // ─── Layer 2: URL and value sanitization ───
   validateUrls(manifest, errors);
@@ -110,7 +110,7 @@ export function validateManifest(data: unknown): ValidationResult {
 }
 
 /** Check all URL values for dangerous schemes and allowlist enforcement */
-function validateUrls(manifest: ForgeManifest, errors: ValidationError[]) {
+function validateUrls(manifest: ForgeUIManifest, errors: ValidationError[]) {
   for (const [id, element] of Object.entries(manifest.elements)) {
     if (!element.props) continue;
     for (const [key, value] of Object.entries(element.props)) {
@@ -212,7 +212,7 @@ function looksLikeUrl(value: string): boolean {
 }
 
 /** Validate $state and $computed references against schema */
-function validateStatePaths(manifest: ForgeManifest, errors: ValidationError[]) {
+function validateStatePaths(manifest: ForgeUIManifest, errors: ValidationError[]) {
   const tables = manifest.schema?.tables ? Object.keys(manifest.schema.tables) : [];
   // Collect known state value keys for $state: path validation (P2-7)
   const stateKeys = new Set<string>();
@@ -274,7 +274,7 @@ function validateStatePaths(manifest: ForgeManifest, errors: ValidationError[]) 
 }
 
 /** Validate that all component types exist in the catalog */
-function validateCatalog(manifest: ForgeManifest, errors: ValidationError[]) {
+function validateCatalog(manifest: ForgeUIManifest, errors: ValidationError[]) {
   for (const [id, element] of Object.entries(manifest.elements)) {
     if (!isValidComponentType(element.type)) {
       errors.push({
@@ -287,7 +287,7 @@ function validateCatalog(manifest: ForgeManifest, errors: ValidationError[]) {
 }
 
 /** Validate element cross-references (root exists, children exist) */
-function validateReferences(manifest: ForgeManifest, errors: ValidationError[]) {
+function validateReferences(manifest: ForgeUIManifest, errors: ValidationError[]) {
   const elementIds = new Set(Object.keys(manifest.elements));
   
   // Root must exist
@@ -376,7 +376,7 @@ export function validateManifestPatch(patch: unknown): { valid: boolean; errors?
 }
 
 /** Detect cycles in the element tree */
-function detectCycles(manifest: ForgeManifest, errors: ValidationError[]) {
+function detectCycles(manifest: ForgeUIManifest, errors: ValidationError[]) {
   const visited = new Set<string>();
   const inStack = new Set<string>();
   

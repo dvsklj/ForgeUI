@@ -34,7 +34,7 @@ export type ComponentCategory = 'layout' | 'content' | 'input' | 'action' | 'dat
 // ─── Manifest ────────────────────────────────────────────────────
 
 /** The top-level Forge manifest structure */
-export interface ForgeManifest {
+export interface ForgeUIManifest {
   /** Manifest format version (semver) */
   manifest: string;
   /** Unique app identifier */
@@ -42,15 +42,15 @@ export interface ForgeManifest {
   /** Root element ID (references an entry in elements) */
   root: string;
   /** Data schema definition (TinyBase tables schema) */
-  schema?: ForgeSchema;
+  schema?: ForgeUISchema;
   /** Initial state values */
   state?: Record<string, unknown>;
   /** Flat map of element IDs to element definitions */
-  elements: Record<string, ForgeElement>;
+  elements: Record<string, ForgeUIElement>;
   /** Declarative action definitions */
-  actions?: Record<string, ForgeAction>;
+  actions?: Record<string, ForgeUIAction>;
   /** App-level metadata */
-  meta?: ForgeMeta;
+  meta?: ForgeUIMeta;
   /** Persist state in IndexedDB (default: auto-detected from surface) */
   persistState?: boolean;
   /** Skip persistence entirely (chat artifacts) */
@@ -72,7 +72,7 @@ export interface ForgeDataAccess {
 }
 
 /** App metadata */
-export interface ForgeMeta {
+export interface ForgeUIMeta {
   title?: string;
   description?: string;
   version?: number;
@@ -83,7 +83,7 @@ export interface ForgeMeta {
 // ─── Element ─────────────────────────────────────────────────────
 
 /** A single element in the manifest (flat, referenced by ID) */
-export interface ForgeElement {
+export interface ForgeUIElement {
   /** Component type from the catalog */
   type: ComponentType;
   /** Component-specific properties (validated by Zod schemas) */
@@ -112,7 +112,7 @@ export interface VisibilityCondition {
 // ─── Schema ──────────────────────────────────────────────────────
 
 /** Data schema (maps to TinyBase tables schema) */
-export interface ForgeSchema {
+export interface ForgeUISchema {
   version: number;
   tables: Record<string, TableDefinition>;
   migrations?: Migration[];
@@ -147,7 +147,7 @@ export type MigrationOperation =
 // ─── Actions ─────────────────────────────────────────────────────
 
 /** Declarative action definition */
-export interface ForgeAction {
+export interface ForgeUIAction {
   type: ActionType;
   /** Target state path */
   path?: string;

@@ -9,7 +9,7 @@
 
 import { css } from 'lit';
 
-/** Design token CSS (injected into ForgeApp shadow root) */
+/** Design token CSS (injected into ForgeUIApp shadow root) */
 export const tokenStyles = css`
   @layer tokens {
     :host {

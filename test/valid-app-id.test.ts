@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { createForgeServer } from '../src/server/index.js';
+import { createForgeUIServer } from '../src/server/index.js';
 import { initDatabase, createApp, closeDatabase } from '../src/server/db.js';
 
 afterEach(() => {
@@ -27,7 +27,7 @@ describe('VALID_APP_ID gate on all 6 endpoints', () => {
       meta: { title: 'OK' },
       ui: { kind: 'standalone', children: [] },
     } as any);
-    return createForgeServer({ baseUrl: 'http://localhost' });
+    return createForgeUIServer({ baseUrl: 'http://localhost' });
   }
 
   it.each(badIds)('GET /apps/:id rejects bad id %s', async (id) => {

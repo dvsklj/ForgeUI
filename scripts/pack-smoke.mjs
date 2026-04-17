@@ -289,14 +289,14 @@ console.log('\n  ── @forgeui/runtime ──');
 
 // Import main entrypoint
 const runtimeMain = smokeRun('smoke-runtime-main.mjs', `
-import { ForgeApp, validateManifest, createForgeStore } from '@forgeui/runtime';
-console.log('ForgeApp:', typeof ForgeApp);
+import { ForgeUIApp, validateManifest, createForgeUIStore } from '@forgeui/runtime';
+console.log('ForgeUIApp:', typeof ForgeUIApp);
 console.log('validateManifest:', typeof validateManifest);
-console.log('createForgeStore:', typeof createForgeStore);
+console.log('createForgeUIStore:', typeof createForgeUIStore);
 console.log('OK');
 `);
 if (runtimeMain.ok) {
-  console.log(`  ✅ import { ForgeApp, validateManifest, createForgeStore } from '@forgeui/runtime'`);
+  console.log(`  ✅ import { ForgeUIApp, validateManifest, createForgeUIStore } from '@forgeui/runtime'`);
   console.log(`     ${runtimeMain.stdout.replace(/\n/g, '; ')}`);
 } else {
   console.log(`  ❌ import from '@forgeui/runtime' FAILED`);
@@ -325,12 +325,12 @@ if (runtimeComponents.ok) {
 
 // Import standalone
 const runtimeStandalone = smokeRun('smoke-runtime-standalone.mjs', `
-import { ForgeApp } from '@forgeui/runtime/standalone';
-console.log('ForgeApp:', typeof ForgeApp);
+import { ForgeUIApp } from '@forgeui/runtime/standalone';
+console.log('ForgeUIApp:', typeof ForgeUIApp);
 console.log('OK');
 `);
 if (runtimeStandalone.ok) {
-  console.log(`  ✅ import { ForgeApp } from '@forgeui/runtime/standalone'`);
+  console.log(`  ✅ import { ForgeUIApp } from '@forgeui/runtime/standalone'`);
   console.log(`     ${runtimeStandalone.stdout.replace(/\n/g, '; ')}`);
 } else {
   console.log(`  ❌ import from '@forgeui/runtime/standalone' FAILED`);
@@ -341,13 +341,13 @@ if (runtimeStandalone.ok) {
 // ── @forgeui/server ──
 console.log('\n  ── @forgeui/server ──');
 
-// Import createForgeServer
+// Import createForgeUIServer
 const serverImport = smokeRun('smoke-server-import.mjs', `
-import { createForgeServer } from '@forgeui/server';
-console.log('createForgeServer:', typeof createForgeServer);
+import { createForgeUIServer } from '@forgeui/server';
+console.log('createForgeUIServer:', typeof createForgeUIServer);
 
 // Start on a specific port
-const server = createForgeServer({ port: 19876, dbPath: ':memory:' });
+const server = createForgeUIServer({ port: 19876, dbPath: ':memory:' });
 await server.start();
 console.log('Server started');
 
@@ -360,7 +360,7 @@ server.stop();
 console.log('OK');
 `);
 if (serverImport.ok) {
-  console.log(`  ✅ import { createForgeServer } from '@forgeui/server'`);
+  console.log(`  ✅ import { createForgeUIServer } from '@forgeui/server'`);
   console.log(`     ${serverImport.stdout.replace(/\n/g, '; ')}`);
 } else {
   console.log(`  ❌ import from '@forgeui/server' FAILED`);

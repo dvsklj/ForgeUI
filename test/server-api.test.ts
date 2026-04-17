@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { createForgeServer } from '../src/server/index.js';
+import { createForgeUIServer } from '../src/server/index.js';
 import { initDatabase, createApp, closeDatabase } from '../src/server/db.js';
 
 const savedEnv = { ...process.env };
@@ -12,7 +12,7 @@ afterEach(() => {
 describe('Server API — Full CRUD', () => {
   function setup() {
     initDatabase(':memory:');
-    return createForgeServer({ baseUrl: 'http://localhost' });
+    return createForgeUIServer({ baseUrl: 'http://localhost' });
   }
 
   it('GET /api/health returns ok', async () => {
@@ -150,7 +150,7 @@ describe('Server API — App pages', () => {
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
     createApp({ id: 'page-app', manifest: '0.1.0', root: 'm', elements: { m: { type: 'Text' } }, meta: { title: 'My Page' } } as any);
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
     const res = await app.request('/apps/page-app');
     expect(res.status).toBe(200);
     // CSP is delivered as a response header, not embedded in the HTML body.
@@ -163,7 +163,7 @@ describe('Server API — App pages', () => {
   it('GET /apps/:id returns 404 for unknown app', async () => {
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
     const res = await app.request('/apps/nonexistent');
     expect(res.status).toBe(404);
   });
@@ -171,7 +171,7 @@ describe('Server API — App pages', () => {
   it('GET / returns landing page', async () => {
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
     const res = await app.request('/');
     expect(res.status).toBe(200);
     const html = await res.text();
@@ -183,7 +183,7 @@ describe('Server API — Invalid input handling', () => {
   it('POST /api/apps with invalid JSON returns 400', async () => {
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
     const res = await app.request('/api/apps', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -195,7 +195,7 @@ describe('Server API — Invalid input handling', () => {
   it('POST /api/apps with empty body returns 400', async () => {
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
-    const { app } = createForgeServer({ baseUrl: 'http://localhost' });
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
     const res = await app.request('/api/apps', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },

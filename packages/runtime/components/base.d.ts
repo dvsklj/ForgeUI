@@ -1,5 +1,5 @@
 /**
- * ForgeElement — Base class for all Forge components
+ * ForgeUIElement — Base class for all Forge components
  *
  * Provides state binding resolution, action dispatching,
  * and common styles. No decorators — uses Lit's static properties API.
@@ -7,7 +7,7 @@
 import { LitElement } from 'lit';
 import type { CSSResult } from 'lit';
 import type { Store } from 'tinybase';
-export declare class ForgeElement extends LitElement {
+export declare class ForgeUIElement extends LitElement {
     /** Monotonic counter for generating unique instance IDs */
     static _instanceCounter: number;
     /** Stable unique ID for this component instance — used for label linkage */

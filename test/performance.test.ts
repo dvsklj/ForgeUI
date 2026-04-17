@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { createForgeStore, resolveRef, executeAction } from '../src/state/index.js';
+import { createForgeUIStore, resolveRef, executeAction } from '../src/state/index.js';
 import { validateManifest } from '../src/validation/index.js';
 
 describe('Performance — Store operations', () => {
-  it('createForgeStore with 10 tables in under 50ms', () => {
+  it('createForgeUIStore with 10 tables in under 50ms', () => {
     const start = performance.now();
     const schema: any = { version: 1, tables: {} };
     for (let i = 0; i < 10; i++) {
@@ -14,7 +14,7 @@ describe('Performance — Store operations', () => {
         },
       };
     }
-    const store = createForgeStore({ schema, initialState: { counter: 0 } });
+    const store = createForgeUIStore({ schema, initialState: { counter: 0 } });
     const elapsed = performance.now() - start;
     expect(elapsed).toBeLessThan(50);
     // Schema is registered on the store; populate one row to confirm.
@@ -23,7 +23,7 @@ describe('Performance — Store operations', () => {
   });
 
   it('1000 resolved refs in under 100ms', () => {
-    const store = createForgeStore({
+    const store = createForgeUIStore({
       schema: {
         version: 1,
         tables: {
@@ -49,7 +49,7 @@ describe('Performance — Store operations', () => {
   });
 
   it('1000 state mutations in under 100ms', () => {
-    const store = createForgeStore({ initialState: { counter: 0 } });
+    const store = createForgeUIStore({ initialState: { counter: 0 } });
     const start = performance.now();
     for (let i = 0; i < 1000; i++) {
       executeAction(store, { type: 'mutateState', path: 'counter', operation: 'set', value: i });
@@ -59,7 +59,7 @@ describe('Performance — Store operations', () => {
   });
 
   it('1000 table appends in under 200ms', () => {
-    const store = createForgeStore({
+    const store = createForgeUIStore({
       schema: { version: 1, tables: { items: { columns: { name: { type: 'string' }, qty: { type: 'number' } } } } },
     });
     const start = performance.now();
@@ -77,7 +77,7 @@ describe('Performance — Store operations', () => {
   });
 
   it('template interpolation performance', () => {
-    const store = createForgeStore({ initialState: { name: 'World', count: 42 } });
+    const store = createForgeUIStore({ initialState: { name: 'World', count: 42 } });
     const start = performance.now();
     for (let i = 0; i < 1000; i++) {
       resolveRef(store, 'Hello {{state.name}}, count={{state.count}}!');

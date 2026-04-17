@@ -212,8 +212,8 @@ test.describe('Ring 2 — server', () => {
 
       // Write a small server script to a temp file (avoids tsx -e issues)
       writeFileSync(scriptPath, `
-import { createForgeServer } from '${process.cwd()}/src/server/index.ts';
-const server = createForgeServer({ port: ${port}, dbPath: '${dbPath}' });
+import { createForgeUIServer } from '${process.cwd()}/src/server/index.ts';
+const server = createForgeUIServer({ port: ${port}, dbPath: '${dbPath}' });
 await server.start();
 console.log('SERVER_READY');
 `);

@@ -1,5 +1,5 @@
 /**
- * ForgeApp — The core web component entry point
+ * ForgeUIApp — The core web component entry point
  * 
  * <forgeui-app manifest='...' surface='chat|standalone|embed' color-scheme='light|dark'></forgeui-app>
  * 
@@ -8,8 +8,8 @@
 
 import { LitElement, html } from 'lit';
 import { Store } from 'tinybase';
-import type { ForgeManifest, SurfaceMode } from '../types/index.js';
-import { createForgeStore, executeAction } from '../state/index.js';
+import type { ForgeUIManifest, SurfaceMode } from '../types/index.js';
+import { createForgeUIStore, executeAction } from '../state/index.js';
 import { validateManifest, ValidationResult } from '../validation/index.js';
 import { renderManifest, RenderContext } from '../renderer/index.js';
 import { tokenStyles, surfaceStyles } from '../tokens/index.js';
@@ -21,7 +21,7 @@ import { UndoRedoStack, type UndoRedoState } from './undo-redo.js';
 // Import all components to register them
 import '../components/index.js';
 
-export class ForgeApp extends LitElement {
+export class ForgeUIApp extends LitElement {
   static styles = [tokenStyles, surfaceStyles];
 
   static get properties() {
@@ -33,7 +33,7 @@ export class ForgeApp extends LitElement {
     };
   }
 
-  declare manifest?: ForgeManifest;
+  declare manifest?: ForgeUIManifest;
   declare src?: string;
   declare surface: SurfaceMode;
   declare colorScheme?: 'light' | 'dark';
@@ -41,7 +41,7 @@ export class ForgeApp extends LitElement {
   private _activeView = '';
   private _store?: Store;
   private _validation?: ValidationResult;
-  private _parsedManifest?: ForgeManifest;
+  private _parsedManifest?: ForgeUIManifest;
   private _persister: ForgePersister | null = null;
   private _undoStack: UndoRedoStack = new UndoRedoStack(50);
 
@@ -117,7 +117,7 @@ export class ForgeApp extends LitElement {
     this._parsedManifest = manifest;
 
     // Create store
-    this._store = createForgeStore({
+    this._store = createForgeUIStore({
       schema: manifest.schema,
       initialState: manifest.state,
     });
@@ -186,7 +186,7 @@ export class ForgeApp extends LitElement {
 
   /** ─── Persistence ──────────────────────────────────────────── */
 
-  private async _setupPersistence(manifest: ForgeManifest) {
+  private async _setupPersistence(manifest: ForgeUIManifest) {
     if (!this._store) return;
 
     // Destroy previous persister if any
@@ -278,7 +278,7 @@ export class ForgeApp extends LitElement {
     return this._store;
   }
 
-  getManifest(): ForgeManifest | undefined {
+  getManifest(): ForgeUIManifest | undefined {
     return this._parsedManifest;
   }
 
@@ -291,12 +291,12 @@ export class ForgeApp extends LitElement {
   }
 
   /** Push a manifest update to the undo stack (for LLM-driven updates). */
-  pushManifestUpdate(manifest: ForgeManifest): void {
+  pushManifestUpdate(manifest: ForgeUIManifest): void {
     this._undoStack.push(manifest);
   }
 
   /** Undo the last manifest change. Returns the restored manifest, or null. */
-  undo(): ForgeManifest | null {
+  undo(): ForgeUIManifest | null {
     const prev = this._undoStack.undo();
     if (prev) {
       this.manifest = prev;
@@ -306,7 +306,7 @@ export class ForgeApp extends LitElement {
   }
 
   /** Redo an undone manifest change. Returns the restored manifest, or null. */
-  redo(): ForgeManifest | null {
+  redo(): ForgeUIManifest | null {
     const next = this._undoStack.redo();
     if (next) {
       this.manifest = next;
@@ -329,10 +329,10 @@ export class ForgeApp extends LitElement {
   }
 }
 
-customElements.define('forgeui-app', ForgeApp);
+customElements.define('forgeui-app', ForgeUIApp);
 
 declare global {
   interface HTMLElementTagNameMap {
-    'forgeui-app': ForgeApp;
+    'forgeui-app': ForgeUIApp;
   }
 }

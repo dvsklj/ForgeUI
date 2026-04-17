@@ -33,7 +33,7 @@ forgeui/
 │   ├── index.ts                 # Runtime entry — IIFE bundle
 │   ├── components/
 │   │   ├── index.ts             # All 39 components in one file (by design)
-│   │   └── base.ts              # ForgeElement base class
+│   │   └── base.ts              # ForgeUIElement base class
 │   ├── runtime/
 │   │   ├── index.ts             # ForgeAppElement (web component host)
 │   │   └── expressions.ts       # $expr evaluation engine
@@ -41,7 +41,7 @@ forgeui/
 │   │   └── index.ts             # Manifest → Lit template compiler
 │   ├── validation/
 │   │   ├── index.ts             # validateManifest() — 4-layer pipeline
-│   │   ├── manifest-schema.ts   # JSON Schema definition for ForgeManifest
+│   │   ├── manifest-schema.ts   # JSON Schema definition for ForgeUIManifest
 │   │   └── manifest-validator.generated.ts  # Precompiled Ajv standalone validator
 │   ├── state/
 │   │   └── index.ts             # TinyBase store creation
@@ -85,7 +85,7 @@ npm run build -- --dev           # Dev mode (sourcemaps, no minify)
 ## Adding a Component
 
 1. Create `src/components/<category>/<name>.ts`
-2. Extend `ForgeElement` from `../base.js`
+2. Extend `ForgeUIElement` from `../base.js`
 3. Register with `customElements.define()`
 4. Export from `src/components/<category>/index.ts`
 5. Add to component catalog in `src/catalog/registry.ts`
@@ -95,9 +95,9 @@ Example:
 
 ```typescript
 import { html, css } from 'lit';
-import { ForgeElement } from '../base.js';
+import { ForgeUIElement } from '../base.js';
 
-export class ForgeMyComponent extends ForgeElement {
+export class ForgeMyComponent extends ForgeUIElement {
   static styles = css`
     :host { display: block; }
   `;
@@ -147,7 +147,7 @@ Any PR that pushes past the ceiling fails the `Enforce IIFE gzip size budget` ch
 
 ## Regenerating the validator
 
-The Ajv validator for `ForgeManifest` is precompiled at build time into `src/validation/manifest-validator.generated.ts`. `npm run build` regenerates it automatically via the `prebuild` script. To regenerate manually after editing `src/validation/manifest-schema.ts`:
+The Ajv validator for `ForgeUIManifest` is precompiled at build time into `src/validation/manifest-validator.generated.ts`. `npm run build` regenerates it automatically via the `prebuild` script. To regenerate manually after editing `src/validation/manifest-schema.ts`:
 
     npm run gen:validator
 
