@@ -1,5 +1,5 @@
 {
-  "name": "@forge/catalog",
+  "name": "@forgeui/catalog",
   "version": "0.1.0",
   "description": "Forge UI component catalog — 37 pre-built components for manifest-driven web apps.",
   "main": "forge-catalog.js",

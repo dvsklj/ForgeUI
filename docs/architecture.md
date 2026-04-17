@@ -577,9 +577,9 @@ about payload, the runtime also ships with per-component ESM entry
 points:
 
 ```js
-import { ForgeApp } from '@forge/runtime/core';       // ~20 KB gz
-import '@forge/runtime/components/chart';             // +~3 KB gz
-import '@forge/runtime/components/table';             // +~2 KB gz
+import { ForgeApp } from '@forgeui/runtime/core';       // ~20 KB gz
+import '@forgeui/runtime/components/chart';             // +~3 KB gz
+import '@forgeui/runtime/components/table';             // +~2 KB gz
 ```
 
 `sideEffects` is narrowly scoped to component registration files so

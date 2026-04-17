@@ -22,7 +22,7 @@ This makes LLM-generated UIs reliable, secure, and instant to deploy.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    @forge/runtime                        │
+│                    @forgeui/runtime                        │
 │                                                         │
 │  <forge-app> custom element (Lit-based Web Component)   │
 │  ├── TinyBase reactive state store                      │
@@ -36,7 +36,7 @@ This makes LLM-generated UIs reliable, secure, and instant to deploy.
 └────────────────────────┬────────────────────────────────┘
                          │ JSON manifest
 ┌────────────────────────┴────────────────────────────────┐
-│                    @forge/server                         │
+│                    @forgeui/server                         │
 │                                                         │
 │  Hono HTTP server + SQLite persistence                  │
 │  REST CRUD: POST/GET/PUT/PATCH/DELETE /api/apps/:id     │
@@ -47,7 +47,7 @@ This makes LLM-generated UIs reliable, secure, and instant to deploy.
 └────────────────────────┬────────────────────────────────┘
                          │ stdio MCP
 ┌────────────────────────┴────────────────────────────────┐
-│                   @forge/connect                         │
+│                   @forgeui/connect                         │
 │                                                         │
 │  MCP tools: create, update, get, list, delete apps      │
 │  Works with: Claude Code, Hermes, any MCP agent         │
@@ -91,7 +91,7 @@ This makes LLM-generated UIs reliable, secure, and instant to deploy.
 
 ```bash
 # Install
-npm install @forge/server
+npm install @forgeui/server
 
 # Start
 npx forge-server --port 3000 --db ./apps.db
@@ -111,7 +111,7 @@ curl -X POST http://localhost:3000/api/apps \
   "mcpServers": {
     "forge": {
       "command": "npx",
-      "args": ["@forge/connect"]
+      "args": ["@forgeui/connect"]
     }
   }
 }

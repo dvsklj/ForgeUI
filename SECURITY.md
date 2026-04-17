@@ -48,7 +48,7 @@ In scope for security reports:
 Out of scope:
 - Vulnerabilities in dependencies with upstream fixes — please report to the dependency first and send us the CVE link
 - Issues that require the attacker to already have write access to a trusted manifest (we assume manifest authors are trusted; the attack surface is *rendering* untrusted manifests, not authoring them)
-- Denial-of-service via resource exhaustion in self-hosted `@forge/server` deployments (operators should rate-limit at their edge)
+- Denial-of-service via resource exhaustion in self-hosted `@forgeui/server` deployments (operators should rate-limit at their edge)
 
 ## Known hardening work
 

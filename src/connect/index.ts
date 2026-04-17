@@ -1,5 +1,5 @@
 /**
- * @forge/connect — MCP Server
+ * @forgeui/connect — MCP Server
  *
  * Provides MCP tools for LLM agents to create, update, and query Forge apps.
  *

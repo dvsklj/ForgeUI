@@ -9,22 +9,22 @@
 
 ## Executive summary
 
-The `@forge/runtime` IIFE ships at **334 KB raw / 95 KB gzipped** — the architecture doc (§10) claims ~308 KB raw / ~40 KB gzipped, meaning the real number is **~8% over on raw and 2.4× over on gzip**. The primary culprits are Ajv (25 KB gzip), Zod (14 KB gzip), and TinyBase (13 KB gzip), all of which are fully inlined into the IIFE despite the description claiming "zero dependencies." Every other published package also exceeds reasonable expectations for its domain.
+The `@forgeui/runtime` IIFE ships at **334 KB raw / 95 KB gzipped** — the architecture doc (§10) claims ~308 KB raw / ~40 KB gzipped, meaning the real number is **~8% over on raw and 2.4× over on gzip**. The primary culprits are Ajv (25 KB gzip), Zod (14 KB gzip), and TinyBase (13 KB gzip), all of which are fully inlined into the IIFE despite the description claiming "zero dependencies." Every other published package also exceeds reasonable expectations for its domain.
 
 ## Per-package size table
 
 | Package                         | Raw (B) | Min (B) | Gzip (B) | Brotli (B) | vs. claim        |
 |---------------------------------|---------|---------|----------|------------|------------------|
-| @forge/runtime (IIFE)           | 333,785 | 333,785 | 95,029   | 83,813     | +235% vs 40 KB   |
-| @forge/runtime (ESM standalone) | 173,375 | 173,375 | 41,604   | 36,577     | n/a (no claim)   |
-| @forge/runtime (ESM components) | 63,812  | 63,812  | 14,278   | 12,550     | n/a (no claim)   |
-| @forge/catalog                  | 30,125  | 30,125  | 8,389    | 7,266      | n/a (no claim)   |
-| @forge/server                   | 232,140 | 232,140 | 68,284   | 60,476     | n/a (no claim)   |
-| @forge/connect                  | 377,119 | 377,119 | 103,202  | 89,136     | n/a (no claim)   |
+| @forgeui/runtime (IIFE)           | 333,785 | 333,785 | 95,029   | 83,813     | +235% vs 40 KB   |
+| @forgeui/runtime (ESM standalone) | 173,375 | 173,375 | 41,604   | 36,577     | n/a (no claim)   |
+| @forgeui/runtime (ESM components) | 63,812  | 63,812  | 14,278   | 12,550     | n/a (no claim)   |
+| @forgeui/catalog                  | 30,125  | 30,125  | 8,389    | 7,266      | n/a (no claim)   |
+| @forgeui/server                   | 232,140 | 232,140 | 68,284   | 60,476     | n/a (no claim)   |
+| @forgeui/connect                  | 377,119 | 377,119 | 103,202  | 89,136     | n/a (no claim)   |
 
 **Notes:** The build already minifies (`minify: true` in `build.mjs`), so raw = minified for all files. All numbers are from the `dist/` output that `npm run build` produces on this commit.
 
-## @forge/runtime bundle breakdown
+## @forgeui/runtime bundle breakdown
 
 Top 15 inputs by byte contribution (ESM bundle from `src/index.ts`, esbuild metafile):
 
@@ -97,7 +97,7 @@ The architecture doc (§4) claims 37 components (18 core + 19 extended). The cur
 
 **The claim** (architecture.md §10, "Current state"):
 
-> `@forge/runtime` IIFE: ~308 KB raw, ~40 KB gzipped.
+> `@forgeui/runtime` IIFE: ~308 KB raw, ~40 KB gzipped.
 
 **The reality:**
 
@@ -134,12 +134,12 @@ Budgets are current-size + 12% headroom. CI fails when a PR regresses a package 
 
 | Package                         | Current gzip (B) | Proposed budget (B) |
 |---------------------------------|------------------|---------------------|
-| @forge/runtime (IIFE)           | 95,029           | 106,433             |
-| @forge/runtime (ESM standalone) | 41,604           | 46,597              |
-| @forge/runtime (ESM components) | 14,278           | 15,992              |
-| @forge/catalog                  | 8,389            | 9,396               |
-| @forge/server                   | 68,284           | 76,479              |
-| @forge/connect                  | 103,202          | 115,587             |
+| @forgeui/runtime (IIFE)           | 95,029           | 106,433             |
+| @forgeui/runtime (ESM standalone) | 41,604           | 46,597              |
+| @forgeui/runtime (ESM components) | 14,278           | 15,992              |
+| @forgeui/catalog                  | 8,389            | 9,396               |
+| @forgeui/server                   | 68,284           | 76,479              |
+| @forgeui/connect                  | 103,202          | 115,587             |
 
 If path (a) is taken and deps are removed from the IIFE, the IIFE budget should be re-measured and reduced accordingly.
 
@@ -147,10 +147,10 @@ If path (a) is taken and deps are removed from the IIFE, the IIFE budget should 
 
 1. **Decide path (a) vs (b)** for the architecture doc's size claim. If (a), the Ajv precompilation work is the single highest-ROI change (~25 KB gzip saved).
 2. **Wire `size-limit` into CI** with the budgets above. See Prompt 10.
-3. **Split `src/components/index.ts`** into per-component ESM entry points (e.g., `@forge/runtime/components/chart`) so consumers can tree-shake and so we can measure per-component cost. The architecture doc §10 already promises this but it is not implemented.
-4. **Fix the npm description.** `@forge/runtime/package.json` says "Zero dependencies, 40KB gzip." Both claims are false for the IIFE. Either make them true or remove the claim.
+3. **Split `src/components/index.ts`** into per-component ESM entry points (e.g., `@forgeui/runtime/components/chart`) so consumers can tree-shake and so we can measure per-component cost. The architecture doc §10 already promises this but it is not implemented.
+4. **Fix the npm description.** `@forgeui/runtime/package.json` says "Zero dependencies, 40KB gzip." Both claims are false for the IIFE. Either make them true or remove the claim.
 5. **Assign tiers to forge-error and forge-drawing.** These 2 components were added after the 18/19 core/extended split was documented. They need catalog-tier assignment and test coverage.
-6. **Investigate @forge/connect at 103 KB gzip.** The MCP SDK is likely the bulk of this. If the MCP SDK tree-shakes poorly, consider a slimmer stdio-only build.
+6. **Investigate @forgeui/connect at 103 KB gzip.** The MCP SDK is likely the bulk of this. If the MCP SDK tree-shakes poorly, consider a slimmer stdio-only build.
 
 ---
 

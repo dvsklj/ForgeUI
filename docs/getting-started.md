@@ -12,7 +12,7 @@ A data table app — takes 2 minutes. By the end, you'll have a live web app run
 ## Step 1: Install
 
 ```bash
-npm install @forge/server
+npm install @forgeui/server
 ```
 
 ## Step 2: Create a Manifest
@@ -235,7 +235,7 @@ Connect Forge to Claude Code or any MCP agent:
   "mcpServers": {
     "forge": {
       "command": "npx",
-      "args": ["@forge/connect"]
+      "args": ["@forgeui/connect"]
     }
   }
 }

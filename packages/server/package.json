@@ -1,5 +1,5 @@
 {
-  "name": "@forge/server",
+  "name": "@forgeui/server",
   "version": "0.1.0",
   "description": "Forge UI server — Hono + SQLite app hosting. Deploy LLM-generated apps as shareable URLs.",
   "main": "dist/forge-server.js",

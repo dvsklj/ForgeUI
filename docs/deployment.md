@@ -3,7 +3,7 @@
 ## Local Development
 
 ```bash
-npm install @forge/server
+npm install @forgeui/server
 npx forge serve --port 3000 --db ./apps.db
 ```
 
@@ -14,7 +14,7 @@ App at `http://localhost:3000/apps/<id>`, API at `http://localhost:3000/api/apps
 ```dockerfile
 FROM node:20-slim
 WORKDIR /app
-RUN npm install -g @forge/server
+RUN npm install -g @forgeui/server
 EXPOSE 3000
 CMD ["forge-server", "--port", "3000", "--db", "/data/apps.db"]
 ```
@@ -53,7 +53,7 @@ sudo systemctl enable --now forge-server
 The server can run on Cloudflare Workers with a D1 database:
 
 ```javascript
-import { createForgeServer } from '@forge/server';
+import { createForgeServer } from '@forgeui/server';
 
 export default {
   async fetch(request, env) {
@@ -92,7 +92,7 @@ server {
 
 **Single-instance** (SQLite): Good for < 1000 apps, single server. SQLite handles concurrent reads well; writes are serialized but fast.
 
-**Multi-instance**: For horizontal scaling, swap SQLite for PostgreSQL and use the `@forge/server` with a custom `db` adapter. The API surface is small (6 CRUD operations) so the swap is straightforward.
+**Multi-instance**: For horizontal scaling, swap SQLite for PostgreSQL and use the `@forgeui/server` with a custom `db` adapter. The API surface is small (6 CRUD operations) so the swap is straightforward.
 
 **CDN for runtime**: Serve `forge.js` from a CDN (Cloudflare, Fastly). The runtime is static and cacheable:
 

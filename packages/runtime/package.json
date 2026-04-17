@@ -1,5 +1,5 @@
 {
-  "name": "@forge/runtime",
+  "name": "@forgeui/runtime",
   "version": "0.1.0",
   "description": "Client-side renderer for Forge declarative UI manifests.",
   "main": "forge.js",

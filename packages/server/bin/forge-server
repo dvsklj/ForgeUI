@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @forge/server CLI entry point
+// @forgeui/server CLI entry point
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';

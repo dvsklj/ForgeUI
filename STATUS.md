@@ -14,7 +14,7 @@ LLM generates JSON manifest → Forge runtime → Working web app
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    @forge/runtime                        │
+│                    @forgeui/runtime                        │
 │  IIFE ~46 KB gzip / ESM standalone ~28 KB gzip           │
 │  <forge-app> Web Component + 39 pre-built components     │
 │  TinyBase reactive state + Ajv validation                │
@@ -22,14 +22,14 @@ LLM generates JSON manifest → Forge runtime → Working web app
 └────────────────────────┬────────────────────────────────┘
                          │ JSON manifest
 ┌────────────────────────┴────────────────────────────────┐
-│                    @forge/server                         │
+│                    @forgeui/server                         │
 │  Hono HTTP + SQLite (better-sqlite3)                     │
 │  REST API + URL hosting + runtime serving                │
 │  Deploy: node, Docker, CF Workers, Deno Deploy           │
 └────────────────────────┬────────────────────────────────┘
                          │ stdio MCP
 ┌────────────────────────┴────────────────────────────────┐
-│                   @forge/connect                         │
+│                   @forgeui/connect                         │
 │  MCP tools: create/update/get/list/delete apps           │
 │  Claude Code, Hermes, any MCP-aware agent                │
 └─────────────────────────────────────────────────────────┘
@@ -67,7 +67,7 @@ LLM generates JSON manifest → Forge runtime → Working web app
 
 ## What's Built
 
-### Runtime (@forge/runtime)
+### Runtime (@forgeui/runtime)
 - **39 components** (19 core + 20 extended) across 4 categories:
   - Structural: Stack, Grid, Card, Container, ButtonGroup, Divider, Spacer
   - Data: Table, Chart, Metric, Text, Badge, ProgressBar
@@ -78,7 +78,7 @@ LLM generates JSON manifest → Forge runtime → Working web app
 - **Expressions**: `$expr: "state.data.path | values"` binding
 - **Embedding**: Works standalone, in iframes, as chat artifacts
 
-### Server (@forge/server)
+### Server (@forgeui/server)
 - **REST API**: POST/GET/PUT/PATCH/DELETE `/api/apps/:id`
 - **URL hosting**: `/apps/:id` → shareable app page
 - **SQLite persistence**: WAL mode, parameterized queries
@@ -86,7 +86,7 @@ LLM generates JSON manifest → Forge runtime → Working web app
 - **Runtime serving**: `/runtime/forge.js`
 - **CLI**: `forge create`, `forge validate`, `forge serve`, `forge components`
 
-### MCP Connector (@forge/connect)
+### MCP Connector (@forgeui/connect)
 - **stdio transport** for AI agent integration
 - **5 tools**: create_app, update_app, get_app, list_apps, delete_app
 - **Installed**: runs as `forge` MCP server
@@ -104,10 +104,10 @@ All packages prepared in `packages/` directory:
 
 | Package | Size | Contents |
 |---------|------|----------|
-| `@forge/runtime` | 163 KB | `forge.js` (IIFE), `forge-standalone.js`, `forge-components.js` |
-| `@forge/server` | 228 KB | Hono server + SQLite + CLI tools |
-| `@forge/catalog` | 32 KB | Component catalog + validation schemas |
-| `@forge/connect` | 368 KB | MCP stdio connector |
+| `@forgeui/runtime` | 163 KB | `forge.js` (IIFE), `forge-standalone.js`, `forge-components.js` |
+| `@forgeui/server` | 228 KB | Hono server + SQLite + CLI tools |
+| `@forgeui/catalog` | 32 KB | Component catalog + validation schemas |
+| `@forgeui/connect` | 368 KB | MCP stdio connector |
 
 Publish command:
 ```bash
