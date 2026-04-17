@@ -19,7 +19,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { serve } from '@hono/node-server';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { randomBytes } from 'node:crypto';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -172,9 +172,25 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
 
   // ─── Static Files ──────────────────────────────────────────
 
-  // Serve the Forge runtime bundle
-  const runtimePath = join(__dirname, 'forge.js');
-  const standalonePath = join(__dirname, 'forge-standalone.js');
+  // Resolve runtime file paths. In production (dist/forge-server.js), the
+  // runtime is a sibling. In dev (tsx src/server/index.ts), walk up to the
+  // repo root. FORGE_RUNTIME_PATH / FORGE_STANDALONE_PATH override.
+  function resolveRuntime(filename: string): string {
+    if (filename === 'forge.js' && process.env.FORGE_RUNTIME_PATH) return process.env.FORGE_RUNTIME_PATH;
+    if (filename === 'forge-standalone.js' && process.env.FORGE_STANDALONE_PATH) return process.env.FORGE_STANDALONE_PATH;
+    // Sibling (production build)
+    const sibling = join(__dirname, filename);
+    if (existsSync(sibling)) return sibling;
+    // Walk up to project root (dev mode via tsx)
+    for (let i = 1; i <= 5; i++) {
+      const candidate = join(__dirname, ...Array(i).fill('..'), 'dist', filename);
+      if (existsSync(candidate)) return candidate;
+    }
+    return sibling; // will 404 at read time
+  }
+
+  const runtimePath = resolveRuntime('forge.js');
+  const standalonePath = resolveRuntime('forge-standalone.js');
 
   app.get('/runtime/forge.js', (c) => {
     try {

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { spawn } from 'child_process';
-import { existsSync, unlinkSync } from 'fs';
+import { existsSync, unlinkSync, writeFileSync } from 'fs';
 import http from 'http';
 
 const counterManifest = {
@@ -142,16 +142,16 @@ test.describe('Ring 1 — IndexedDB', () => {
       return app?.shadowRoot?.querySelector('forge-text') || app?.querySelector('forge-text');
     }, { timeout: 10000 });
 
-    // Wait for IndexedDB load + store hydration
+    // Wait for IndexedDB load + store hydration + re-render
     await page.waitForTimeout(3000);
 
-    // Store value should be 77 (persisted), not 0 (manifest initial state)
-    const storeValue = await page.evaluate(() => {
-      const app = document.getElementById('app') as any;
+    // Rendered text should reflect persisted value (77), not initial (0)
+    const renderedText = await page.evaluate(() => {
+      const app = document.getElementById('app');
       const textEl = app?.shadowRoot?.querySelector('forge-text');
-      return textEl?.store?.getValue?.('count');
+      return textEl?.shadowRoot?.textContent?.trim() || textEl?.textContent?.trim() || '';
     });
-    expect(storeValue).toBe(77);
+    expect(renderedText).toContain('77');
 
     // Cleanup IndexedDB
     await page.evaluate((name) => {
@@ -204,14 +204,13 @@ test.describe('Ring 2 — server', () => {
 
   test('API round-trip: create, read, patch, reload', async () => {
     const dbPath = `/tmp/forge-e2e-ring2-${Date.now()}.db`;
+    const scriptPath = `/tmp/forge-e2e-server-${Date.now()}.mts`;
     let serverProc: any;
 
     try {
       const port = 18000 + Math.floor(Math.random() * 1000);
 
       // Write a small server script to a temp file (avoids tsx -e issues)
-      const { writeFileSync } = await import('fs');
-      const scriptPath = `/tmp/forge-e2e-server-${Date.now()}.mts`;
       writeFileSync(scriptPath, `
 import { createForgeServer } from '${process.cwd()}/src/server/index.ts';
 const server = createForgeServer({ port: ${port}, dbPath: '${dbPath}' });
@@ -275,16 +274,25 @@ console.log('SERVER_READY');
       const fetched2 = await getRes2.json();
       expect(fetched2.manifest.state.count).toBe(42);
 
-      // Note: /runtime/forge.js returns 404 when server is run via tsx
-      // (it looks for forge.js relative to src/server/, not dist/).
-      // Static file serving is verified by the production build test.
+      // Verify runtime endpoint serves forge.js (dev-mode path resolution)
+      const runtimeRes = await httpFetch(`${base}/runtime/forge.js`);
+      expect(runtimeRes.status).toBe(200);
+      const runtimeBody = await new Promise<string>((resolve) => {
+        const parsedUrl = new URL(`${base}/runtime/forge.js`);
+        const req = http.request({ hostname: parsedUrl.hostname, port: parsedUrl.port, path: parsedUrl.pathname }, (res) => {
+          let body = '';
+          res.on('data', (chunk: any) => body += chunk);
+          res.on('end', () => resolve(body));
+        });
+        req.end();
+      });
+      expect(runtimeBody.length).toBeGreaterThan(1000);
     } finally {
       if (serverProc) {
         serverProc.kill('SIGTERM');
         await new Promise(r => setTimeout(r, 1000));
       }
-      // Cleanup temp script
-      try { unlinkSync(`/tmp/forge-e2e-server-*.mts`); } catch {}
+      if (existsSync(scriptPath)) unlinkSync(scriptPath);
       if (existsSync(dbPath)) unlinkSync(dbPath);
     }
   });
