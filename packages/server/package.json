@@ -2,12 +2,12 @@
   "name": "@forgeui/server",
   "version": "0.1.0",
   "description": "Forge UI server — Hono + SQLite app hosting. Deploy LLM-generated apps as shareable URLs.",
-  "main": "dist/forge-server.js",
-  "types": "dist/forge-server.d.ts",
+  "main": "dist/forgeui-server.js",
+  "types": "dist/forgeui-server.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/forge-server.d.ts",
-      "default": "./dist/forge-server.js"
+      "types": "./dist/forgeui-server.d.ts",
+      "default": "./dist/forgeui-server.js"
     }
   },
   "bin": {

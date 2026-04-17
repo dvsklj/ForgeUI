@@ -16,5 +16,6 @@ export interface RenderContext {
 }
 export declare function renderManifest(ctx: RenderContext): TemplateResult;
 export declare function renderElement(elementId: string, ctx: RenderContext): TemplateResult;
+export declare function evaluateVisibility(condition: any, ctx: RenderContext): boolean;
 export declare function kebabCase(str: string): string;
 //# sourceMappingURL=index.d.ts.map

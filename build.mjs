@@ -38,14 +38,14 @@ async function buildArtifact() {
     ...sharedConfig,
     format: 'iife',
     globalName: 'ForgeUI',
-    outfile: 'dist/forge.js',
+    outfile: 'dist/forgeui.js',
     define: {
       'process.env.NODE_ENV': '"production"',
     },
     // Inline everything for zero-dependency artifact mode
     external: [],
   });
-  console.log('✅ dist/forge.js');
+  console.log('✅ dist/forgeui.js');
 }
 
 async function buildStandalone() {
@@ -53,13 +53,13 @@ async function buildStandalone() {
   await build({
     ...sharedConfig,
     format: 'esm',
-    outfile: 'dist/forge-standalone.js',
+    outfile: 'dist/forgeui-standalone.js',
     external: ['lit', 'tinybase', 'ajv'],
     define: {
       'process.env.NODE_ENV': '"production"',
     },
   });
-  console.log('✅ dist/forge-standalone.js');
+  console.log('✅ dist/forgeui-standalone.js');
 }
 
 async function buildCore() {
@@ -68,10 +68,10 @@ async function buildCore() {
     ...sharedConfig,
     format: 'esm',
     entryPoints: ['src/components/index.ts'],
-    outfile: 'dist/forge-components.js',
+    outfile: 'dist/forgeui-components.js',
     external: ['lit', 'tinybase'],
   });
-  console.log('✅ dist/forge-components.js');
+  console.log('✅ dist/forgeui-components.js');
 }
 
 async function buildCatalog() {
@@ -80,10 +80,10 @@ async function buildCatalog() {
     ...sharedConfig,
     format: 'esm',
     entryPoints: ['src/catalog/registry.ts'],
-    outfile: 'dist/forge-catalog.js',
+    outfile: 'dist/forgeui-catalog.js',
     external: ['zod'],
   });
-  console.log('✅ dist/forge-catalog.js');
+  console.log('✅ dist/forgeui-catalog.js');
 }
 
 async function buildServer() {
@@ -92,12 +92,12 @@ async function buildServer() {
     ...sharedConfig,
     format: 'esm',
     entryPoints: ['src/server/index.ts'],
-    outfile: 'dist/forge-server.js',
+    outfile: 'dist/forgeui-server.js',
     platform: 'node',
     target: 'node20',
     external: ['better-sqlite3'],
   });
-  console.log('✅ dist/forge-server.js');
+  console.log('✅ dist/forgeui-server.js');
 }
 
 async function buildServerCli() {
@@ -106,12 +106,12 @@ async function buildServerCli() {
     ...sharedConfig,
     format: 'esm',
     entryPoints: ['src/server/cli.ts'],
-    outfile: 'dist/forge-cli.js',
+    outfile: 'dist/forgeui-cli.js',
     platform: 'node',
     target: 'node20',
     external: ['better-sqlite3'],
   });
-  console.log('✅ dist/forge-cli.js');
+  console.log('✅ dist/forgeui-cli.js');
 }
 
 async function buildConnect() {
@@ -120,12 +120,12 @@ async function buildConnect() {
     ...sharedConfig,
     format: 'esm',
     entryPoints: ['src/connect/index.ts'],
-    outfile: 'dist/forge-connect.mjs',
+    outfile: 'dist/forgeui-connect.mjs',
     platform: 'node',
     target: 'node20',
     external: ['better-sqlite3'],
   });
-  console.log('✅ dist/forge-connect.mjs');
+  console.log('✅ dist/forgeui-connect.mjs');
 }
 
 async function buildCli() {
@@ -134,12 +134,12 @@ async function buildCli() {
     ...sharedConfig,
     format: 'esm',
     entryPoints: ['src/cli.ts'],
-    outfile: 'dist/forge.mjs',
+    outfile: 'dist/forgeui.mjs',
     platform: 'node',
     target: 'node20',
     external: ['better-sqlite3'],
   });
-  console.log('✅ dist/forge.mjs');
+  console.log('✅ dist/forgeui.mjs');
 }
 
 async function buildTypes() {
@@ -160,14 +160,14 @@ async function buildTypes() {
     execSync(`rsync -a --include='*/' --include='*.d.ts' --exclude='*' ${typeDir}/${sub}/ packages/runtime/${sub}/ 2>/dev/null || true`, { stdio: 'pipe' });
   }
   copyFileSync(`${typeDir}/index.d.ts`, 'packages/runtime/index.d.ts');
-  copyFileSync(`${typeDir}/index.d.ts`, 'packages/runtime/forge-standalone.d.ts');
+  copyFileSync(`${typeDir}/index.d.ts`, 'packages/runtime/forgeui-standalone.d.ts');
 
   // @forgeui/catalog: needs registry.d.ts + types/ for ComponentType references
   mkdirSync('packages/catalog/catalog', { recursive: true });
   mkdirSync('packages/catalog/types', { recursive: true });
   copyFileSync(`${typeDir}/catalog/registry.d.ts`, 'packages/catalog/catalog/registry.d.ts');
   copyFileSync(`${typeDir}/types/index.d.ts`, 'packages/catalog/types/index.d.ts');
-  copyFileSync(`${typeDir}/catalog/registry.d.ts`, 'packages/catalog/forge-catalog.d.ts');
+  copyFileSync(`${typeDir}/catalog/registry.d.ts`, 'packages/catalog/forgeui-catalog.d.ts');
 
   // @forgeui/server: needs server/*.d.ts + types/ for ForgeManifest
   mkdirSync('packages/server/dist/server', { recursive: true });
@@ -176,7 +176,7 @@ async function buildTypes() {
   execSync(`rsync -a --include='*/' --include='*.d.ts' --exclude='*' ${typeDir}/server/ packages/server/dist/server/`, { stdio: 'pipe' });
   copyFileSync(`${typeDir}/types/index.d.ts`, 'packages/server/dist/types/index.d.ts');
   execSync(`rsync -a --include='*/' --include='*.d.ts' --exclude='*' ${typeDir}/validation/ packages/server/dist/validation/ 2>/dev/null || true`, { stdio: 'pipe' });
-  copyFileSync(`${typeDir}/server/index.d.ts`, 'packages/server/dist/forge-server.d.ts');
+  copyFileSync(`${typeDir}/server/index.d.ts`, 'packages/server/dist/forgeui-server.d.ts');
 
   console.log('✅ Type declarations emitted');
 }
@@ -218,7 +218,7 @@ async function main() {
   }
 
   // Report sizes
-  const files = ['dist/forge.js', 'dist/forge-standalone.js', 'dist/forge-components.js', 'dist/forge-catalog.js', 'dist/forge-server.js', 'dist/forge-cli.js', 'dist/forge-connect.mjs', 'dist/forge.mjs'];
+  const files = ['dist/forgeui.js', 'dist/forgeui-standalone.js', 'dist/forgeui-components.js', 'dist/forgeui-catalog.js', 'dist/forgeui-server.js', 'dist/forgeui-cli.js', 'dist/forgeui-connect.mjs', 'dist/forgeui.mjs'];
   console.log('\n📊 Bundle sizes:');
   for (const file of files) {
     try {
@@ -227,7 +227,7 @@ async function main() {
       console.log(`  ${file}: ${kb} KB`);
     } catch {}
   }
-  console.log(`\nBudget: 50 KB gzip for dist/forge.js (enforced via scripts/check-size.mjs).`);
+  console.log(`\nBudget: 50 KB gzip for dist/forgeui.js (enforced via scripts/check-size.mjs).`);
 }
 
 main().catch(err => {

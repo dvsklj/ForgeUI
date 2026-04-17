@@ -2,26 +2,26 @@
   "name": "@forgeui/runtime",
   "version": "0.1.0",
   "description": "Client-side renderer for Forge declarative UI manifests.",
-  "main": "forge-standalone.js",
-  "module": "forge-standalone.js",
-  "types": "forge-standalone.d.ts",
+  "main": "forgeui-standalone.js",
+  "module": "forgeui-standalone.js",
+  "types": "forgeui-standalone.d.ts",
   "exports": {
     ".": {
-      "types": "./forge-standalone.d.ts",
-      "default": "./forge-standalone.js"
+      "types": "./forgeui-standalone.d.ts",
+      "default": "./forgeui-standalone.js"
     },
     "./standalone": {
-      "types": "./forge-standalone.d.ts",
-      "default": "./forge-standalone.js"
+      "types": "./forgeui-standalone.d.ts",
+      "default": "./forgeui-standalone.js"
     },
-    "./components": "./forge-components.js",
-    "./forge.js": "./forge.js"
+    "./components": "./forgeui-components.js",
+    "./forgeui.js": "./forgeui.js"
   },
   "files": [
-    "forge.js",
-    "forge-standalone.js",
-    "forge-standalone.d.ts",
-    "forge-components.js",
+    "forgeui.js",
+    "forgeui-standalone.js",
+    "forgeui-standalone.d.ts",
+    "forgeui-components.js",
     "index.d.ts",
     "runtime/",
     "state/",

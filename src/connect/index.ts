@@ -10,7 +10,7 @@
  *   - forge_component_docs    — Return the component catalog for LLM prompts
  *
  * Usage (stdio):
- *   node forge-connect.mjs
+ *   node forgeui-connect.mjs
  *
  * Platform wrappers:
  *   - Claude Desktop: add to claude_desktop_config.json
@@ -38,7 +38,7 @@ import type { ForgeManifest } from '../types/index.js';
 // ─── Create Server ─────────────────────────────────────────
 
 const server = new McpServer({
-  name: 'forge-connect',
+  name: 'forgeui-connect',
   version: '1.0.0',
 });
 

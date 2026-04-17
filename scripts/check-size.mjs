@@ -1,13 +1,13 @@
 #!/usr/bin/env node
-// Size budget gate for dist/forge.js (IIFE bundle).
-// Assumes `npm run build` has already run and dist/forge.js exists.
+// Size budget gate for dist/forgeui.js (IIFE bundle).
+// Assumes `npm run build` has already run and dist/forgeui.js exists.
 
 import { readFileSync, statSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 
 const BUDGET_BYTES = 50_000; // ~47 KB gzip after Ajv standalone precompile. Ratchet down further as needed.
 
-const path = 'dist/forge.js';
+const path = 'dist/forgeui.js';
 let raw;
 try {
   raw = readFileSync(path);

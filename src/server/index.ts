@@ -4,7 +4,7 @@
  * Routes:
  *   GET  /                  → Landing page (list of apps or info)
  *   GET  /apps/:id          → Serve a specific app (shareable URL)
- *   GET  /runtime/forge.js  → Serve the Forge runtime bundle
+ *   GET  /runtime/forgeui.js  → Serve the Forge runtime bundle
  *
  *   POST /api/apps          → Create a new app
  *   GET  /api/apps          → List all apps
@@ -172,12 +172,12 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
 
   // ─── Static Files ──────────────────────────────────────────
 
-  // Resolve runtime file paths. In production (dist/forge-server.js), the
+  // Resolve runtime file paths. In production (dist/forgeui-server.js), the
   // runtime is a sibling. In dev (tsx src/server/index.ts), walk up to the
   // repo root. FORGE_RUNTIME_PATH / FORGE_STANDALONE_PATH override.
   function resolveRuntime(filename: string): string {
-    if (filename === 'forge.js' && process.env.FORGE_RUNTIME_PATH) return process.env.FORGE_RUNTIME_PATH;
-    if (filename === 'forge-standalone.js' && process.env.FORGE_STANDALONE_PATH) return process.env.FORGE_STANDALONE_PATH;
+    if (filename === 'forgeui.js' && process.env.FORGEUI_RUNTIME_PATH) return process.env.FORGEUI_RUNTIME_PATH;
+    if (filename === 'forgeui-standalone.js' && process.env.FORGEUI_STANDALONE_PATH) return process.env.FORGEUI_STANDALONE_PATH;
     // Sibling (production build)
     const sibling = join(__dirname, filename);
     if (existsSync(sibling)) return sibling;
@@ -189,10 +189,10 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
     return sibling; // will 404 at read time
   }
 
-  const runtimePath = resolveRuntime('forge.js');
-  const standalonePath = resolveRuntime('forge-standalone.js');
+  const runtimePath = resolveRuntime('forgeui.js');
+  const standalonePath = resolveRuntime('forgeui-standalone.js');
 
-  app.get('/runtime/forge.js', (c) => {
+  app.get('/runtime/forgeui.js', (c) => {
     try {
       const js = readFileSync(runtimePath, 'utf8');
       return c.text(js, 200, {
@@ -204,7 +204,7 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
     }
   });
 
-  app.get('/runtime/forge-standalone.js', (c) => {
+  app.get('/runtime/forgeui-standalone.js', (c) => {
     try {
       const js = readFileSync(standalonePath, 'utf8');
       return c.text(js, 200, {
@@ -478,7 +478,7 @@ function renderAppPage(manifestJson: string, title: string, baseUrl: string, non
       }
     })();
   </script>
-  <script type="module" src="${baseUrl}/runtime/forge.js"></script>
+  <script type="module" src="${baseUrl}/runtime/forgeui.js"></script>
 </body>
 </html>`;
 }

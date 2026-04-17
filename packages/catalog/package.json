@@ -2,17 +2,17 @@
   "name": "@forgeui/catalog",
   "version": "0.1.0",
   "description": "Forge UI component catalog — 37 pre-built components for manifest-driven web apps.",
-  "main": "forge-catalog.js",
-  "types": "forge-catalog.d.ts",
+  "main": "forgeui-catalog.js",
+  "types": "forgeui-catalog.d.ts",
   "exports": {
     ".": {
-      "types": "./forge-catalog.d.ts",
-      "default": "./forge-catalog.js"
+      "types": "./forgeui-catalog.d.ts",
+      "default": "./forgeui-catalog.js"
     }
   },
   "files": [
-    "forge-catalog.js",
-    "forge-catalog.d.ts",
+    "forgeui-catalog.js",
+    "forgeui-catalog.d.ts",
     "catalog/",
     "types/",
     "README.md"

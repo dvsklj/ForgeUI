@@ -1,7 +1,7 @@
 /**
  * Forge Server — CLI Entry Point
  *
- * Usage: node forge-server.js [--port 3000] [--host 0.0.0.0] [--db ./forge.db]
+ * Usage: node forgeui-server.js [--port 3000] [--host 0.0.0.0] [--db ./forgeui.db]
  */
 
 import { parseArgs } from 'util';
