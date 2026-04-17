@@ -202,7 +202,11 @@ writeFileSync(join(scratchDir, 'package.json'), JSON.stringify({
 
 section('6. Install tarballs');
 
-const installCmd = `npm install ${tarballs.map(t => t.path).join(' ')} 2>&1`;
+// --legacy-peer-deps works around tinybase@5.4.9's peerOptional react@^18.2.0
+// colliding with the transitive react@19 that electric-sql (peerOptional of
+// tinybase) resolves. The runtime itself doesn't use react; this is scratch-
+// project resolver noise, not a packaging issue.
+const installCmd = `npm install --legacy-peer-deps ${tarballs.map(t => t.path).join(' ')} 2>&1`;
 console.log(`  $ ${installCmd.replace(ROOT, '<root>')}`);
 const installResult = spawnSync('bash', ['-c', installCmd], {
   cwd: scratchDir,
@@ -220,7 +224,7 @@ if (installResult.status !== 0) {
 
 // Install peer dependencies for @nedast/forgeui-runtime (lit, tinybase, ajv)
 console.log('  Installing peer dependencies...');
-const peerResult = run('npm install lit tinybase ajv', { cwd: scratchDir, timeout: 120_000 });
+const peerResult = run('npm install --legacy-peer-deps lit tinybase ajv', { cwd: scratchDir, timeout: 120_000 });
 if (peerResult.status !== 0) {
   console.log('  ⚠️  Failed to install peer deps');
 }
@@ -504,7 +508,7 @@ for (const p of packages) {
 
 if (tsImports.length > 0) {
   // Install typescript in scratch project for type checking
-  const tscInstall = run('npm install --save-dev typescript@5', { cwd: scratchDir, timeout: 60_000 });
+  const tscInstall = run('npm install --save-dev --legacy-peer-deps typescript@5', { cwd: scratchDir, timeout: 60_000 });
   if (tscInstall.status !== 0) {
     console.log(`  ⚠️  Failed to install typescript in scratch project`);
     typeFindings.push('typescript install failed in scratch project');
