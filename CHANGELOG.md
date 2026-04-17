@@ -22,13 +22,13 @@ Initial public release.
 - WCAG 2.1 AA baseline across all 19 core components. Highlights: Dialog focus trap + Escape + `role="dialog"`+`aria-modal`; Toggle as `<button role="switch">` with keyboard + `aria-checked`; Alert/Error live regions (`role="alert"` / `role="status"` by variant); Progress `role="progressbar"` + `aria-valuenow/min/max`; label/input linkage across all form inputs; `prefers-reduced-motion` respected.
 - `extractManifest(rawText)` helper — strips Markdown code fences from LLM output for direct piping into `JSON.parse` → `validateManifest`.
 - Type declarations (`.d.ts`) emitted for `@forgeui/runtime`, `@forgeui/server`, and `@forgeui/catalog`.
-- Server library split: `@forgeui/server` now exports `createForgeServer` as an importable library (`dist/forge-server.js`) alongside the CLI runner (`dist/forge-cli.js`).
+- Server library split: `@forgeui/server` now exports `createForgeServer` as an importable library (`dist/forgeui-server.js`) alongside the CLI runner (`dist/forgeui-cli.js`).
 - Gauntlet harness: 50-archetype LLM manifest generation test (`npm run gauntlet`).
 - Tabs: arrow-key navigation with roving tabindex and `aria-controls`/`aria-labelledby` linkage.
 - Button: optional `aria-pressed` for toggle-state buttons.
 - Text: heading variants render semantic `<h1>`/`<h2>`/`<h3>`.
 - Table: row-action rows are keyboard-activatable.
-- Renderer fault tolerance: per-element `try`/`catch` falls back to `<forge-error>`; `setItemContext` wrapped in `try`/`finally` to prevent module-global leaks on child-render failure.
+- Renderer fault tolerance: per-element `try`/`catch` falls back to `<forgeui-error>`; `setItemContext` wrapped in `try`/`finally` to prevent module-global leaks on child-render failure.
 - GitHub Actions CI gate: typecheck, tests, build, and bundle-size ratchet on every PR.
 - MIT LICENSE.
 - Expression engine audit (`docs/security/2026-04-expression-audit.md`) — grammar documentation and pathological-input corpus.
@@ -37,13 +37,13 @@ Initial public release.
 - Request body size cap — `FORGEUI_MAX_BODY_BYTES` (default 1 MB), enforced at both Content-Length precheck and streaming.
 - `FORGEUI_TRUST_PROXY` env var gating `X-Forwarded-For` / `X-Real-IP` honoring.
 - Table `caption` prop renders `<caption>` as first child of `<table>`.
-- `--forge-color-chart-6` through `--forge-color-chart-10` design tokens; Chart palette no longer uses hardcoded hex for slots 6–10.
+- `--forgeui-color-chart-6` through `--forgeui-color-chart-10` design tokens; Chart palette no longer uses hardcoded hex for slots 6–10.
 
 ### Changed
 - **Bundle size (IIFE gzip):** ~95 KB → ~47 KB. Roughly half the size.
   - Zod removed from runtime path (was leaking via catalog re-exports). Zod remains the build-time source of truth; runtime ships pre-generated JSON.
   - Ajv compiler removed via standalone precompilation. `validateManifest()` now runs a precompiled validator — also faster per call.
-- npm scope renamed from `@forge` to `@forgeui` (Atlassian owns `@forge`). Affects `@forgeui/runtime`, `@forgeui/catalog`, `@forgeui/connect`, `@forgeui/server`. Runtime identifiers (`ForgeApp`, `<forge-app>`, `forge-` tag prefix, `FORGE_*` env vars, `--forge-*` CSS props, `forge` CLI binary) unchanged.
+- npm scope renamed from `@forge` to `@forgeui` (Atlassian owns `@forge`). Affects `@forgeui/runtime`, `@forgeui/catalog`, `@forgeui/connect`, `@forgeui/server`. Runtime identifiers (`ForgeApp`, `<forgeui-app>`, `forge-` tag prefix, `FORGE_*` env vars, `--forge-*` CSS props, `forge` CLI binary) unchanged.
 
 ### Fixed
 - PATCH endpoint was silently returning 400 while writing to the database — `validateManifest()` was called on the wrong object. Invalid PATCH responses now reflect reality.

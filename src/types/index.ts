@@ -238,8 +238,8 @@ export type SurfaceMode = 'chat' | 'standalone' | 'embed';
 
 /** Custom event names used by Forge */
 export interface ForgeEvents {
-  'forge-action': CustomEvent<{ action: string; payload?: Record<string, unknown> }>;
-  'forge-state-change': CustomEvent<{ path: string; value: unknown }>;
-  'forge-error': CustomEvent<{ message: string; element?: string }>;
-  'forge-ready': CustomEvent<{ appId: string }>;
+  'forgeui-action': CustomEvent<{ action: string; payload?: Record<string, unknown> }>;
+  'forgeui-state-change': CustomEvent<{ path: string; value: unknown }>;
+  'forgeui-error': CustomEvent<{ message: string; element?: string }>;
+  'forgeui-ready': CustomEvent<{ appId: string }>;
 }

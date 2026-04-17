@@ -2,7 +2,7 @@
  * Forge Components — All 37 Lit Web Components
  *
  * Each component extends ForgeElement, uses design tokens,
- * dispatches forge-action events for declarative bindings.
+ * dispatches forgeui-action events for declarative bindings.
  */
 import { nothing } from 'lit';
 import { ForgeElement } from './base.js';

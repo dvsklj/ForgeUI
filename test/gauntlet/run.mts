@@ -275,14 +275,14 @@ async function renderWithPlaywright(validArchetypes) {
           const app = document.getElementById('app');
           const container = app?.shadowRoot || app;
           if (!container) return true;
-          const errorElements = container.querySelectorAll('forge-error');
+          const errorElements = container.querySelectorAll('forgeui-error');
           const allElements = container.querySelectorAll('*');
           // Degenerate if only error elements or no content
           return errorElements.length > 0 && errorElements.length >= allElements.length;
         });
 
         if (hasErrors) {
-          arch.errors.push('Only forge-error elements rendered');
+          arch.errors.push('Only forgeui-error elements rendered');
         }
 
         // Screenshot

@@ -16,7 +16,7 @@ describe('renderer robustness', () => {
     };
   }
 
-  it('renderElement catches thrown errors and returns <forge-error>', () => {
+  it('renderElement catches thrown errors and returns <forgeui-error>', () => {
     const manifest: ForgeManifest = {
       id: 'r1',
       manifest: '0.1.0',

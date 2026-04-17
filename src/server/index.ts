@@ -159,7 +159,7 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   }
 
   if (!apiToken && process.env.NODE_ENV === 'production') {
-    console.warn('[forge-server] FORGEUI_API_TOKEN is not set; /api/apps/* writes are unauthenticated.');
+    console.warn('[forgeui-server] FORGEUI_API_TOKEN is not set; /api/apps/* writes are unauthenticated.');
   }
 
   // ─── Security response headers ─────────────────────────────
@@ -452,20 +452,20 @@ function renderAppPage(manifestJson: string, title: string, baseUrl: string, non
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; font-family: system-ui, -apple-system, sans-serif; }
     body { display: flex; flex-direction: column; }
-    forge-app { flex: 1; display: block; }
+    forgeui-app { flex: 1; display: block; }
   </style>
 </head>
 <body>
-  <script type="application/json" id="forge-manifest-data">${manifestJson}</script>
-  <forge-app id="forge-app" surface="standalone"></forge-app>
+  <script type="application/json" id="forgeui-manifest-data">${manifestJson}</script>
+  <forgeui-app id="forgeui-app" surface="standalone"></forgeui-app>
   <script nonce="${nonce}">
     (function () {
       try {
-        var raw = document.getElementById('forge-manifest-data').textContent;
+        var raw = document.getElementById('forgeui-manifest-data').textContent;
         var parsed = JSON.parse(raw);
-        document.getElementById('forge-app').manifest = parsed;
+        document.getElementById('forgeui-app').manifest = parsed;
       } catch (err) {
-        var app = document.getElementById('forge-app');
+        var app = document.getElementById('forgeui-app');
         app.style.display = 'flex';
         app.style.alignItems = 'center';
         app.style.justifyContent = 'center';

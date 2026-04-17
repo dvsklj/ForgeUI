@@ -157,7 +157,7 @@ describe('Server API — App pages', () => {
     expect(res.headers.get('Content-Security-Policy')).toBeTruthy();
     const html = await res.text();
     expect(html).toContain('My Page');
-    expect(html).toContain('forge-app');
+    expect(html).toContain('forgeui-app');
   });
 
   it('GET /apps/:id returns 404 for unknown app', async () => {

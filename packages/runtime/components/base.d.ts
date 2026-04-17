@@ -38,7 +38,7 @@ export declare class ForgeElement extends LitElement {
     protected getNumber(key: string, fallback?: number): number;
     /** Get a prop as a boolean */
     protected getBool(key: string, fallback?: boolean): boolean;
-    /** Dispatch a forge-action event */
+    /** Dispatch a forgeui-action event */
     protected dispatchAction(actionId: string, payload?: Record<string, unknown>): void;
     /** Handle a button/action click by looking up the action prop */
     protected handleAction(_event: Event): void;

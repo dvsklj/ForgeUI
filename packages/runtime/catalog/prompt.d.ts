@@ -3,7 +3,7 @@
  *
  * - minimal  (~800 tokens)  — manifest structure + component names only
  * - default  (~2400 tokens) — key components + state bindings + design tokens
- * - full     (~5000 tokens) — complete component reference from forge-llm-instructions.md
+ * - full     (~5000 tokens) — complete component reference from forgeui-llm-instructions.md
  */
 export declare function catalogPrompt(tier?: 'minimal' | 'default' | 'full'): string;
 /**

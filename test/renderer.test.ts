@@ -159,7 +159,7 @@ describe('renderElement', () => {
     }
   });
 
-  it('renders unknown component type as forge-error', () => {
+  it('renders unknown component type as forgeui-error', () => {
     const manifest: ForgeManifest = {
       manifest: '0.1.0', id: 't', root: 'el',
       elements: { el: { type: 'UnknownType' as any } },

@@ -9,7 +9,7 @@ Of the 19 core-tier components, **zero pass all applicable checks**. The stronge
 - **Standard:** WCAG 2.1 AA (not 2.2, matching the project's stated target).
 - **Checklist:** Nine items per component (see task description).
 - **Method:** Source-read only. No runtime, browser, or screen-reader testing.
-- **Contrast proxy:** Graded at the design-token level. Components using `var(--forge-color-*)` tokens throughout receive PASS; components mixing tokens with hardcoded hex literals receive PARTIAL. Real contrast verification requires rendered output against a specific theme.
+- **Contrast proxy:** Graded at the design-token level. Components using `var(--forgeui-color-*)` tokens throughout receive PASS; components mixing tokens with hardcoded hex literals receive PARTIAL. Real contrast verification requires rendered output against a specific theme.
 - **N/A policy:** Items that structurally cannot apply (e.g., focus management on a passive text container) are graded N/A. If the item *should* apply but is missing, it is FAIL, not N/A.
 
 ## Per-component results
@@ -30,7 +30,7 @@ Of the 19 core-tier components, **zero pass all applicable checks**. The stronge
 | 6 | State exposed | N/A | Not stateful |
 | 7 | Live regions | N/A | Not a live region |
 | 8 | prefers-reduced-motion | N/A | No animations |
-| 9 | Color contrast (tokens) | PASS | All spacing via `var(--forge-space-*); no hardcoded colors |
+| 9 | Color contrast (tokens) | PASS | All spacing via `var(--forgeui-space-*); no hardcoded colors |
 
 ---
 
@@ -66,7 +66,7 @@ Of the 19 core-tier components, **zero pass all applicable checks**. The stronge
 | 6 | State exposed | N/A | Not stateful |
 | 7 | Live regions | N/A | Not a live region |
 | 8 | prefers-reduced-motion | N/A | No animations |
-| 9 | Color contrast (tokens) | PASS | All colors via `var(--forge-color-*); all spacing via tokens |
+| 9 | Color contrast (tokens) | PASS | All colors via `var(--forgeui-color-*); all spacing via tokens |
 
 ---
 
@@ -83,8 +83,8 @@ Of the 19 core-tier components, **zero pass all applicable checks**. The stronge
 | 5 | Labels | PASS | Tab labels from `items` prop via `_itemLabel()` |
 | 6 | State exposed | PARTIAL | `aria-selected` is set correctly (L185), but `aria-controls` is absent and tabpanel has no `aria-labelledby` |
 | 7 | Live regions | N/A | Not a live region |
-| 8 | prefers-reduced-motion | FAIL | `.tab` has `transition:var(--forge-transition-fast)` at L149 with no `@media (prefers-reduced-motion: reduce)` override |
-| 9 | Color contrast (tokens) | PASS | All colors via `--forge-color-*` tokens |
+| 8 | prefers-reduced-motion | FAIL | `.tab` has `transition:var(--forgeui-transition-fast)` at L149 with no `@media (prefers-reduced-motion: reduce)` override |
+| 9 | Color contrast (tokens) | PASS | All colors via `--forgeui-color-*` tokens |
 
 ---
 
@@ -102,7 +102,7 @@ Of the 19 core-tier components, **zero pass all applicable checks**. The stronge
 | 6 | State exposed | N/A | Not stateful |
 | 7 | Live regions | N/A | Not a live region |
 | 8 | prefers-reduced-motion | N/A | No animations |
-| 9 | Color contrast (tokens) | PASS | All colors via `--forge-color-*` tokens; inline styles use token map at L297–305 |
+| 9 | Color contrast (tokens) | PASS | All colors via `--forgeui-color-*` tokens; inline styles use token map at L297–305 |
 
 ---
 
@@ -120,7 +120,7 @@ Of the 19 core-tier components, **zero pass all applicable checks**. The stronge
 | 6 | State exposed | N/A | Not stateful |
 | 7 | Live regions | N/A | Not a live region |
 | 8 | prefers-reduced-motion | N/A | No animations |
-| 9 | Color contrast (tokens) | PASS | All colors via `--forge-color-*` tokens |
+| 9 | Color contrast (tokens) | PASS | All colors via `--forgeui-color-*` tokens |
 
 ---
 
@@ -132,13 +132,13 @@ Of the 19 core-tier components, **zero pass all applicable checks**. The stronge
 |---|-------|-------|------------------|
 | 1 | Semantic HTML / ARIA role | PASS | Renders native `<input>` or `<textarea>` (L442–444) |
 | 2 | Keyboard operable | PASS | Native `<input>` and `<textarea>` are keyboard operable |
-| 3 | Focus visible | PASS | `box-shadow:0 0 0 3px var(--forge-color-primary-subtle)` on `:focus` at L426 provides a visible indicator (replaces outline) |
+| 3 | Focus visible | PASS | `box-shadow:0 0 0 3px var(--forgeui-color-primary-subtle)` on `:focus` at L426 provides a visible indicator (replaces outline) |
 | 4 | Focus management | N/A | Passive input — no open/close lifecycle |
 | 5 | Labels | FAIL | `<label>` rendered at L441 without `for` attribute. No `id` on the input. No `aria-label` or `aria-labelledby`. The label is visually adjacent but not programmatically associated |
 | 6 | State exposed | N/A | Not a stateful component in the ARIA sense |
 | 7 | Live regions | N/A | Not a live region |
 | 8 | prefers-reduced-motion | PASS | `transition:border-color` at L425 is minimal; no animation |
-| 9 | Color contrast (tokens) | PASS | All colors via `--forge-color-*` tokens |
+| 9 | Color contrast (tokens) | PASS | All colors via `--forgeui-color-*` tokens |
 
 ---
 
@@ -191,8 +191,8 @@ Of the 19 core-tier components, **zero pass all applicable checks**. The stronge
 | 5 | Labels | FAIL | `<label>` at L559 without `for` attribute. The `<div>` switch has no accessible name |
 | 6 | State exposed | FAIL | No `role="switch"`, no `aria-checked`. State is conveyed only visually via the `[on]` attribute |
 | 7 | Live regions | N/A | Not a live region |
-| 8 | prefers-reduced-motion | FAIL | `.switch` and `.switch::after` both have `transition:var(--forge-transition-fast)` at L547, L551 with no reduced-motion override |
-| 9 | Color contrast (tokens) | PARTIAL | Track uses `var(--forge-color-border-strong)` (token), but knob is `background:white` (hardcoded at L550). Tokens used for most colors |
+| 8 | prefers-reduced-motion | FAIL | `.switch` and `.switch::after` both have `transition:var(--forgeui-transition-fast)` at L547, L551 with no reduced-motion override |
+| 9 | Color contrast (tokens) | PARTIAL | Track uses `var(--forgeui-color-border-strong)` (token), but knob is `background:white` (hardcoded at L550). Tokens used for most colors |
 
 ---
 
@@ -210,7 +210,7 @@ Of the 19 core-tier components, **zero pass all applicable checks**. The stronge
 | 6 | State exposed | PASS | Native `<input type="checkbox">` exposes `checked` state natively |
 | 7 | Live regions | N/A | Not a live region |
 | 8 | prefers-reduced-motion | PASS | No animations |
-| 9 | Color contrast (tokens) | PASS | `accent-color:var(--forge-color-primary)` at L529 |
+| 9 | Color contrast (tokens) | PASS | `accent-color:var(--forgeui-color-primary)` at L529 |
 
 ---
 
@@ -222,13 +222,13 @@ Of the 19 core-tier components, **zero pass all applicable checks**. The stronge
 |---|-------|-------|------------------|
 | 1 | Semantic HTML / ARIA role | PASS | Renders native `<button>` (L663) |
 | 2 | Keyboard operable | PASS | Native button provides Enter/Space |
-| 3 | Focus visible | PASS | Explicit `button:focus-visible { outline:2px solid var(--forge-color-primary); outline-offset:2px; }` at L645 |
+| 3 | Focus visible | PASS | Explicit `button:focus-visible { outline:2px solid var(--forgeui-color-primary); outline-offset:2px; }` at L645 |
 | 4 | Focus management | N/A | No open/close lifecycle |
 | 5 | Labels | PASS | Text from `label` prop or slotted content (L663) |
 | 6 | State exposed | PARTIAL | No `aria-pressed` support. If used as a toggle button, pressed state is not conveyed to assistive technology |
 | 7 | Live regions | N/A | Not a live region |
-| 8 | prefers-reduced-motion | FAIL | `transition:all var(--forge-transition-fast)` at L644 with no `@media (prefers-reduced-motion: reduce)` override |
-| 9 | Color contrast (tokens) | PASS | All colors via `--forge-color-*` tokens |
+| 8 | prefers-reduced-motion | FAIL | `transition:all var(--forgeui-transition-fast)` at L644 with no `@media (prefers-reduced-motion: reduce)` override |
+| 9 | Color contrast (tokens) | PASS | All colors via `--forgeui-color-*` tokens |
 
 ---
 
@@ -246,7 +246,7 @@ Of the 19 core-tier components, **zero pass all applicable checks**. The stronge
 | 6 | State exposed | N/A | Not stateful in ARIA sense |
 | 7 | Live regions | N/A | Not a live region |
 | 8 | prefers-reduced-motion | N/A | No transitions on table itself |
-| 9 | Color contrast (tokens) | PASS | All colors via `--forge-color-*` tokens |
+| 9 | Color contrast (tokens) | PASS | All colors via `--forgeui-color-*` tokens |
 
 ---
 
@@ -282,7 +282,7 @@ Of the 19 core-tier components, **zero pass all applicable checks**. The stronge
 | 6 | State exposed | N/A | Not stateful in ARIA sense |
 | 7 | Live regions | N/A | Not a live region |
 | 8 | prefers-reduced-motion | N/A | No animations |
-| 9 | Color contrast (tokens) | PASS | All colors via `--forge-color-*` tokens |
+| 9 | Color contrast (tokens) | PASS | All colors via `--forgeui-color-*` tokens |
 
 ---
 
@@ -300,7 +300,7 @@ Of the 19 core-tier components, **zero pass all applicable checks**. The stronge
 | 6 | State exposed | FAIL | No `role="alert"`. Variant state (info/success/warning/error) is conveyed only via CSS class, not ARIA |
 | 7 | Live regions | FAIL | Missing `role="alert"` means screen readers will not announce alert content. This is the component's entire purpose |
 | 8 | prefers-reduced-motion | N/A | No animations |
-| 9 | Color contrast (tokens) | PASS | All colors via `--forge-color-*` tokens |
+| 9 | Color contrast (tokens) | PASS | All colors via `--forgeui-color-*` tokens |
 
 ---
 
@@ -318,7 +318,7 @@ Of the 19 core-tier components, **zero pass all applicable checks**. The stronge
 | 6 | State exposed | FAIL | No `role="dialog"`, no `aria-modal="true"`. Open/close state is conveyed via `display:none` / `display:flex` only |
 | 7 | Live regions | N/A | Not a live region (though it could benefit from focus management) |
 | 8 | prefers-reduced-motion | N/A | No animations (instant show/hide via display) |
-| 9 | Color contrast (tokens) | PASS | All colors via `--forge-color-*` tokens |
+| 9 | Color contrast (tokens) | PASS | All colors via `--forgeui-color-*` tokens |
 
 ---
 
@@ -335,7 +335,7 @@ Of the 19 core-tier components, **zero pass all applicable checks**. The stronge
 | 5 | Labels | N/A | Not a form control |
 | 6 | State exposed | FAIL | No `role="progressbar"`, no `aria-valuenow`, no `aria-valuemin`, no `aria-valuemax`. Progress value is conveyed only via CSS `width` |
 | 7 | Live regions | N/A | Not a live region |
-| 8 | prefers-reduced-motion | FAIL | `.bar` has `transition:width var(--forge-transition-normal)` at L1111. The indeterminate animation (`@keyframes indeterminate` at L1113) has no `prefers-reduced-motion` override |
+| 8 | prefers-reduced-motion | FAIL | `.bar` has `transition:width var(--forgeui-transition-normal)` at L1111. The indeterminate animation (`@keyframes indeterminate` at L1113) has no `prefers-reduced-motion` override |
 | 9 | Color contrast (tokens) | PASS | All colors via tokens |
 
 ---
@@ -354,7 +354,7 @@ Of the 19 core-tier components, **zero pass all applicable checks**. The stronge
 | 6 | State exposed | FAIL | No `role="alert"`. Error state conveyed only visually |
 | 7 | Live regions | FAIL | Missing `role="alert"`. Screen readers will not announce error messages. For transient errors this breaks the feedback loop |
 | 8 | prefers-reduced-motion | N/A | No animations |
-| 9 | Color contrast (tokens) | PASS | All colors via `--forge-color-*` tokens |
+| 9 | Color contrast (tokens) | PASS | All colors via `--forgeui-color-*` tokens |
 
 ---
 
@@ -428,7 +428,7 @@ Table rows with `rowAction` get `@click` handlers but are `<tr>` elements — no
 | # | Component | Check | Issue |
 |---|-----------|-------|-------|
 | 28 | Table | #5 | No `<caption>` element for table accessible name | **Resolved 2026-04-17** — optional `caption` prop renders `<caption>` as first child of `<table>` |
-| 29 | Chart | #9 | Palette entries 6–10 use hardcoded hex instead of tokens | **Resolved 2026-04-17** — `--forge-color-chart-6` through `-10` tokens defined; palette uses `var(--forge-color-chart-*)` |
+| 29 | Chart | #9 | Palette entries 6–10 use hardcoded hex instead of tokens | **Resolved 2026-04-17** — `--forgeui-color-chart-6` through `-10` tokens defined; palette uses `var(--forgeui-color-chart-*)` |
 | 30 | Toggle | #9 | Knob uses `background:white` instead of a token |
 | 31 | Tabs | #6 | Tabpanel missing `aria-labelledby` (covered in P1 #16 but worth noting separately) |
 
@@ -439,10 +439,10 @@ Table rows with `rowAction` get `@click` handlers but are `<tr>` elements — no
 | Component | Issue | Test type | Test description |
 |-----------|-------|-----------|------------------|
 | Toggle | #1, #2, #6 | Structural | Render Toggle, assert shadow root contains `<button role="switch">` (not `<div>`), assert `aria-checked` reflects `on` prop |
-| Toggle | #2 | Behavioral | Fire `keydown` Enter/Space on toggle, assert `forge-action` event dispatched with toggled state |
+| Toggle | #2 | Behavioral | Fire `keydown` Enter/Space on toggle, assert `forgeui-action` event dispatched with toggled state |
 | Dialog | #1, #6 | Structural | Render Dialog with `open=true`, assert shadow root has `[role="dialog"][aria-modal="true"]` |
 | Dialog | #4 | Behavioral | Render Dialog open, Tab through focusable elements, assert focus stays trapped inside dialog. Assert focus returns to opener on close |
-| Dialog | #2 | Behavioral | Fire `keydown` Escape on open Dialog, assert `forge-action` event with action `'close'` |
+| Dialog | #2 | Behavioral | Fire `keydown` Escape on open Dialog, assert `forgeui-action` event with action `'close'` |
 | Alert | #7 | Structural | Render Alert, assert shadow root has `[role="alert"]` |
 | Error | #7 | Structural | Render Error, assert shadow root has `[role="alert"]` |
 | Progress | #6 | Structural | Render Progress with `value=50`, assert shadow root has `[role="progressbar"][aria-valuenow="50"][aria-valuemin="0"][aria-valuemax="100"]` |
@@ -461,7 +461,7 @@ Table rows with `rowAction` get `@click` handlers but are `<tr>` elements — no
 | Tabs | #4 | Structural | Render Tabs, assert each `role="tab"` has `aria-controls` pointing to a valid panel, assert panel has `aria-labelledby` |
 | Button | #6 | Structural | Render with `variant=toggle`, assert `<button>` has `aria-pressed="true"` or `"false"` reflecting state |
 | Text | #1 | Structural | Render with `variant=h1`, assert shadow root contains `<h1>` (not `<div class="heading1">`) |
-| Table | #2 | Behavioral | Render Table with `rowAction`, fire ArrowDown/Enter on a row, assert `forge-action` dispatched |
+| Table | #2 | Behavioral | Render Table with `rowAction`, fire ArrowDown/Enter on a row, assert `forgeui-action` dispatched |
 | Progress | #8 | Snapshot | Assert `.bar` transition is wrapped in `@media (prefers-reduced-motion: reduce) { transition: none }` |
 | Chart | #8 | Snapshot | Assert `.bar` transition is wrapped in `@media (prefers-reduced-motion: reduce) { transition: none }` |
 | Button | #8 | Snapshot | Assert `button` transition is wrapped in `@media (prefers-reduced-motion: reduce) { transition: none }` |

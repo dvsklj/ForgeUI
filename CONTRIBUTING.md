@@ -76,9 +76,9 @@ forgeui/
 ```bash
 npm run build                    # All bundles
 npm run build -- --mode=artifact # forge.js only (IIFE, all inline)
-npm run build -- --mode=server   # forge-server.js only
+npm run build -- --mode=server   # forgeui-server.js only
 npm run build -- --mode=cli      # forge.mjs only
-npm run build -- --mode=connect  # forge-connect.mjs only
+npm run build -- --mode=connect  # forgeui-connect.mjs only
 npm run build -- --dev           # Dev mode (sourcemaps, no minify)
 ```
 
@@ -108,7 +108,7 @@ export class ForgeMyComponent extends ForgeElement {
   }
 }
 
-customElements.define('forge-my-component', ForgeMyComponent);
+customElements.define('forgeui-my-component', ForgeMyComponent);
 ```
 
 ## Validation Pipeline

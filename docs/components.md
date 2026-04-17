@@ -478,7 +478,7 @@ Example — bind a metric to a computed value:
 ## Lifecycle
 
 1. **Parse** — manifest JSON parsed and validated (Ajv schema + security + semantic)
-2. **Mount** — `<forge-app>` connected to DOM, TinyBase store created with `state`
+2. **Mount** — `<forgeui-app>` connected to DOM, TinyBase store created with `state`
 3. **Render** — element tree walked, components instantiated, props bound
 4. **Update** — state changes trigger TinyBase reactivity, components re-render
-5. **Destroy** — `<forge-app>` disconnected, store cleaned up
+5. **Destroy** — `<forgeui-app>` disconnected, store cleaned up

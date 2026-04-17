@@ -32,7 +32,7 @@ wants to use it. Forge does.
 ### How the manifest produces an app
 
 ```html
-<forge-app manifest='{"root":"shell","elements":{...}}'></forge-app>
+<forgeui-app manifest='{"root":"shell","elements":{...}}'></forgeui-app>
 ```
 
 The LLM never generates code. It generates structured data describing *what*
@@ -100,7 +100,7 @@ at ~5KB minified+gzipped. Shadow DOM provides style encapsulation. Tagged
 template literals escape interpolated values by default — XSS is prevented
 at the template layer, not added on as a filter.
 
-### The core component: `<forge-app>`
+### The core component: `<forgeui-app>`
 
 The entry point is a single web component. It accepts a manifest (as a JSON
 string attribute or a JS object property), validates it, creates a TinyBase
@@ -115,7 +115,7 @@ The same manifest renders across surfaces through CSS, not code branching:
 - **Container queries** — components adapt to their container, not the viewport.
 - **CSS Cascade Layers** — `@layer tokens, base, components, surfaces` gives
   clean override precedence.
-- **Design tokens** — `--forge-space-md`, `--forge-color-primary`, etc.
+- **Design tokens** — `--forgeui-space-md`, `--forgeui-color-primary`, etc.
   The LLM writes `colorScheme: "primary"`, never `color: "#3B82F6"`.
 
 ### Accessibility is a first-class concern

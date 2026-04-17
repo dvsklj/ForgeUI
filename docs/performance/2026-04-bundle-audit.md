@@ -80,18 +80,18 @@ Not individually measurable. All 39 components are implemented in two files:
 The esbuild metafile resolves `src/components/index.ts` as a single input. There is no per-component file boundary, so per-component gzipped cost cannot be determined from the bundle analysis. The 39 components registered via `customElements.define()` are:
 
 ```
-forge-stack  forge-grid  forge-card  forge-container  forge-tabs
-forge-accordion  forge-divider  forge-spacer  forge-repeater
-forge-text  forge-image  forge-icon  forge-badge  forge-avatar
-forge-empty-state  forge-text-input  forge-number-input  forge-select
-forge-multi-select  forge-checkbox  forge-toggle  forge-date-picker
-forge-slider  forge-file-upload  forge-button  forge-button-group
-forge-link  forge-table  forge-list  forge-chart  forge-metric
-forge-alert  forge-dialog  forge-progress  forge-toast
-forge-breadcrumb  forge-stepper  forge-error  forge-drawing
+forgeui-stack  forgeui-grid  forgeui-card  forgeui-container  forgeui-tabs
+forgeui-accordion  forgeui-divider  forgeui-spacer  forgeui-repeater
+forgeui-text  forgeui-image  forgeui-icon  forgeui-badge  forgeui-avatar
+forgeui-empty-state  forgeui-text-input  forgeui-number-input  forgeui-select
+forgeui-multi-select  forgeui-checkbox  forgeui-toggle  forgeui-date-picker
+forgeui-slider  forgeui-file-upload  forgeui-button  forgeui-button-group
+forgeui-link  forgeui-table  forgeui-list  forgeui-chart  forgeui-metric
+forgeui-alert  forgeui-dialog  forgeui-progress  forgeui-toast
+forgeui-breadcrumb  forgeui-stepper  forgeui-error  forgeui-drawing
 ```
 
-The architecture doc (§4) claims 37 components (18 core + 19 extended). The current codebase has 39 — `forge-error` and `forge-drawing` were added without an apparent catalog-tier assignment.
+The architecture doc (§4) claims 37 components (18 core + 19 extended). The current codebase has 39 — `forgeui-error` and `forgeui-drawing` were added without an apparent catalog-tier assignment.
 
 ## Reconciling with docs/architecture.md
 
@@ -149,7 +149,7 @@ If path (a) is taken and deps are removed from the IIFE, the IIFE budget should 
 2. **Wire `size-limit` into CI** with the budgets above. See Prompt 10.
 3. **Split `src/components/index.ts`** into per-component ESM entry points (e.g., `@forgeui/runtime/components/chart`) so consumers can tree-shake and so we can measure per-component cost. The architecture doc §10 already promises this but it is not implemented.
 4. **Fix the npm description.** `@forgeui/runtime/package.json` says "Zero dependencies, 40KB gzip." Both claims are false for the IIFE. Either make them true or remove the claim.
-5. **Assign tiers to forge-error and forge-drawing.** These 2 components were added after the 18/19 core/extended split was documented. They need catalog-tier assignment and test coverage.
+5. **Assign tiers to forgeui-error and forgeui-drawing.** These 2 components were added after the 18/19 core/extended split was documented. They need catalog-tier assignment and test coverage.
 6. **Investigate @forgeui/connect at 103 KB gzip.** The MCP SDK is likely the bulk of this. If the MCP SDK tree-shakes poorly, consider a slimmer stdio-only build.
 
 ---

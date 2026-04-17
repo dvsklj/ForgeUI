@@ -19,7 +19,7 @@
     "llm",
     "ai-agent",
     "model-context-protocol",
-    "forge-ui"
+    "forgeui-ui"
   ],
   "author": "Davor Skulj",
   "license": "MIT",

@@ -1,7 +1,7 @@
 /**
  * ForgeApp — The core web component entry point
  * 
- * <forge-app manifest='...' surface='chat|standalone|embed' color-scheme='light|dark'></forge-app>
+ * <forgeui-app manifest='...' surface='chat|standalone|embed' color-scheme='light|dark'></forgeui-app>
  * 
  * Creates a TinyBase store, validates the manifest, and renders the element tree.
  */
@@ -137,7 +137,7 @@ export class ForgeApp extends LitElement {
     this._undoStack.push(manifest);
 
     // Signal ready
-    this.dispatchEvent(new CustomEvent('forge-ready', {
+    this.dispatchEvent(new CustomEvent('forgeui-ready', {
       detail: { appId: manifest.id },
       bubbles: true,
       composed: true,
@@ -155,7 +155,7 @@ export class ForgeApp extends LitElement {
       if (this._validation && !this._validation.valid) {
         return this._renderErrors();
       }
-      return html`<div style="padding:1rem;color:var(--forge-color-text-secondary)">Loading...</div>`;
+      return html`<div style="padding:1rem;color:var(--forgeui-color-text-secondary)">Loading...</div>`;
     }
 
     const ctx: RenderContext = {
@@ -171,12 +171,12 @@ export class ForgeApp extends LitElement {
   private _renderErrors() {
     const errors = this._validation?.errors || [];
     return html`
-      <div style="padding:var(--forge-space-md);font-family:var(--forge-font-family)">
-        <div style="color:var(--forge-color-error);font-weight:var(--forge-weight-semibold);margin-bottom:var(--forge-space-sm)">
+      <div style="padding:var(--forgeui-space-md);font-family:var(--forgeui-font-family)">
+        <div style="color:var(--forgeui-color-error);font-weight:var(--forgeui-weight-semibold);margin-bottom:var(--forgeui-space-sm)">
           Manifest Validation Errors
         </div>
         ${errors.map((e: any) => html`
-          <div style="font-size:var(--forge-text-sm);color:var(--forge-color-text-secondary);margin-bottom:var(--forge-space-2xs)">
+          <div style="font-size:var(--forgeui-text-sm);color:var(--forgeui-color-text-secondary);margin-bottom:var(--forgeui-space-2xs)">
             <code>${e.path}</code>: ${e.message}
           </div>
         `)}
@@ -263,7 +263,7 @@ export class ForgeApp extends LitElement {
       }
       
       default: {
-        this.dispatchEvent(new CustomEvent('forge-action', {
+        this.dispatchEvent(new CustomEvent('forgeui-action', {
           detail: { action: actionId, payload, definition: action },
           bubbles: true,
           composed: true,
@@ -329,10 +329,10 @@ export class ForgeApp extends LitElement {
   }
 }
 
-customElements.define('forge-app', ForgeApp);
+customElements.define('forgeui-app', ForgeApp);
 
 declare global {
   interface HTMLElementTagNameMap {
-    'forge-app': ForgeApp;
+    'forgeui-app': ForgeApp;
   }
 }

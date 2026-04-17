@@ -2,7 +2,7 @@
  * Forge Components — All 37 Lit Web Components
  * 
  * Each component extends ForgeElement, uses design tokens,
- * dispatches forge-action events for declarative bindings.
+ * dispatches forgeui-action events for declarative bindings.
  */
 
 import { html, css, svg, nothing } from 'lit';
@@ -40,7 +40,7 @@ export class ForgeStack extends ForgeElement {
     const j = this.getString('justify', '');
     const wrap = this.getBool('wrap');
     const gapCSS = this.gapValue(g);
-    const padCSS = p ? `var(--forge-space-${p}, var(--forge-space-md))` : '0';
+    const padCSS = p ? `var(--forgeui-space-${p}, var(--forgeui-space-md))` : '0';
     this.setAttribute('direction', d);
     if (a) this.setAttribute('align', a);
     if (j) this.setAttribute('justify', j);
@@ -51,7 +51,7 @@ export class ForgeStack extends ForgeElement {
     return html`<slot></slot>`;
   }
 }
-customElements.define('forge-stack', ForgeStack);
+customElements.define('forgeui-stack', ForgeStack);
 
 export class ForgeGrid extends ForgeElement {
   static get properties() { return { props: { type: Object } }; }
@@ -72,7 +72,7 @@ export class ForgeGrid extends ForgeElement {
     const g = this.getString('gap', 'md');
     const gapCSS = this.gapValue(g);
     const p = this.getString('padding', '');
-    const padCSS = p ? `var(--forge-space-${p}, var(--forge-space-md))` : '0';
+    const padCSS = p ? `var(--forgeui-space-${p}, var(--forgeui-space-md))` : '0';
     this.style.gridTemplateColumns = gridTemplate;
     this.style.gap = gapCSS;
     this.style.padding = padCSS;
@@ -81,21 +81,21 @@ export class ForgeGrid extends ForgeElement {
     return html`<slot></slot>`;
   }
 }
-customElements.define('forge-grid', ForgeGrid);
+customElements.define('forgeui-grid', ForgeGrid);
 
 export class ForgeCard extends ForgeElement {
   static get properties() { return { props: { type: Object } }; }
   static get styles() { return css`
-    :host { display:block; background:var(--forge-color-surface); border:1px solid var(--forge-color-border);
-      border-radius:var(--forge-radius-lg); padding:var(--forge-space-md); min-width:0; }
-    :host([variant="elevated"]) { box-shadow:var(--forge-shadow-md); border-color:transparent; }
-    :host([variant="compact"]) { padding:var(--forge-space-sm); border-radius:var(--forge-radius-md); }
+    :host { display:block; background:var(--forgeui-color-surface); border:1px solid var(--forgeui-color-border);
+      border-radius:var(--forgeui-radius-lg); padding:var(--forgeui-space-md); min-width:0; }
+    :host([variant="elevated"]) { box-shadow:var(--forgeui-shadow-md); border-color:transparent; }
+    :host([variant="compact"]) { padding:var(--forgeui-space-sm); border-radius:var(--forgeui-radius-md); }
     :host([variant="outline"]) { background:transparent; }
     :host([variant="ghost"]) { background:transparent; border-color:transparent; padding:0; }
-    .header { margin-bottom:var(--forge-space-sm); }
-    .title { font-size:var(--forge-text-lg); font-weight:var(--forge-weight-semibold); color:var(--forge-color-text); line-height:var(--forge-leading-tight); }
-    .subtitle { font-size:var(--forge-text-sm); color:var(--forge-color-text-secondary); margin-top:var(--forge-space-3xs); }
-    .body { display:flex; flex-direction:column; gap:var(--forge-space-md); min-width:0; }
+    .header { margin-bottom:var(--forgeui-space-sm); }
+    .title { font-size:var(--forgeui-text-lg); font-weight:var(--forgeui-weight-semibold); color:var(--forgeui-color-text); line-height:var(--forgeui-leading-tight); }
+    .subtitle { font-size:var(--forgeui-text-sm); color:var(--forgeui-color-text-secondary); margin-top:var(--forgeui-space-3xs); }
+    .body { display:flex; flex-direction:column; gap:var(--forgeui-space-md); min-width:0; }
   `; }
   render() {
     const v = this.getString('variant', '');
@@ -113,7 +113,7 @@ export class ForgeCard extends ForgeElement {
     `;
   }
 }
-customElements.define('forge-card', ForgeCard);
+customElements.define('forgeui-card', ForgeCard);
 
 export class ForgeContainer extends ForgeElement {
   static get properties() { return { props: { type: Object } }; }
@@ -128,11 +128,11 @@ export class ForgeContainer extends ForgeElement {
     const p = this.getString('padding', '');
     if (resolvedMw && resolvedMw !== 'none') this.style.maxWidth = resolvedMw;
     else this.style.maxWidth = '';
-    this.style.padding = p ? `var(--forge-space-${p}, var(--forge-space-md))` : '';
+    this.style.padding = p ? `var(--forgeui-space-${p}, var(--forgeui-space-md))` : '';
     return html`<slot></slot>`;
   }
 }
-customElements.define('forge-container', ForgeContainer);
+customElements.define('forgeui-container', ForgeContainer);
 
 export class ForgeTabs extends ForgeElement {
   static get properties() { return {
@@ -143,13 +143,13 @@ export class ForgeTabs extends ForgeElement {
   constructor() { super(); this._active = ''; }
   static get styles() { return css`
     :host { display:block; }
-    .tabs { display:flex; border-bottom:1px solid var(--forge-color-border); gap:var(--forge-space-xs); overflow-x:auto; }
-    .tab { padding:var(--forge-space-sm) var(--forge-space-md); cursor:pointer; border:none; background:none;
-      color:var(--forge-color-text-secondary); font:inherit; font-size:var(--forge-text-sm);
-      border-bottom:2px solid transparent; transition:var(--forge-transition-fast); white-space:nowrap; }
-    .tab:hover { color:var(--forge-color-text); background:var(--forge-color-surface-hover); }
-    .tab[active] { color:var(--forge-color-primary); border-bottom-color:var(--forge-color-primary); font-weight:var(--forge-weight-medium); }
-    .panel { padding-top:var(--forge-space-md); display:flex; flex-direction:column; gap:var(--forge-space-md); }
+    .tabs { display:flex; border-bottom:1px solid var(--forgeui-color-border); gap:var(--forgeui-space-xs); overflow-x:auto; }
+    .tab { padding:var(--forgeui-space-sm) var(--forgeui-space-md); cursor:pointer; border:none; background:none;
+      color:var(--forgeui-color-text-secondary); font:inherit; font-size:var(--forgeui-text-sm);
+      border-bottom:2px solid transparent; transition:var(--forgeui-transition-fast); white-space:nowrap; }
+    .tab:hover { color:var(--forgeui-color-text); background:var(--forgeui-color-surface-hover); }
+    .tab[active] { color:var(--forgeui-color-primary); border-bottom-color:var(--forgeui-color-primary); font-weight:var(--forgeui-weight-medium); }
+    .panel { padding-top:var(--forgeui-space-md); display:flex; flex-direction:column; gap:var(--forgeui-space-md); }
     ::slotted(*) { display:none; }
     ::slotted([data-active]) { display:block; }
     @media (prefers-reduced-motion: reduce) {
@@ -216,45 +216,45 @@ export class ForgeTabs extends ForgeElement {
     `;
   }
 }
-customElements.define('forge-tabs', ForgeTabs);
+customElements.define('forgeui-tabs', ForgeTabs);
 
 export class ForgeAccordion extends ForgeElement {
   static get properties() { return { props: { type: Object } }; }
   static get styles() { return css`
     :host { display:block; }
-    details { border:1px solid var(--forge-color-border); border-radius:var(--forge-radius-md); margin-bottom:var(--forge-space-2xs); }
-    summary { padding:var(--forge-space-sm) var(--forge-space-md); cursor:pointer; font-weight:var(--forge-weight-medium);
+    details { border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md); margin-bottom:var(--forgeui-space-2xs); }
+    summary { padding:var(--forgeui-space-sm) var(--forgeui-space-md); cursor:pointer; font-weight:var(--forgeui-weight-medium);
       list-style:none; display:flex; justify-content:space-between; align-items:center; }
     summary::-webkit-details-marker { display:none; }
-    summary::after { content:'▸'; transition:transform var(--forge-transition-fast); }
+    summary::after { content:'▸'; transition:transform var(--forgeui-transition-fast); }
     details[open] summary::after { transform:rotate(90deg); }
-    .content { padding:var(--forge-space-sm) var(--forge-space-md); }
+    .content { padding:var(--forgeui-space-sm) var(--forgeui-space-md); }
   `; }
   render() {
     const title = this.getString('title', 'Section');
     return html`<details><summary>${title}</summary><div class="content"><slot></slot></div></details>`;
   }
 }
-customElements.define('forge-accordion', ForgeAccordion);
+customElements.define('forgeui-accordion', ForgeAccordion);
 
 export class ForgeDivider extends ForgeElement {
   static get styles() { return css`
     :host { display:block; }
-    hr { border:none; border-top:1px solid var(--forge-color-border); margin:var(--forge-space-sm) 0; }
+    hr { border:none; border-top:1px solid var(--forgeui-color-border); margin:var(--forgeui-space-sm) 0; }
   `; }
   render() { return html`<hr>`; }
 }
-customElements.define('forge-divider', ForgeDivider);
+customElements.define('forgeui-divider', ForgeDivider);
 
 export class ForgeSpacer extends ForgeElement {
   static get styles() { return css`:host { display:block; }`; }
   render() {
     const s = this.getString('size', 'md');
-    const h = `var(--forge-space-${s}, var(--forge-space-md))`;
+    const h = `var(--forgeui-space-${s}, var(--forgeui-space-md))`;
     return html`<div style="height:${h}"></div>`;
   }
 }
-customElements.define('forge-spacer', ForgeSpacer);
+customElements.define('forgeui-spacer', ForgeSpacer);
 
 /**
  * Repeater: renders a child element once per item in a data array.
@@ -265,9 +265,9 @@ customElements.define('forge-spacer', ForgeSpacer);
 export class ForgeRepeater extends ForgeElement {
   static get properties() { return { props: { type: Object } }; }
   static get styles() { return css`
-    :host { display:flex; flex-direction:column; gap:var(--forge-space-md); min-width:0; }
+    :host { display:flex; flex-direction:column; gap:var(--forgeui-space-md); min-width:0; }
     :host([direction="row"]) { flex-direction:row; flex-wrap:wrap; }
-    .empty { padding:var(--forge-space-lg); text-align:center; color:var(--forge-color-text-tertiary); font-size:var(--forge-text-sm); }
+    .empty { padding:var(--forgeui-space-lg); text-align:center; color:var(--forgeui-color-text-tertiary); font-size:var(--forgeui-text-sm); }
   `; }
   render() {
     const data = this.getArray('data');
@@ -282,7 +282,7 @@ export class ForgeRepeater extends ForgeElement {
     return html`<slot></slot>`;
   }
 }
-customElements.define('forge-repeater', ForgeRepeater);
+customElements.define('forgeui-repeater', ForgeRepeater);
 
 // ═══════════════════════════════════════════════════════════════
 // CONTENT (6)
@@ -292,17 +292,17 @@ export class ForgeText extends ForgeElement {
   static get properties() { return { props: { type: Object } }; }
   static get styles() { return css`
     :host { display:block; min-width:0; }
-    .heading1 { font-size:var(--forge-text-3xl); font-weight:var(--forge-weight-bold); line-height:var(--forge-leading-tight); letter-spacing:-0.02em; margin:0; }
-    .heading2 { font-size:var(--forge-text-2xl); font-weight:var(--forge-weight-bold); line-height:var(--forge-leading-tight); letter-spacing:-0.01em; margin:0; }
-    .heading3 { font-size:var(--forge-text-xl); font-weight:var(--forge-weight-semibold); line-height:var(--forge-leading-tight); margin:0; }
-    .heading { font-size:var(--forge-text-2xl); font-weight:var(--forge-weight-bold); line-height:var(--forge-leading-tight); margin:0; }
-    .subheading { font-size:var(--forge-text-lg); font-weight:var(--forge-weight-semibold); line-height:var(--forge-leading-tight); margin:0; }
-    .label { font-size:var(--forge-text-sm); font-weight:var(--forge-weight-medium); color:var(--forge-color-text); margin:0; }
-    .body { font-size:var(--forge-text-base); line-height:var(--forge-leading-normal); margin:0; }
-    .caption { font-size:var(--forge-text-xs); color:var(--forge-color-text-tertiary); margin:0; }
-    .muted { font-size:var(--forge-text-sm); color:var(--forge-color-text-secondary); margin:0; }
-    .code { font-family:var(--forge-font-mono); font-size:var(--forge-text-sm); background:var(--forge-color-surface-alt);
-      padding:var(--forge-space-2xs) var(--forge-space-xs); border-radius:var(--forge-radius-sm); display:inline-block; }
+    .heading1 { font-size:var(--forgeui-text-3xl); font-weight:var(--forgeui-weight-bold); line-height:var(--forgeui-leading-tight); letter-spacing:-0.02em; margin:0; }
+    .heading2 { font-size:var(--forgeui-text-2xl); font-weight:var(--forgeui-weight-bold); line-height:var(--forgeui-leading-tight); letter-spacing:-0.01em; margin:0; }
+    .heading3 { font-size:var(--forgeui-text-xl); font-weight:var(--forgeui-weight-semibold); line-height:var(--forgeui-leading-tight); margin:0; }
+    .heading { font-size:var(--forgeui-text-2xl); font-weight:var(--forgeui-weight-bold); line-height:var(--forgeui-leading-tight); margin:0; }
+    .subheading { font-size:var(--forgeui-text-lg); font-weight:var(--forgeui-weight-semibold); line-height:var(--forgeui-leading-tight); margin:0; }
+    .label { font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); color:var(--forgeui-color-text); margin:0; }
+    .body { font-size:var(--forgeui-text-base); line-height:var(--forgeui-leading-normal); margin:0; }
+    .caption { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-text-tertiary); margin:0; }
+    .muted { font-size:var(--forgeui-text-sm); color:var(--forgeui-color-text-secondary); margin:0; }
+    .code { font-family:var(--forgeui-font-mono); font-size:var(--forgeui-text-sm); background:var(--forgeui-color-surface-alt);
+      padding:var(--forgeui-space-2xs) var(--forgeui-space-xs); border-radius:var(--forgeui-radius-sm); display:inline-block; }
     .align-left { text-align:left; }
     .align-center { text-align:center; }
     .align-right { text-align:right; }
@@ -321,19 +321,19 @@ export class ForgeText extends ForgeElement {
     const align = this.getString('align', '');
     const weight = this.getString('weight', '');
     const colorMap: Record<string, string> = {
-      primary: 'var(--forge-color-primary)',
-      secondary: 'var(--forge-color-text-secondary)',
-      tertiary: 'var(--forge-color-text-tertiary)',
-      success: 'var(--forge-color-success)',
-      warning: 'var(--forge-color-warning)',
-      error: 'var(--forge-color-error)',
-      info: 'var(--forge-color-info)',
+      primary: 'var(--forgeui-color-primary)',
+      secondary: 'var(--forgeui-color-text-secondary)',
+      tertiary: 'var(--forgeui-color-text-tertiary)',
+      success: 'var(--forgeui-color-success)',
+      warning: 'var(--forgeui-color-warning)',
+      error: 'var(--forgeui-color-error)',
+      info: 'var(--forgeui-color-info)',
     };
     const weightMap: Record<string, string> = {
-      normal: 'var(--forge-weight-normal)',
-      medium: 'var(--forge-weight-medium)',
-      semibold: 'var(--forge-weight-semibold)',
-      bold: 'var(--forge-weight-bold)',
+      normal: 'var(--forgeui-weight-normal)',
+      medium: 'var(--forgeui-weight-medium)',
+      semibold: 'var(--forgeui-weight-semibold)',
+      bold: 'var(--forgeui-weight-bold)',
     };
     const styles: string[] = [];
     if (colorScheme && colorMap[colorScheme]) styles.push(`color:${colorMap[colorScheme]}`);
@@ -346,12 +346,12 @@ export class ForgeText extends ForgeElement {
     return html`<div class="${cls} ${alignCls}" style="${styles.join(';')}">${content}<slot></slot></div>`;
   }
 }
-customElements.define('forge-text', ForgeText);
+customElements.define('forgeui-text', ForgeText);
 
 export class ForgeImage extends ForgeElement {
   static get styles() { return css`
     :host { display:block; }
-    img { max-width:100%; height:auto; display:block; border-radius:var(--forge-radius-md); }
+    img { max-width:100%; height:auto; display:block; border-radius:var(--forgeui-radius-md); }
   `; }
   render() {
     const src = this.getString('src', '');
@@ -361,12 +361,12 @@ export class ForgeImage extends ForgeElement {
     return html`<img src="${src}" alt="${alt}" style="object-fit:${fit}" loading="lazy">`;
   }
 }
-customElements.define('forge-image', ForgeImage);
+customElements.define('forgeui-image', ForgeImage);
 
 export class ForgeIcon extends ForgeElement {
   static get styles() { return css`
     :host { display:inline-flex; align-items:center; justify-content:center; }
-    svg { width:var(--forge-icon-md); height:var(--forge-icon-md); fill:currentColor; }
+    svg { width:var(--forgeui-icon-md); height:var(--forgeui-icon-md); fill:currentColor; }
   `; }
   render() {
     const name = this.getString('name', 'circle');
@@ -386,17 +386,17 @@ export class ForgeIcon extends ForgeElement {
     return html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${path}"/></svg>`;
   }
 }
-customElements.define('forge-icon', ForgeIcon);
+customElements.define('forgeui-icon', ForgeIcon);
 
 export class ForgeBadge extends ForgeElement {
   static get styles() { return css`
     :host { display:inline-flex; align-items:center; }
-    .badge { display:inline-flex; align-items:center; padding:var(--forge-space-2xs) var(--forge-space-xs);
-      border-radius:var(--forge-radius-full); font-size:var(--forge-text-xs); font-weight:var(--forge-weight-medium);
-      background:var(--forge-color-primary-subtle); color:var(--forge-color-primary); }
-    .badge[variant="success"] { background:var(--forge-color-success-subtle); color:var(--forge-color-success); }
-    .badge[variant="warning"] { background:var(--forge-color-warning-subtle); color:var(--forge-color-warning); }
-    .badge[variant="error"] { background:var(--forge-color-error-subtle); color:var(--forge-color-error); }
+    .badge { display:inline-flex; align-items:center; padding:var(--forgeui-space-2xs) var(--forgeui-space-xs);
+      border-radius:var(--forgeui-radius-full); font-size:var(--forgeui-text-xs); font-weight:var(--forgeui-weight-medium);
+      background:var(--forgeui-color-primary-subtle); color:var(--forgeui-color-primary); }
+    .badge[variant="success"] { background:var(--forgeui-color-success-subtle); color:var(--forgeui-color-success); }
+    .badge[variant="warning"] { background:var(--forgeui-color-warning-subtle); color:var(--forgeui-color-warning); }
+    .badge[variant="error"] { background:var(--forgeui-color-error-subtle); color:var(--forgeui-color-error); }
   `; }
   render() {
     const label = this.getString('label', '');
@@ -404,14 +404,14 @@ export class ForgeBadge extends ForgeElement {
     return html`<span class="badge" variant="${v}">${label}<slot></slot></span>`;
   }
 }
-customElements.define('forge-badge', ForgeBadge);
+customElements.define('forgeui-badge', ForgeBadge);
 
 export class ForgeAvatar extends ForgeElement {
   static get styles() { return css`
     :host { display:inline-flex; }
-    .avatar { width:2.5rem; height:2.5rem; border-radius:var(--forge-radius-full); background:var(--forge-color-primary-subtle);
-      color:var(--forge-color-primary); display:flex; align-items:center; justify-content:center;
-      font-weight:var(--forge-weight-semibold); font-size:var(--forge-text-sm); overflow:hidden; }
+    .avatar { width:2.5rem; height:2.5rem; border-radius:var(--forgeui-radius-full); background:var(--forgeui-color-primary-subtle);
+      color:var(--forgeui-color-primary); display:flex; align-items:center; justify-content:center;
+      font-weight:var(--forgeui-weight-semibold); font-size:var(--forgeui-text-sm); overflow:hidden; }
     img { width:100%; height:100%; object-fit:cover; }
   `; }
   render() {
@@ -421,13 +421,13 @@ export class ForgeAvatar extends ForgeElement {
     return html`<div class="avatar">${src ? html`<img src="${src}" alt="${name}">` : initials}<slot></slot></div>`;
   }
 }
-customElements.define('forge-avatar', ForgeAvatar);
+customElements.define('forgeui-avatar', ForgeAvatar);
 
 export class ForgeEmptyState extends ForgeElement {
   static get styles() { return css`
-    :host { display:block; text-align:center; padding:var(--forge-space-2xl) var(--forge-space-lg); }
-    .title { font-size:var(--forge-text-lg); font-weight:var(--forge-weight-semibold); margin-bottom:var(--forge-space-xs); }
-    .desc { font-size:var(--forge-text-sm); color:var(--forge-color-text-secondary); margin-bottom:var(--forge-space-md); }
+    :host { display:block; text-align:center; padding:var(--forgeui-space-2xl) var(--forgeui-space-lg); }
+    .title { font-size:var(--forgeui-text-lg); font-weight:var(--forgeui-weight-semibold); margin-bottom:var(--forgeui-space-xs); }
+    .desc { font-size:var(--forgeui-text-sm); color:var(--forgeui-color-text-secondary); margin-bottom:var(--forgeui-space-md); }
   `; }
   render() {
     const title = this.getString('title', 'Nothing here');
@@ -439,7 +439,7 @@ export class ForgeEmptyState extends ForgeElement {
     `;
   }
 }
-customElements.define('forge-empty-state', ForgeEmptyState);
+customElements.define('forgeui-empty-state', ForgeEmptyState);
 
 // ═══════════════════════════════════════════════════════════════
 // INPUT (9)
@@ -447,17 +447,17 @@ customElements.define('forge-empty-state', ForgeEmptyState);
 
 export class ForgeTextInput extends ForgeElement {
   static get styles() { return css`
-    :host { display:block; margin-bottom:var(--forge-space-sm); }
-    label { display:block; font-size:var(--forge-text-sm); font-weight:var(--forge-weight-medium); margin-bottom:var(--forge-space-2xs); color:var(--forge-color-text); }
-    input, textarea { width:100%; padding:var(--forge-space-xs) var(--forge-space-sm); border:1px solid var(--forge-color-border);
-      border-radius:var(--forge-radius-md); font:inherit; font-size:var(--forge-text-base);
-      background:var(--forge-color-surface); color:var(--forge-color-text); height:var(--forge-input-height);
-      transition:border-color var(--forge-transition-fast); }
-    input:focus, textarea:focus { outline:none; border-color:var(--forge-color-primary); box-shadow:0 0 0 3px var(--forge-color-primary-subtle); }
-    input::placeholder { color:var(--forge-color-text-tertiary); }
+    :host { display:block; margin-bottom:var(--forgeui-space-sm); }
+    label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); color:var(--forgeui-color-text); }
+    input, textarea { width:100%; padding:var(--forgeui-space-xs) var(--forgeui-space-sm); border:1px solid var(--forgeui-color-border);
+      border-radius:var(--forgeui-radius-md); font:inherit; font-size:var(--forgeui-text-base);
+      background:var(--forgeui-color-surface); color:var(--forgeui-color-text); height:var(--forgeui-input-height);
+      transition:border-color var(--forgeui-transition-fast); }
+    input:focus, textarea:focus { outline:none; border-color:var(--forgeui-color-primary); box-shadow:0 0 0 3px var(--forgeui-color-primary-subtle); }
+    input::placeholder { color:var(--forgeui-color-text-tertiary); }
     textarea { height:auto; min-height:5rem; resize:vertical; }
-    .hint { font-size:var(--forge-text-xs); color:var(--forge-color-text-tertiary); margin-top:var(--forge-space-2xs); }
-    .error { font-size:var(--forge-text-xs); color:var(--forge-color-error); margin-top:var(--forge-space-2xs); }
+    .hint { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-text-tertiary); margin-top:var(--forgeui-space-2xs); }
+    .error { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-error); margin-top:var(--forgeui-space-2xs); }
   `; }
   render() {
     const label = this.getString('label', '');
@@ -479,16 +479,16 @@ export class ForgeTextInput extends ForgeElement {
     `;
   }
 }
-customElements.define('forge-text-input', ForgeTextInput);
+customElements.define('forgeui-text-input', ForgeTextInput);
 
 export class ForgeNumberInput extends ForgeElement {
   static get styles() { return css`
-    :host { display:block; margin-bottom:var(--forge-space-sm); }
-    label { display:block; font-size:var(--forge-text-sm); font-weight:var(--forge-weight-medium); margin-bottom:var(--forge-space-2xs); }
-    input { width:100%; padding:var(--forge-space-xs) var(--forge-space-sm); border:1px solid var(--forge-color-border);
-      border-radius:var(--forge-radius-md); font:inherit; height:var(--forge-input-height);
-      background:var(--forge-color-surface); color:var(--forge-color-text); }
-    input:focus { outline:none; border-color:var(--forge-color-primary); box-shadow:0 0 0 3px var(--forge-color-primary-subtle); }
+    :host { display:block; margin-bottom:var(--forgeui-space-sm); }
+    label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); }
+    input { width:100%; padding:var(--forgeui-space-xs) var(--forgeui-space-sm); border:1px solid var(--forgeui-color-border);
+      border-radius:var(--forgeui-radius-md); font:inherit; height:var(--forgeui-input-height);
+      background:var(--forgeui-color-surface); color:var(--forgeui-color-text); }
+    input:focus { outline:none; border-color:var(--forgeui-color-primary); box-shadow:0 0 0 3px var(--forgeui-color-primary-subtle); }
   `; }
   render() {
     const label = this.getString('label', '');
@@ -504,16 +504,16 @@ export class ForgeNumberInput extends ForgeElement {
     `;
   }
 }
-customElements.define('forge-number-input', ForgeNumberInput);
+customElements.define('forgeui-number-input', ForgeNumberInput);
 
 export class ForgeSelect extends ForgeElement {
   static get styles() { return css`
-    :host { display:block; margin-bottom:var(--forge-space-sm); }
-    label { display:block; font-size:var(--forge-text-sm); font-weight:var(--forge-weight-medium); margin-bottom:var(--forge-space-2xs); }
-    select { width:100%; padding:var(--forge-space-xs) var(--forge-space-sm); border:1px solid var(--forge-color-border);
-      border-radius:var(--forge-radius-md); font:inherit; height:var(--forge-input-height);
-      background:var(--forge-color-surface); color:var(--forge-color-text); }
-    select:focus { outline:none; border-color:var(--forge-color-primary); box-shadow:0 0 0 3px var(--forge-color-primary-subtle); }
+    :host { display:block; margin-bottom:var(--forgeui-space-sm); }
+    label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); }
+    select { width:100%; padding:var(--forgeui-space-xs) var(--forgeui-space-sm); border:1px solid var(--forgeui-color-border);
+      border-radius:var(--forgeui-radius-md); font:inherit; height:var(--forgeui-input-height);
+      background:var(--forgeui-color-surface); color:var(--forgeui-color-text); }
+    select:focus { outline:none; border-color:var(--forgeui-color-primary); box-shadow:0 0 0 3px var(--forgeui-color-primary-subtle); }
   `; }
   render() {
     const label = this.getString('label', '');
@@ -530,16 +530,16 @@ export class ForgeSelect extends ForgeElement {
     `;
   }
 }
-customElements.define('forge-select', ForgeSelect);
+customElements.define('forgeui-select', ForgeSelect);
 
 export class ForgeMultiSelect extends ForgeElement {
   static get styles() { return css`
-    :host { display:block; margin-bottom:var(--forge-space-sm); }
-    label { display:block; font-size:var(--forge-text-sm); font-weight:var(--forge-weight-medium); margin-bottom:var(--forge-space-2xs); }
-    .tags { display:flex; flex-wrap:wrap; gap:var(--forge-space-2xs); padding:var(--forge-space-xs); border:1px solid var(--forge-color-border); border-radius:var(--forge-radius-md); min-height:var(--forge-input-height); }
-    .tag { display:inline-flex; align-items:center; gap:var(--forge-space-2xs); padding:var(--forge-space-2xs) var(--forge-space-xs);
-      background:var(--forge-color-primary-subtle); color:var(--forge-color-primary); border-radius:var(--forge-radius-full);
-      font-size:var(--forge-text-xs); }
+    :host { display:block; margin-bottom:var(--forgeui-space-sm); }
+    label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); }
+    .tags { display:flex; flex-wrap:wrap; gap:var(--forgeui-space-2xs); padding:var(--forgeui-space-xs); border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md); min-height:var(--forgeui-input-height); }
+    .tag { display:inline-flex; align-items:center; gap:var(--forgeui-space-2xs); padding:var(--forgeui-space-2xs) var(--forgeui-space-xs);
+      background:var(--forgeui-color-primary-subtle); color:var(--forgeui-color-primary); border-radius:var(--forgeui-radius-full);
+      font-size:var(--forgeui-text-xs); }
     .tag button { background:none; border:none; cursor:pointer; color:inherit; font:inherit; padding:0; }
   `; }
   render() {
@@ -554,13 +554,13 @@ export class ForgeMultiSelect extends ForgeElement {
     `;
   }
 }
-customElements.define('forge-multi-select', ForgeMultiSelect);
+customElements.define('forgeui-multi-select', ForgeMultiSelect);
 
 export class ForgeCheckbox extends ForgeElement {
   static get styles() { return css`
-    :host { display:flex; align-items:center; gap:var(--forge-space-xs); margin-bottom:var(--forge-space-xs); cursor:pointer; }
-    input { width:1.125rem; height:1.125rem; accent-color:var(--forge-color-primary); cursor:pointer; }
-    label { font-size:var(--forge-text-sm); cursor:pointer; }
+    :host { display:flex; align-items:center; gap:var(--forgeui-space-xs); margin-bottom:var(--forgeui-space-xs); cursor:pointer; }
+    input { width:1.125rem; height:1.125rem; accent-color:var(--forgeui-color-primary); cursor:pointer; }
+    label { font-size:var(--forgeui-text-sm); cursor:pointer; }
   `; }
   render() {
     const label = this.getString('label', '');
@@ -572,22 +572,22 @@ export class ForgeCheckbox extends ForgeElement {
     `;
   }
 }
-customElements.define('forge-checkbox', ForgeCheckbox);
+customElements.define('forgeui-checkbox', ForgeCheckbox);
 
 export class ForgeToggle extends ForgeElement {
   static get styles() { return css`
-    :host { display:flex; align-items:center; gap:var(--forge-space-sm); margin-bottom:var(--forge-space-xs); }
-    .switch { position:relative; width:2.75rem; height:1.5rem; background:var(--forge-color-border-strong);
-      border-radius:var(--forge-radius-full); cursor:pointer; border:none; padding:0;
-      transition:background var(--forge-transition-fast); }
-    .switch[aria-checked="true"] { background:var(--forge-color-primary); }
+    :host { display:flex; align-items:center; gap:var(--forgeui-space-sm); margin-bottom:var(--forgeui-space-xs); }
+    .switch { position:relative; width:2.75rem; height:1.5rem; background:var(--forgeui-color-border-strong);
+      border-radius:var(--forgeui-radius-full); cursor:pointer; border:none; padding:0;
+      transition:background var(--forgeui-transition-fast); }
+    .switch[aria-checked="true"] { background:var(--forgeui-color-primary); }
     .switch::after { content:''; position:absolute; top:2px; left:2px; width:1.25rem; height:1.25rem;
-      background:var(--forge-color-surface); border-radius:var(--forge-radius-full); transition:transform var(--forge-transition-fast); }
+      background:var(--forgeui-color-surface); border-radius:var(--forgeui-radius-full); transition:transform var(--forgeui-transition-fast); }
     .switch[aria-checked="true"]::after { transform:translateX(1.25rem); }
-    .switch:focus-visible { outline:2px solid var(--forge-color-primary); outline-offset:2px; }
+    .switch:focus-visible { outline:2px solid var(--forgeui-color-primary); outline-offset:2px; }
     .switch:disabled { opacity:0.5; cursor:not-allowed; }
-    .toggle-label { display:inline-flex; align-items:center; gap:var(--forge-space-sm); cursor:pointer; }
-    .toggle-text { font-size:var(--forge-text-sm); }
+    .toggle-label { display:inline-flex; align-items:center; gap:var(--forgeui-space-sm); cursor:pointer; }
+    .toggle-text { font-size:var(--forgeui-text-sm); }
     @media (prefers-reduced-motion: reduce) {
       .switch, .switch::after { transition:none; }
     }
@@ -617,7 +617,7 @@ export class ForgeToggle extends ForgeElement {
   private _toggle = () => {
     if (this.getBool('disabled')) return;
     const current = this.getBool('on');
-    this.dispatchEvent(new CustomEvent('forge-action', {
+    this.dispatchEvent(new CustomEvent('forgeui-action', {
       detail: { actionId: 'change', value: !current },
       bubbles: true,
       composed: true,
@@ -631,16 +631,16 @@ export class ForgeToggle extends ForgeElement {
     }
   };
 }
-customElements.define('forge-toggle', ForgeToggle);
+customElements.define('forgeui-toggle', ForgeToggle);
 
 export class ForgeDatePicker extends ForgeElement {
   static get styles() { return css`
-    :host { display:block; margin-bottom:var(--forge-space-sm); }
-    label { display:block; font-size:var(--forge-text-sm); font-weight:var(--forge-weight-medium); margin-bottom:var(--forge-space-2xs); }
-    input { width:100%; padding:var(--forge-space-xs) var(--forge-space-sm); border:1px solid var(--forge-color-border);
-      border-radius:var(--forge-radius-md); font:inherit; height:var(--forge-input-height);
-      background:var(--forge-color-surface); color:var(--forge-color-text); }
-    input:focus { outline:none; border-color:var(--forge-color-primary); box-shadow:0 0 0 3px var(--forge-color-primary-subtle); }
+    :host { display:block; margin-bottom:var(--forgeui-space-sm); }
+    label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); }
+    input { width:100%; padding:var(--forgeui-space-xs) var(--forgeui-space-sm); border:1px solid var(--forgeui-color-border);
+      border-radius:var(--forgeui-radius-md); font:inherit; height:var(--forgeui-input-height);
+      background:var(--forgeui-color-surface); color:var(--forgeui-color-text); }
+    input:focus { outline:none; border-color:var(--forgeui-color-primary); box-shadow:0 0 0 3px var(--forgeui-color-primary-subtle); }
   `; }
   render() {
     const label = this.getString('label', '');
@@ -651,14 +651,14 @@ export class ForgeDatePicker extends ForgeElement {
     `;
   }
 }
-customElements.define('forge-date-picker', ForgeDatePicker);
+customElements.define('forgeui-date-picker', ForgeDatePicker);
 
 export class ForgeSlider extends ForgeElement {
   static get styles() { return css`
-    :host { display:block; margin-bottom:var(--forge-space-sm); }
-    label { display:block; font-size:var(--forge-text-sm); font-weight:var(--forge-weight-medium); margin-bottom:var(--forge-space-2xs); }
-    input[type=range] { width:100%; accent-color:var(--forge-color-primary); }
-    .value { font-size:var(--forge-text-xs); color:var(--forge-color-text-secondary); }
+    :host { display:block; margin-bottom:var(--forgeui-space-sm); }
+    label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); }
+    input[type=range] { width:100%; accent-color:var(--forgeui-color-primary); }
+    .value { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-text-secondary); }
   `; }
   render() {
     const label = this.getString('label', '');
@@ -674,16 +674,16 @@ export class ForgeSlider extends ForgeElement {
     `;
   }
 }
-customElements.define('forge-slider', ForgeSlider);
+customElements.define('forgeui-slider', ForgeSlider);
 
 export class ForgeFileUpload extends ForgeElement {
   static get styles() { return css`
-    :host { display:block; margin-bottom:var(--forge-space-sm); }
-    label { display:block; font-size:var(--forge-text-sm); font-weight:var(--forge-weight-medium); margin-bottom:var(--forge-space-2xs); }
-    .dropzone { border:2px dashed var(--forge-color-border-strong); border-radius:var(--forge-radius-md);
-      padding:var(--forge-space-xl); text-align:center; cursor:pointer; transition:border-color var(--forge-transition-fast); }
-    .dropzone:hover { border-color:var(--forge-color-primary); }
-    .dropzone p { color:var(--forge-color-text-secondary); font-size:var(--forge-text-sm); }
+    :host { display:block; margin-bottom:var(--forgeui-space-sm); }
+    label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); }
+    .dropzone { border:2px dashed var(--forgeui-color-border-strong); border-radius:var(--forgeui-radius-md);
+      padding:var(--forgeui-space-xl); text-align:center; cursor:pointer; transition:border-color var(--forgeui-transition-fast); }
+    .dropzone:hover { border-color:var(--forgeui-color-primary); }
+    .dropzone p { color:var(--forgeui-color-text-secondary); font-size:var(--forgeui-text-sm); }
   `; }
   render() {
     const label = this.getString('label', 'Upload file');
@@ -700,7 +700,7 @@ export class ForgeFileUpload extends ForgeElement {
     `;
   }
 }
-customElements.define('forge-file-upload', ForgeFileUpload);
+customElements.define('forgeui-file-upload', ForgeFileUpload);
 
 // ═══════════════════════════════════════════════════════════════
 // ACTION (3)
@@ -709,23 +709,23 @@ customElements.define('forge-file-upload', ForgeFileUpload);
 export class ForgeButton extends ForgeElement {
   static get styles() { return css`
     :host { display:inline-flex; }
-    button { display:inline-flex; align-items:center; justify-content:center; gap:var(--forge-space-xs);
-      padding:0 var(--forge-space-md); height:var(--forge-button-height); border:1px solid transparent;
-      border-radius:var(--forge-radius-md); font:inherit; font-size:var(--forge-text-sm); font-weight:var(--forge-weight-medium);
-      cursor:pointer; transition:all var(--forge-transition-fast); white-space:nowrap; }
-    button:focus-visible { outline:2px solid var(--forge-color-primary); outline-offset:2px; }
-    .primary { background:var(--forge-color-primary); color:var(--forge-color-text-inverse); }
-    .primary:hover { background:var(--forge-color-primary-hover); }
-    .secondary { background:transparent; color:var(--forge-color-primary); border-color:var(--forge-color-primary); }
-    .secondary:hover { background:var(--forge-color-primary-subtle); }
-    .ghost { background:transparent; color:var(--forge-color-text-secondary); }
-    .ghost:hover { background:var(--forge-color-surface-hover); color:var(--forge-color-text); }
-    .danger { background:var(--forge-color-error); color:var(--forge-color-text-inverse); }
+    button { display:inline-flex; align-items:center; justify-content:center; gap:var(--forgeui-space-xs);
+      padding:0 var(--forgeui-space-md); height:var(--forgeui-button-height); border:1px solid transparent;
+      border-radius:var(--forgeui-radius-md); font:inherit; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium);
+      cursor:pointer; transition:all var(--forgeui-transition-fast); white-space:nowrap; }
+    button:focus-visible { outline:2px solid var(--forgeui-color-primary); outline-offset:2px; }
+    .primary { background:var(--forgeui-color-primary); color:var(--forgeui-color-text-inverse); }
+    .primary:hover { background:var(--forgeui-color-primary-hover); }
+    .secondary { background:transparent; color:var(--forgeui-color-primary); border-color:var(--forgeui-color-primary); }
+    .secondary:hover { background:var(--forgeui-color-primary-subtle); }
+    .ghost { background:transparent; color:var(--forgeui-color-text-secondary); }
+    .ghost:hover { background:var(--forgeui-color-surface-hover); color:var(--forgeui-color-text); }
+    .danger { background:var(--forgeui-color-error); color:var(--forgeui-color-text-inverse); }
     .danger:hover { opacity:0.9; }
-    .sm { height:2rem; padding:0 var(--forge-space-sm); font-size:var(--forge-text-xs); }
-    .lg { height:3rem; padding:0 var(--forge-space-lg); font-size:var(--forge-text-base); }
+    .sm { height:2rem; padding:0 var(--forgeui-space-sm); font-size:var(--forgeui-text-xs); }
+    .lg { height:3rem; padding:0 var(--forgeui-space-lg); font-size:var(--forgeui-text-base); }
     button:disabled { opacity:0.5; cursor:not-allowed; }
-    button[aria-pressed="true"] { background:var(--forge-color-primary-subtle); color:var(--forge-color-primary); }
+    button[aria-pressed="true"] { background:var(--forgeui-color-primary-subtle); color:var(--forgeui-color-primary); }
     @media (prefers-reduced-motion: reduce) {
       button { transition:none; }
     }
@@ -741,20 +741,20 @@ export class ForgeButton extends ForgeElement {
       @click=${(e: Event) => this.handleAction(e)}>${label}<slot></slot></button>`;
   }
 }
-customElements.define('forge-button', ForgeButton);
+customElements.define('forgeui-button', ForgeButton);
 
 export class ForgeButtonGroup extends ForgeElement {
   static get styles() { return css`
-    :host { display:flex; gap:var(--forge-space-xs); }
+    :host { display:flex; gap:var(--forgeui-space-xs); }
   `; }
   render() { return html`<slot></slot>`; }
 }
-customElements.define('forge-button-group', ForgeButtonGroup);
+customElements.define('forgeui-button-group', ForgeButtonGroup);
 
 export class ForgeLink extends ForgeElement {
   static get styles() { return css`
     :host { display:inline-flex; }
-    a { color:var(--forge-color-primary); text-decoration:none; font-size:var(--forge-text-sm); cursor:pointer; }
+    a { color:var(--forgeui-color-primary); text-decoration:none; font-size:var(--forgeui-text-sm); cursor:pointer; }
     a:hover { text-decoration:underline; }
   `; }
   render() {
@@ -763,7 +763,7 @@ export class ForgeLink extends ForgeElement {
     return html`<a href="${href}">${label}<slot></slot></a>`;
   }
 }
-customElements.define('forge-link', ForgeLink);
+customElements.define('forgeui-link', ForgeLink);
 
 // ═══════════════════════════════════════════════════════════════
 // DATA DISPLAY (4)
@@ -772,30 +772,30 @@ customElements.define('forge-link', ForgeLink);
 export class ForgeTable extends ForgeElement {
   static get styles() { return css`
     :host { display:block; overflow-x:auto; min-width:0; width:100%; }
-    table { width:100%; border-collapse:collapse; font-size:var(--forge-text-sm); }
-    th { text-align:left; padding:var(--forge-space-sm); font-weight:var(--forge-weight-semibold);
-      color:var(--forge-color-text-secondary); border-bottom:2px solid var(--forge-color-border); white-space:nowrap;
-      text-transform:uppercase; letter-spacing:0.03em; font-size:var(--forge-text-xs); }
-    td { padding:var(--forge-space-sm); border-bottom:1px solid var(--forge-color-border); vertical-align:middle; }
+    table { width:100%; border-collapse:collapse; font-size:var(--forgeui-text-sm); }
+    th { text-align:left; padding:var(--forgeui-space-sm); font-weight:var(--forgeui-weight-semibold);
+      color:var(--forgeui-color-text-secondary); border-bottom:2px solid var(--forgeui-color-border); white-space:nowrap;
+      text-transform:uppercase; letter-spacing:0.03em; font-size:var(--forgeui-text-xs); }
+    td { padding:var(--forgeui-space-sm); border-bottom:1px solid var(--forgeui-color-border); vertical-align:middle; }
     tr:last-child td { border-bottom:none; }
-    tbody tr:hover td { background:var(--forge-color-surface-hover); }
-    .empty { padding:var(--forge-space-xl); text-align:center; color:var(--forge-color-text-tertiary); }
-    .badge { display:inline-flex; align-items:center; padding:var(--forge-space-3xs) var(--forge-space-xs);
-      border-radius:var(--forge-radius-full); font-size:var(--forge-text-xs); font-weight:var(--forge-weight-medium);
-      background:var(--forge-color-surface-alt); color:var(--forge-color-text-secondary); }
-    .badge.success { background:var(--forge-color-success-subtle); color:var(--forge-color-success); }
-    .badge.warning { background:var(--forge-color-warning-subtle); color:var(--forge-color-warning); }
-    .badge.error { background:var(--forge-color-error-subtle); color:var(--forge-color-error); }
-    .badge.info, .badge.primary { background:var(--forge-color-primary-subtle); color:var(--forge-color-primary); }
-    .badge.neutral { background:var(--forge-color-surface-alt); color:var(--forge-color-text-secondary); }
+    tbody tr:hover td { background:var(--forgeui-color-surface-hover); }
+    .empty { padding:var(--forgeui-space-xl); text-align:center; color:var(--forgeui-color-text-tertiary); }
+    .badge { display:inline-flex; align-items:center; padding:var(--forgeui-space-3xs) var(--forgeui-space-xs);
+      border-radius:var(--forgeui-radius-full); font-size:var(--forgeui-text-xs); font-weight:var(--forgeui-weight-medium);
+      background:var(--forgeui-color-surface-alt); color:var(--forgeui-color-text-secondary); }
+    .badge.success { background:var(--forgeui-color-success-subtle); color:var(--forgeui-color-success); }
+    .badge.warning { background:var(--forgeui-color-warning-subtle); color:var(--forgeui-color-warning); }
+    .badge.error { background:var(--forgeui-color-error-subtle); color:var(--forgeui-color-error); }
+    .badge.info, .badge.primary { background:var(--forgeui-color-primary-subtle); color:var(--forgeui-color-primary); }
+    .badge.neutral { background:var(--forgeui-color-surface-alt); color:var(--forgeui-color-text-secondary); }
     .align-right { text-align:right; }
     .align-center { text-align:center; }
     .col-right th, .col-right td { text-align:right; }
     .col-center th, .col-center td { text-align:center; }
-    caption { text-align:start; font-size:var(--forge-text-sm); caption-side:top; padding-bottom:var(--forge-space-sm); color:var(--forge-color-text-secondary); }
+    caption { text-align:start; font-size:var(--forgeui-text-sm); caption-side:top; padding-bottom:var(--forgeui-space-sm); color:var(--forgeui-color-text-secondary); }
     .row-action { cursor:pointer; }
-    .row-action:hover td { background:var(--forge-color-surface-hover); }
-    .row-action:focus-visible { outline:2px solid var(--forge-color-primary); outline-offset:-2px; }
+    .row-action:hover td { background:var(--forgeui-color-surface-hover); }
+    .row-action:focus-visible { outline:2px solid var(--forgeui-color-primary); outline-offset:-2px; }
   `; }
   _statusClass(val: unknown): string {
     const s = String(val ?? '').toLowerCase().trim();
@@ -812,7 +812,7 @@ export class ForgeTable extends ForgeElement {
     const key = typeof col === 'string' ? col : col.key;
     const raw = row[key];
     const type = (col && typeof col === 'object') ? col.type : undefined;
-    if (raw === undefined || raw === null || raw === '') return html`<span style="color:var(--forge-color-text-tertiary)">—</span>`;
+    if (raw === undefined || raw === null || raw === '') return html`<span style="color:var(--forgeui-color-text-tertiary)">—</span>`;
     if (type === 'badge' || type === 'status') {
       const variant = (col.variant && typeof col.variant === 'object' ? col.variant[String(raw).toLowerCase()] : null) || this._statusClass(raw);
       return html`<span class="badge ${variant}">${String(raw)}</span>`;
@@ -875,16 +875,16 @@ export class ForgeTable extends ForgeElement {
     `;
   }
 }
-customElements.define('forge-table', ForgeTable);
+customElements.define('forgeui-table', ForgeTable);
 
 export class ForgeList extends ForgeElement {
   static get styles() { return css`
     :host { display:block; }
-    .list { display:flex; flex-direction:column; gap:var(--forge-space-xs); }
-    .item { padding:var(--forge-space-sm); border:1px solid var(--forge-color-border); border-radius:var(--forge-radius-md);
-      display:flex; align-items:center; gap:var(--forge-space-sm); }
-    .item:hover { background:var(--forge-color-surface-hover); }
-    .empty { padding:var(--forge-space-lg); text-align:center; color:var(--forge-color-text-tertiary); font-size:var(--forge-text-sm); }
+    .list { display:flex; flex-direction:column; gap:var(--forgeui-space-xs); }
+    .item { padding:var(--forgeui-space-sm); border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md);
+      display:flex; align-items:center; gap:var(--forgeui-space-sm); }
+    .item:hover { background:var(--forgeui-color-surface-hover); }
+    .empty { padding:var(--forgeui-space-lg); text-align:center; color:var(--forgeui-color-text-tertiary); font-size:var(--forgeui-text-sm); }
   `; }
   render() {
     const data = (this.getProp('data') || []) as any[];
@@ -895,43 +895,43 @@ export class ForgeList extends ForgeElement {
     `)}</div>`;
   }
 }
-customElements.define('forge-list', ForgeList);
+customElements.define('forgeui-list', ForgeList);
 
 export class ForgeChart extends ForgeElement {
   static get styles() { return css`
     :host { display:block; min-width:0; }
-    .title { font-weight:var(--forge-weight-semibold); font-size:var(--forge-text-sm); margin-bottom:var(--forge-space-xs); color:var(--forge-color-text); }
+    .title { font-weight:var(--forgeui-weight-semibold); font-size:var(--forgeui-text-sm); margin-bottom:var(--forgeui-space-xs); color:var(--forgeui-color-text); }
     .wrap { width:100%; }
-    svg { width:100%; height:auto; display:block; font-family:var(--forge-font-family); }
-    .grid { stroke:var(--forge-color-border); stroke-width:1; opacity:0.5; }
-    .axis { stroke:var(--forge-color-border-strong); stroke-width:1; }
-    .tick-label { fill:var(--forge-color-text-tertiary); font-size:10px; }
-    .bar { fill:var(--forge-color-primary); transition:opacity 0.15s; }
+    svg { width:100%; height:auto; display:block; font-family:var(--forgeui-font-family); }
+    .grid { stroke:var(--forgeui-color-border); stroke-width:1; opacity:0.5; }
+    .axis { stroke:var(--forgeui-color-border-strong); stroke-width:1; }
+    .tick-label { fill:var(--forgeui-color-text-tertiary); font-size:10px; }
+    .bar { fill:var(--forgeui-color-primary); transition:opacity 0.15s; }
     .bar:hover { opacity:0.85; }
-    .line { fill:none; stroke:var(--forge-color-primary); stroke-width:2; }
-    .point { fill:var(--forge-color-primary); }
-    .area { fill:var(--forge-color-primary); opacity:0.15; }
-    .slice { stroke:var(--forge-color-surface); stroke-width:2; }
-    .legend { display:flex; flex-wrap:wrap; gap:var(--forge-space-sm); margin-top:var(--forge-space-xs); font-size:var(--forge-text-xs); color:var(--forge-color-text-secondary); }
-    .legend-item { display:inline-flex; align-items:center; gap:var(--forge-space-2xs); }
+    .line { fill:none; stroke:var(--forgeui-color-primary); stroke-width:2; }
+    .point { fill:var(--forgeui-color-primary); }
+    .area { fill:var(--forgeui-color-primary); opacity:0.15; }
+    .slice { stroke:var(--forgeui-color-surface); stroke-width:2; }
+    .legend { display:flex; flex-wrap:wrap; gap:var(--forgeui-space-sm); margin-top:var(--forgeui-space-xs); font-size:var(--forgeui-text-xs); color:var(--forgeui-color-text-secondary); }
+    .legend-item { display:inline-flex; align-items:center; gap:var(--forgeui-space-2xs); }
     .swatch { display:inline-block; width:0.75rem; height:0.75rem; border-radius:2px; }
-    .empty { padding:var(--forge-space-lg); text-align:center; color:var(--forge-color-text-tertiary); font-size:var(--forge-text-sm); }
+    .empty { padding:var(--forgeui-space-lg); text-align:center; color:var(--forgeui-color-text-tertiary); font-size:var(--forgeui-text-sm); }
     @media (prefers-reduced-motion: reduce) {
       .bar { transition:none; }
     }
   `; }
 
   _palette = [
-    'var(--forge-color-primary)',
-    'var(--forge-color-success)',
-    'var(--forge-color-warning)',
-    'var(--forge-color-error)',
-    'var(--forge-color-info)',
-    'var(--forge-color-chart-6)',
-    'var(--forge-color-chart-7)',
-    'var(--forge-color-chart-8)',
-    'var(--forge-color-chart-9)',
-    'var(--forge-color-chart-10)',
+    'var(--forgeui-color-primary)',
+    'var(--forgeui-color-success)',
+    'var(--forgeui-color-warning)',
+    'var(--forgeui-color-error)',
+    'var(--forgeui-color-info)',
+    'var(--forgeui-color-chart-6)',
+    'var(--forgeui-color-chart-7)',
+    'var(--forgeui-color-chart-8)',
+    'var(--forgeui-color-chart-9)',
+    'var(--forgeui-color-chart-10)',
   ];
 
   _niceMax(v: number): number {
@@ -1032,7 +1032,7 @@ export class ForgeChart extends ForgeElement {
         const areaData = chartType === 'area'
           ? pathData + ` L ${margin.left + innerW} ${margin.top + innerH} L ${margin.left} ${margin.top + innerH} Z`
           : '';
-        const lineColor = colorOverride || 'var(--forge-color-primary)';
+        const lineColor = colorOverride || 'var(--forgeui-color-primary)';
         body = html`
           <g .innerHTML=${grid.join('')}></g>
           ${chartType === 'area' ? html`<path class="area" d="${areaData}" style="fill:${lineColor};opacity:0.15"/>` : nothing}
@@ -1056,7 +1056,7 @@ export class ForgeChart extends ForgeElement {
             const x = margin.left + i * bandW + barGap / 2;
             const y = toY(p.value);
             const h = Math.max(0, margin.top + innerH - y);
-            const barColor = p.color || colorOverride || 'var(--forge-color-primary)';
+            const barColor = p.color || colorOverride || 'var(--forgeui-color-primary)';
             return svg`<rect class="bar" x="${x}" y="${y}" width="${barW}" height="${h}" rx="2" style="fill:${barColor}">
                 <title>${p.label}: ${p.value}</title>
               </rect>
@@ -1077,24 +1077,24 @@ export class ForgeChart extends ForgeElement {
     `;
   }
 }
-customElements.define('forge-chart', ForgeChart);
+customElements.define('forgeui-chart', ForgeChart);
 
 export class ForgeMetric extends ForgeElement {
   static get styles() { return css`
-    :host { display:flex; flex-direction:column; padding:var(--forge-space-md); background:var(--forge-color-surface);
-      border:1px solid var(--forge-color-border); border-radius:var(--forge-radius-lg); min-width:0; gap:var(--forge-space-2xs); }
+    :host { display:flex; flex-direction:column; padding:var(--forgeui-space-md); background:var(--forgeui-color-surface);
+      border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-lg); min-width:0; gap:var(--forgeui-space-2xs); }
     :host([variant="plain"]) { background:transparent; border:none; padding:0; }
-    .label { font-size:var(--forge-text-sm); color:var(--forge-color-text-secondary); font-weight:var(--forge-weight-medium); }
-    .value-row { display:flex; align-items:baseline; gap:var(--forge-space-2xs); flex-wrap:wrap; }
-    .value { font-size:var(--forge-text-3xl); font-weight:var(--forge-weight-bold); color:var(--forge-color-text); line-height:1.1; letter-spacing:-0.02em; }
-    .unit, .suffix { font-size:var(--forge-text-base); color:var(--forge-color-text-secondary); font-weight:var(--forge-weight-medium); }
-    .trend { display:inline-flex; align-items:center; gap:var(--forge-space-3xs); font-size:var(--forge-text-sm); font-weight:var(--forge-weight-medium);
-      padding:var(--forge-space-3xs) var(--forge-space-xs); border-radius:var(--forge-radius-sm); }
-    .trend.up { color:var(--forge-color-success); background:var(--forge-color-success-subtle); }
-    .trend.down { color:var(--forge-color-error); background:var(--forge-color-error-subtle); }
-    .trend.neutral { color:var(--forge-color-text-secondary); background:var(--forge-color-surface-alt); }
-    .subtitle { font-size:var(--forge-text-xs); color:var(--forge-color-text-tertiary); }
-    .goal { font-size:var(--forge-text-xs); color:var(--forge-color-text-tertiary); }
+    .label { font-size:var(--forgeui-text-sm); color:var(--forgeui-color-text-secondary); font-weight:var(--forgeui-weight-medium); }
+    .value-row { display:flex; align-items:baseline; gap:var(--forgeui-space-2xs); flex-wrap:wrap; }
+    .value { font-size:var(--forgeui-text-3xl); font-weight:var(--forgeui-weight-bold); color:var(--forgeui-color-text); line-height:1.1; letter-spacing:-0.02em; }
+    .unit, .suffix { font-size:var(--forgeui-text-base); color:var(--forgeui-color-text-secondary); font-weight:var(--forgeui-weight-medium); }
+    .trend { display:inline-flex; align-items:center; gap:var(--forgeui-space-3xs); font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium);
+      padding:var(--forgeui-space-3xs) var(--forgeui-space-xs); border-radius:var(--forgeui-radius-sm); }
+    .trend.up { color:var(--forgeui-color-success); background:var(--forgeui-color-success-subtle); }
+    .trend.down { color:var(--forgeui-color-error); background:var(--forgeui-color-error-subtle); }
+    .trend.neutral { color:var(--forgeui-color-text-secondary); background:var(--forgeui-color-surface-alt); }
+    .subtitle { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-text-tertiary); }
+    .goal { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-text-tertiary); }
   `; }
   _trendMeta(trend: unknown): { dir: 'up' | 'down' | 'neutral'; arrow: string; display: string } | null {
     if (trend === undefined || trend === null || trend === '') return null;
@@ -1147,7 +1147,7 @@ export class ForgeMetric extends ForgeElement {
     `;
   }
 }
-customElements.define('forge-metric', ForgeMetric);
+customElements.define('forgeui-metric', ForgeMetric);
 
 // ═══════════════════════════════════════════════════════════════
 // FEEDBACK (4)
@@ -1155,13 +1155,13 @@ customElements.define('forge-metric', ForgeMetric);
 
 export class ForgeAlert extends ForgeElement {
   static get styles() { return css`
-    :host { display:block; margin-bottom:var(--forge-space-sm); }
-    .alert { padding:var(--forge-space-sm) var(--forge-space-md); border-radius:var(--forge-radius-md);
-      border-left:4px solid; font-size:var(--forge-text-sm); }
-    .info { background:var(--forge-color-info-subtle); border-color:var(--forge-color-info); color:var(--forge-color-info); }
-    .success { background:var(--forge-color-success-subtle); border-color:var(--forge-color-success); color:var(--forge-color-success); }
-    .warning { background:var(--forge-color-warning-subtle); border-color:var(--forge-color-warning); color:var(--forge-color-warning); }
-    .error { background:var(--forge-color-error-subtle); border-color:var(--forge-color-error); color:var(--forge-color-error); }
+    :host { display:block; margin-bottom:var(--forgeui-space-sm); }
+    .alert { padding:var(--forgeui-space-sm) var(--forgeui-space-md); border-radius:var(--forgeui-radius-md);
+      border-left:4px solid; font-size:var(--forgeui-text-sm); }
+    .info { background:var(--forgeui-color-info-subtle); border-color:var(--forgeui-color-info); color:var(--forgeui-color-info); }
+    .success { background:var(--forgeui-color-success-subtle); border-color:var(--forgeui-color-success); color:var(--forgeui-color-success); }
+    .warning { background:var(--forgeui-color-warning-subtle); border-color:var(--forgeui-color-warning); color:var(--forgeui-color-warning); }
+    .error { background:var(--forgeui-color-error-subtle); border-color:var(--forgeui-color-error); color:var(--forgeui-color-error); }
   `; }
   render() {
     const variant = this.getString('variant', 'info');
@@ -1173,18 +1173,18 @@ export class ForgeAlert extends ForgeElement {
     </div>`;
   }
 }
-customElements.define('forge-alert', ForgeAlert);
+customElements.define('forgeui-alert', ForgeAlert);
 
 export class ForgeDialog extends ForgeElement {
   static get styles() { return css`
     :host { display:none; }
     :host([open]) { display:flex; position:fixed; inset:0; z-index:50; align-items:center; justify-content:center; }
     .backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.5); }
-    .dialog { position:relative; background:var(--forge-color-surface); border-radius:var(--forge-radius-lg);
-      padding:var(--forge-space-lg); min-width:20rem; max-width:90vw; max-height:90vh; overflow:auto;
-      box-shadow:var(--forge-shadow-lg); z-index:1; }
-    .title { font-size:var(--forge-text-lg); font-weight:var(--forge-weight-semibold); margin-bottom:var(--forge-space-md); }
-    .actions { display:flex; justify-content:flex-end; gap:var(--forge-space-xs); margin-top:var(--forge-space-lg); }
+    .dialog { position:relative; background:var(--forgeui-color-surface); border-radius:var(--forgeui-radius-lg);
+      padding:var(--forgeui-space-lg); min-width:20rem; max-width:90vw; max-height:90vh; overflow:auto;
+      box-shadow:var(--forgeui-shadow-lg); z-index:1; }
+    .title { font-size:var(--forgeui-text-lg); font-weight:var(--forgeui-weight-semibold); margin-bottom:var(--forgeui-space-md); }
+    .actions { display:flex; justify-content:flex-end; gap:var(--forgeui-space-xs); margin-top:var(--forgeui-space-lg); }
   `; }
 
   private _priorFocus: Element | null = null;
@@ -1304,16 +1304,16 @@ export class ForgeDialog extends ForgeElement {
     this.dispatchAction('close');
   };
 }
-customElements.define('forge-dialog', ForgeDialog);
+customElements.define('forgeui-dialog', ForgeDialog);
 
 export class ForgeProgress extends ForgeElement {
   static get styles() { return css`
     :host { display:block; }
-    .progress { height:0.5rem; background:var(--forge-color-surface-alt); border-radius:var(--forge-radius-full); overflow:hidden; }
-    .bar { height:100%; background:var(--forge-color-primary); border-radius:var(--forge-radius-full); transition:width var(--forge-transition-normal); }
+    .progress { height:0.5rem; background:var(--forgeui-color-surface-alt); border-radius:var(--forgeui-radius-full); overflow:hidden; }
+    .bar { height:100%; background:var(--forgeui-color-primary); border-radius:var(--forgeui-radius-full); transition:width var(--forgeui-transition-normal); }
     .indeterminate .bar { width:30%; animation:indeterminate 1.5s ease infinite; }
     @keyframes indeterminate { 0%{transform:translateX(-100%)} 100%{transform:translateX(400%)} }
-    .label { font-size:var(--forge-text-xs); color:var(--forge-color-text-secondary); margin-top:var(--forge-space-2xs); }
+    .label { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-text-secondary); margin-top:var(--forgeui-space-2xs); }
     @media (prefers-reduced-motion: reduce) {
       .bar { transition:none; animation:none; }
     }
@@ -1338,14 +1338,14 @@ export class ForgeProgress extends ForgeElement {
     `;
   }
 }
-customElements.define('forge-progress', ForgeProgress);
+customElements.define('forgeui-progress', ForgeProgress);
 
 export class ForgeToast extends ForgeElement {
   static get styles() { return css`
-    :host { display:block; position:fixed; bottom:var(--forge-space-lg); right:var(--forge-space-lg); z-index:60; }
-    .toast { padding:var(--forge-space-sm) var(--forge-space-md); border-radius:var(--forge-radius-md);
-      background:var(--forge-color-text); color:var(--forge-color-text-inverse); font-size:var(--forge-text-sm);
-      box-shadow:var(--forge-shadow-lg); max-width:20rem; }
+    :host { display:block; position:fixed; bottom:var(--forgeui-space-lg); right:var(--forgeui-space-lg); z-index:60; }
+    .toast { padding:var(--forgeui-space-sm) var(--forgeui-space-md); border-radius:var(--forgeui-radius-md);
+      background:var(--forgeui-color-text); color:var(--forgeui-color-text-inverse); font-size:var(--forgeui-text-sm);
+      box-shadow:var(--forgeui-shadow-lg); max-width:20rem; }
   `; }
   render() {
     const message = this.getString('message', '');
@@ -1353,7 +1353,7 @@ export class ForgeToast extends ForgeElement {
     return html`<div class="toast">${message}</div>`;
   }
 }
-customElements.define('forge-toast', ForgeToast);
+customElements.define('forgeui-toast', ForgeToast);
 
 // ═══════════════════════════════════════════════════════════════
 // NAVIGATION (2)
@@ -1361,11 +1361,11 @@ customElements.define('forge-toast', ForgeToast);
 
 export class ForgeBreadcrumb extends ForgeElement {
   static get styles() { return css`
-    :host { display:flex; align-items:center; gap:var(--forge-space-xs); font-size:var(--forge-text-sm); }
-    .sep { color:var(--forge-color-text-tertiary); }
-    a { color:var(--forge-color-primary); text-decoration:none; }
+    :host { display:flex; align-items:center; gap:var(--forgeui-space-xs); font-size:var(--forgeui-text-sm); }
+    .sep { color:var(--forgeui-color-text-tertiary); }
+    a { color:var(--forgeui-color-primary); text-decoration:none; }
     a:hover { text-decoration:underline; }
-    .current { color:var(--forge-color-text); font-weight:var(--forge-weight-medium); }
+    .current { color:var(--forgeui-color-text); font-weight:var(--forgeui-weight-medium); }
   `; }
   render() {
     const items = (this.getProp('items') || []) as any[];
@@ -1380,7 +1380,7 @@ export class ForgeBreadcrumb extends ForgeElement {
     })}`;
   }
 }
-customElements.define('forge-breadcrumb', ForgeBreadcrumb);
+customElements.define('forgeui-breadcrumb', ForgeBreadcrumb);
 
 export class ForgeStepper extends ForgeElement {
   static get styles() { return css`
@@ -1389,17 +1389,17 @@ export class ForgeStepper extends ForgeElement {
     /* Connector line: starts from after circle midpoint, ends at the next step's circle midpoint */
     .step:not(:last-child)::after { content:''; position:absolute; top:0.75rem;
       left:calc(50% + 0.875rem); right:calc(-50% + 0.875rem); height:2px;
-      background:var(--forge-color-border); z-index:0; }
-    .step:not(:last-child)[completed]::after { background:var(--forge-color-primary); }
-    .circle { width:1.75rem; height:1.75rem; border-radius:var(--forge-radius-full); display:flex; align-items:center;
-      justify-content:center; font-size:var(--forge-text-xs); font-weight:var(--forge-weight-semibold);
-      background:var(--forge-color-surface); color:var(--forge-color-text-secondary); border:2px solid var(--forge-color-border); z-index:1;
+      background:var(--forgeui-color-border); z-index:0; }
+    .step:not(:last-child)[completed]::after { background:var(--forgeui-color-primary); }
+    .circle { width:1.75rem; height:1.75rem; border-radius:var(--forgeui-radius-full); display:flex; align-items:center;
+      justify-content:center; font-size:var(--forgeui-text-xs); font-weight:var(--forgeui-weight-semibold);
+      background:var(--forgeui-color-surface); color:var(--forgeui-color-text-secondary); border:2px solid var(--forgeui-color-border); z-index:1;
       box-sizing:border-box; position:relative; }
-    .step[active] .circle { background:var(--forge-color-primary); color:var(--forge-color-text-inverse); border-color:var(--forge-color-primary); }
-    .step[completed] .circle { background:var(--forge-color-primary); color:var(--forge-color-text-inverse); border-color:var(--forge-color-primary); }
-    .label { font-size:var(--forge-text-xs); color:var(--forge-color-text-secondary); margin-top:var(--forge-space-xs); text-align:center; padding:0 var(--forge-space-2xs); }
-    .step[active] .label { color:var(--forge-color-text); font-weight:var(--forge-weight-semibold); }
-    .step[completed] .label { color:var(--forge-color-text); }
+    .step[active] .circle { background:var(--forgeui-color-primary); color:var(--forgeui-color-text-inverse); border-color:var(--forgeui-color-primary); }
+    .step[completed] .circle { background:var(--forgeui-color-primary); color:var(--forgeui-color-text-inverse); border-color:var(--forgeui-color-primary); }
+    .label { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-text-secondary); margin-top:var(--forgeui-space-xs); text-align:center; padding:0 var(--forgeui-space-2xs); }
+    .step[active] .label { color:var(--forgeui-color-text); font-weight:var(--forgeui-weight-semibold); }
+    .step[completed] .label { color:var(--forgeui-color-text); }
   `; }
   render() {
     const steps = (this.getProp('steps') || []) as any[];
@@ -1415,21 +1415,21 @@ export class ForgeStepper extends ForgeElement {
     })}`;
   }
 }
-customElements.define('forge-stepper', ForgeStepper);
+customElements.define('forgeui-stepper', ForgeStepper);
 
 // Error component for unknown/missing types
 export class ForgeError extends ForgeElement {
   static get styles() { return css`
     :host { display:block; }
-    .error { padding:var(--forge-space-sm); background:var(--forge-color-error-subtle); color:var(--forge-color-error);
-      border:1px solid var(--forge-color-error); border-radius:var(--forge-radius-md); font-size:var(--forge-text-sm); }
+    .error { padding:var(--forgeui-space-sm); background:var(--forgeui-color-error-subtle); color:var(--forgeui-color-error);
+      border:1px solid var(--forgeui-color-error); border-radius:var(--forgeui-radius-md); font-size:var(--forgeui-text-sm); }
   `; }
   render() {
     const msg = this.getString('msg', 'Unknown error');
     return html`<div class="error" role="alert">⚠ ${msg}</div>`;
   }
 }
-customElements.define('forge-error', ForgeError);
+customElements.define('forgeui-error', ForgeError);
 
 // ═══════════════════════════════════════════════════════════════
 // DRAWING (1)
@@ -1535,4 +1535,4 @@ export class ForgeDrawing extends ForgeElement {
     }
   }
 }
-customElements.define('forge-drawing', ForgeDrawing);
+customElements.define('forgeui-drawing', ForgeDrawing);

@@ -23,18 +23,18 @@ a single quote in the value breaks containment.
 For the historically-vulnerable single-quoted attribute form:
 
 ```html
-<forge-app manifest='{"id":"test-app","meta":{"title":"x' onmouseover='alert(1)"}}' surface="standalone"></forge-app>
+<forgeui-app manifest='{"id":"test-app","meta":{"title":"x' onmouseover='alert(1)"}}' surface="standalone"></forgeui-app>
 ```
 
 After the browser parses this, the attribute value ends at the unescaped `'`
 and the remainder `onmouseover='alert(1)'` is interpreted as a separate
-attribute on the `<forge-app>` element — attacker-controlled markup.
+attribute on the `<forgeui-app>` element — attacker-controlled markup.
 
 ## Why the HTML is attacker-controlled
 
 The single quote in the manifest's title field closes the `manifest='`
 attribute boundary, allowing arbitrary HTML attributes to be injected into the
-`<forge-app>` element and, depending on the component's rendering, potentially
+`<forgeui-app>` element and, depending on the component's rendering, potentially
 leading to XSS.
 
 Even with the current double-quoted attribute form, the approach of embedding

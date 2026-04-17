@@ -4,13 +4,13 @@
 
 ```bash
 npm install @forgeui/server
-npx forge-server --port 3000 --db ./apps.db
+npx forgeui-server --port 3000 --db ./apps.db
 ```
 
 Or if `@forgeui/server` is installed globally:
 
 ```bash
-forge-server --port 3000 --db ./apps.db
+forgeui-server --port 3000 --db ./apps.db
 ```
 
 App at `http://localhost:3000/apps/<id>`, API at `http://localhost:3000/api/apps`.
@@ -24,18 +24,18 @@ FROM node:20-slim
 WORKDIR /app
 RUN npm install -g @forgeui/server
 EXPOSE 3000
-CMD ["forge-server", "--port", "3000", "--db", "/data/apps.db"]
+CMD ["forgeui-server", "--port", "3000", "--db", "/data/apps.db"]
 ```
 
 ```bash
-docker build -t forge-server .
-docker run -p 3000:3000 -v forge-data:/data forge-server
+docker build -t forgeui-server .
+docker run -p 3000:3000 -v forgeui-data:/data forgeui-server
 ```
 
 ## Systemd Service
 
 ```ini
-# /etc/systemd/system/forge-server.service
+# /etc/systemd/system/forgeui-server.service
 [Unit]
 Description=Forge App Server
 After=network.target
@@ -44,7 +44,7 @@ After=network.target
 Type=simple
 User=forge
 WorkingDirectory=/opt/forge
-ExecStart=/usr/bin/npx forge-server --port 3000 --db /opt/forge/apps.db
+ExecStart=/usr/bin/npx forgeui-server --port 3000 --db /opt/forge/apps.db
 Restart=always
 RestartSec=5
 
@@ -53,7 +53,7 @@ WantedBy=multi-user.target
 ```
 
 ```bash
-sudo systemctl enable --now forge-server
+sudo systemctl enable --now forgeui-server
 ```
 
 ## Reverse Proxy (nginx)
@@ -86,7 +86,7 @@ Set `FORGEUI_TRUST_PROXY=1` so the server honors `X-Forwarded-For` / `X-Real-IP`
 | `FORGEUI_RATE_LIMIT_DISABLE` | *(unset)* | Set to `1` to disable rate limiting entirely. |
 | `FORGEUI_API_TOKEN` | *(unset)* | Bearer token for `/api/apps/*` write operations (POST, PUT, PATCH, DELETE). **Required in production** — if `NODE_ENV=production` and this is unset, the server logs a warning and rejects all writes with 401. |
 | `FORGEUI_RUNTIME_PATH` | *(auto)* | Override path for `/runtime/forge.js`. By default the server resolves from its own location or walks up to `dist/forge.js`. |
-| `FORGEUI_STANDALONE_PATH` | *(auto)* | Override path for `/runtime/forge-standalone.js`. |
+| `FORGEUI_STANDALONE_PATH` | *(auto)* | Override path for `/runtime/forgeui-standalone.js`. |
 | `NODE_ENV` | *(unset)* | When set to `production`, enforces `FORGEUI_API_TOKEN`. |
 
 Port, host, and database path are set via CLI flags (`--port`, `--host`, `--db`), not environment variables.
@@ -114,7 +114,7 @@ Cache-Control: public, max-age=3600
 
 ```html
 <!-- Drop this anywhere -->
-<forge-app id="my-widget"></forge-app>
+<forgeui-app id="my-widget"></forgeui-app>
 <script type="module" src="https://cdn.example.com/forge.js"></script>
 <script>
   document.getElementById('my-widget').manifest = { /* your manifest */ };
@@ -137,7 +137,7 @@ The runtime detects its embedding context:
 - **iframe** → constrained to iframe dimensions
 - **Chat artifact** → compact, responsive layout
 
-No configuration needed — the `<forge-app>` custom element adapts automatically.
+No configuration needed — the `<forgeui-app>` custom element adapts automatically.
 
 ## Monitoring
 

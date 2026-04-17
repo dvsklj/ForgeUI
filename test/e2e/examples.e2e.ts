@@ -21,7 +21,7 @@ for (const file of exampleFiles) {
       (window as any).loadManifest(m);
     }, manifest);
 
-    // Wait for the forge-app to render something in its shadow root or light DOM
+    // Wait for the forgeui-app to render something in its shadow root or light DOM
     await page.waitForFunction(() => {
       const app = document.getElementById('app');
       if (!app) return false;

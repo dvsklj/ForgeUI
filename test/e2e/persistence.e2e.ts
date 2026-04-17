@@ -42,13 +42,13 @@ test.describe('Ring 0 — ephemeral', () => {
     await page.evaluate((m) => { (window as any).loadManifest(m); }, counterManifest);
     await page.waitForFunction(() => {
       const app = document.getElementById('app');
-      return app?.shadowRoot?.querySelector('forge-text') || app?.querySelector('forge-text');
+      return app?.shadowRoot?.querySelector('forgeui-text') || app?.querySelector('forgeui-text');
     }, { timeout: 10000 });
 
     // Set state to 42 via store directly
     await page.evaluate(() => {
       const app = document.getElementById('app') as any;
-      const textEl = app?.shadowRoot?.querySelector('forge-text');
+      const textEl = app?.shadowRoot?.querySelector('forgeui-text');
       const store = textEl?.store;
       if (store) store.setValue('count', 42);
     });
@@ -57,7 +57,7 @@ test.describe('Ring 0 — ephemeral', () => {
     // Verify it was set
     const beforeReload = await page.evaluate(() => {
       const app = document.getElementById('app') as any;
-      const textEl = app?.shadowRoot?.querySelector('forge-text');
+      const textEl = app?.shadowRoot?.querySelector('forgeui-text');
       return textEl?.store?.getValue?.('count');
     });
     expect(beforeReload).toBe(42);
@@ -68,13 +68,13 @@ test.describe('Ring 0 — ephemeral', () => {
     await page.evaluate((m) => { (window as any).loadManifest(m); }, counterManifest);
     await page.waitForFunction(() => {
       const app = document.getElementById('app');
-      return app?.shadowRoot?.querySelector('forge-text') || app?.querySelector('forge-text');
+      return app?.shadowRoot?.querySelector('forgeui-text') || app?.querySelector('forgeui-text');
     }, { timeout: 10000 });
 
     // State should be back to initial value (0) — ephemeral, no persistence
     const afterReload = await page.evaluate(() => {
       const app = document.getElementById('app') as any;
-      const textEl = app?.shadowRoot?.querySelector('forge-text');
+      const textEl = app?.shadowRoot?.querySelector('forgeui-text');
       return textEl?.store?.getValue?.('count');
     });
     expect(afterReload).toBe(0);
@@ -111,7 +111,7 @@ test.describe('Ring 1 — IndexedDB', () => {
     await page.evaluate((m) => { (window as any).loadManifest(m); }, counterManifest);
     await page.waitForFunction(() => {
       const app = document.getElementById('app');
-      return app?.shadowRoot?.querySelector('forge-text') || app?.querySelector('forge-text');
+      return app?.shadowRoot?.querySelector('forgeui-text') || app?.querySelector('forgeui-text');
     }, { timeout: 10000 });
     await page.waitForTimeout(2000);
 
@@ -126,7 +126,7 @@ test.describe('Ring 1 — IndexedDB', () => {
     // Set state to 77 via store
     await page.evaluate(() => {
       const app = document.getElementById('app') as any;
-      const textEl = app?.shadowRoot?.querySelector('forge-text');
+      const textEl = app?.shadowRoot?.querySelector('forgeui-text');
       const store = textEl?.store;
       if (store) store.setValue('count', 77);
     });
@@ -139,7 +139,7 @@ test.describe('Ring 1 — IndexedDB', () => {
     await page.evaluate((m) => { (window as any).loadManifest(m); }, counterManifest);
     await page.waitForFunction(() => {
       const app = document.getElementById('app');
-      return app?.shadowRoot?.querySelector('forge-text') || app?.querySelector('forge-text');
+      return app?.shadowRoot?.querySelector('forgeui-text') || app?.querySelector('forgeui-text');
     }, { timeout: 10000 });
 
     // Wait for IndexedDB load + store hydration + re-render
@@ -148,7 +148,7 @@ test.describe('Ring 1 — IndexedDB', () => {
     // Rendered text should reflect persisted value (77), not initial (0)
     const renderedText = await page.evaluate(() => {
       const app = document.getElementById('app');
-      const textEl = app?.shadowRoot?.querySelector('forge-text');
+      const textEl = app?.shadowRoot?.querySelector('forgeui-text');
       return textEl?.shadowRoot?.textContent?.trim() || textEl?.textContent?.trim() || '';
     });
     expect(renderedText).toContain('77');
@@ -203,8 +203,8 @@ test.describe('Ring 2 — server', () => {
   }
 
   test('API round-trip: create, read, patch, reload', async () => {
-    const dbPath = `/tmp/forge-e2e-ring2-${Date.now()}.db`;
-    const scriptPath = `/tmp/forge-e2e-server-${Date.now()}.mts`;
+    const dbPath = `/tmp/forgeui-e2e-ring2-${Date.now()}.db`;
+    const scriptPath = `/tmp/forgeui-e2e-server-${Date.now()}.mts`;
     let serverProc: any;
 
     try {

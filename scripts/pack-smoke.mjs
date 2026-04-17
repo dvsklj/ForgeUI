@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 
 const ROOT = resolve(fileURLToPath(import.meta.url), '..', '..');
-const PACK_DIR = join(tmpdir(), 'forge-pack');
+const PACK_DIR = join(tmpdir(), 'forgeui-pack');
 const KEEP = process.argv.includes('--keep');
 
 // ─── Helpers ────────────────────────────────────────────────
@@ -307,11 +307,11 @@ if (runtimeMain.ok) {
 // Import components (side-effect)
 const runtimeComponents = smokeRun('smoke-runtime-components.mjs', `
 import '@forgeui/runtime/components';
-// The components bundle registers individual elements (forge-stack, forge-text, etc.)
-// but NOT forge-app (that's in the main/standalone bundle).
+// The components bundle registers individual elements (forgeui-stack, forgeui-text, etc.)
+// but NOT forgeui-app (that's in the main/standalone bundle).
 // Check for a representative component.
-const ctor = customElements.get('forge-text');
-console.log('forge-text registered:', typeof ctor === 'function');
+const ctor = customElements.get('forgeui-text');
+console.log('forgeui-text registered:', typeof ctor === 'function');
 console.log('OK');
 `);
 if (runtimeComponents.ok) {
@@ -368,21 +368,21 @@ if (serverImport.ok) {
   smokeFindings.push('@forgeui/server: import failed');
 }
 
-// Bin: forge-server
-console.log('\n  Testing bin: forge-server...');
-const forgeServerBin = join(scratchDir, 'node_modules/.bin/forge-server');
+// Bin: forgeui-server
+console.log('\n  Testing bin: forgeui-server...');
+const forgeServerBin = join(scratchDir, 'node_modules/.bin/forgeui-server');
 if (existsSync(forgeServerBin)) {
   const binResult = await spawnAndSend(forgeServerBin, ['--port', '0', '--db', ':memory:'], null, 8000);
   if (binResult.stdout.includes('listening') || binResult.stdout.includes('Forge') || binResult.stderr.includes('listening')) {
-    console.log(`  ✅ forge-server bin boots`);
+    console.log(`  ✅ forgeui-server bin boots`);
   } else {
-    console.log(`  ⚠️  forge-server bin output unclear`);
+    console.log(`  ⚠️  forgeui-server bin output unclear`);
     console.log(`     stdout: ${binResult.stdout.slice(0, 200)}`);
     console.log(`     stderr: ${binResult.stderr.slice(0, 200)}`);
   }
 } else {
-  console.log(`  ❌ forge-server bin not found`);
-  smokeFindings.push('@forgeui/server: bin/forge-server not found');
+  console.log(`  ❌ forgeui-server bin not found`);
+  smokeFindings.push('@forgeui/server: bin/forgeui-server not found');
 }
 
 // Bin: forge
@@ -409,7 +409,7 @@ if (existsSync(forgeBin)) {
 // ── @forgeui/connect ──
 console.log('\n  ── @forgeui/connect ──');
 
-const connectBin = join(scratchDir, 'node_modules/.bin/forge-connect');
+const connectBin = join(scratchDir, 'node_modules/.bin/forgeui-connect');
 if (existsSync(connectBin)) {
   // Send MCP initialize request
   const mcpInit = JSON.stringify({
@@ -425,21 +425,21 @@ if (existsSync(connectBin)) {
 
   const connectResult = await spawnAndSend('node', [connectBin], mcpInit, 10_000);
   if (connectResult.stdout.includes('jsonrpc') || connectResult.stdout.includes('protocolVersion')) {
-    console.log(`  ✅ forge-connect bin speaks MCP protocol`);
+    console.log(`  ✅ forgeui-connect bin speaks MCP protocol`);
     console.log(`     Response: ${connectResult.stdout.slice(0, 200)}`);
   } else if (connectResult.stdout.length > 0) {
-    console.log(`  ⚠️  forge-connect produced output but not valid MCP`);
+    console.log(`  ⚠️  forgeui-connect produced output but not valid MCP`);
     console.log(`     stdout: ${connectResult.stdout.slice(0, 300)}`);
     console.log(`     stderr: ${connectResult.stderr.slice(0, 300)}`);
     smokeFindings.push('@forgeui/connect: MCP handshake unclear');
   } else {
-    console.log(`  ❌ forge-connect produced no output`);
+    console.log(`  ❌ forgeui-connect produced no output`);
     console.log(`     stderr: ${connectResult.stderr.slice(0, 300)}`);
     smokeFindings.push('@forgeui/connect: no MCP output');
   }
 } else {
-  console.log(`  ❌ forge-connect bin not found`);
-  smokeFindings.push('@forgeui/connect: bin/forge-connect not found');
+  console.log(`  ❌ forgeui-connect bin not found`);
+  smokeFindings.push('@forgeui/connect: bin/forgeui-connect not found');
 }
 
 // ── @forgeui/catalog ──

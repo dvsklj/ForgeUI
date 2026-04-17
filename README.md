@@ -25,7 +25,7 @@ Drop one script tag, assign a manifest, done.
 <html lang="en">
   <head><meta charset="UTF-8"><title>Hello Forge</title></head>
   <body>
-    <forge-app id="app"></forge-app>
+    <forgeui-app id="app"></forgeui-app>
 
     <script src="https://unpkg.com/@forgeui/runtime/forge.js"></script>
     <script>
@@ -120,7 +120,7 @@ For hosting LLM-generated apps as real URLs, backed by SQLite.
 
 ```bash
 npm install @forgeui/server
-npx forge-server --port 3000 --db ./apps.db
+npx forgeui-server --port 3000 --db ./apps.db
 ```
 
 The server exposes a REST CRUD API at `/api/apps/:id`, hosts the runtime at `/runtime/forge.js`, and serves each stored app at `/apps/:id`. See [`docs/api-reference.md`](docs/api-reference.md) for the full surface and [`docs/deployment.md`](docs/deployment.md) for deploy recipes (Docker, systemd, nginx, Cloudflare Workers).
@@ -148,7 +148,7 @@ const manifest = JSON.parse(extractManifest(llmOutput));
 const { valid, errors } = validateManifest(manifest);
 
 if (valid) {
-  document.querySelector('forge-app').manifest = manifest;
+  document.querySelector('forgeui-app').manifest = manifest;
 }
 ```
 

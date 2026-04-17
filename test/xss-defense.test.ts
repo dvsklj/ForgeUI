@@ -20,8 +20,8 @@ describe('renderAppPage XSS defense', () => {
     const res = await app.request('/apps/xss-structural-test');
     const html = await res.text();
     expect(res.status).toBe(200);
-    expect(html).toMatch(/<script[^>]*type="application\/json"[^>]*id="forge-manifest-data"/);
-    expect(html).not.toMatch(/<forge-app[^>]*manifest=['"]/);
+    expect(html).toMatch(/<script[^>]*type="application\/json"[^>]*id="forgeui-manifest-data"/);
+    expect(html).not.toMatch(/<forgeui-app[^>]*manifest=['"]/);
   });
 
   it('escapes </script> sequences inside the manifest JSON payload', async () => {

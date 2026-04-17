@@ -174,19 +174,19 @@ export declare function isRef(value: unknown): value is Ref;
 export type SurfaceMode = 'chat' | 'standalone' | 'embed';
 /** Custom event names used by Forge */
 export interface ForgeEvents {
-    'forge-action': CustomEvent<{
+    'forgeui-action': CustomEvent<{
         action: string;
         payload?: Record<string, unknown>;
     }>;
-    'forge-state-change': CustomEvent<{
+    'forgeui-state-change': CustomEvent<{
         path: string;
         value: unknown;
     }>;
-    'forge-error': CustomEvent<{
+    'forgeui-error': CustomEvent<{
         message: string;
         element?: string;
     }>;
-    'forge-ready': CustomEvent<{
+    'forgeui-ready': CustomEvent<{
         appId: string;
     }>;
 }

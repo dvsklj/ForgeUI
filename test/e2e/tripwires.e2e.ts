@@ -69,7 +69,7 @@ test('nested {{ {{ x }} }} renders without throwing', async ({ page }) => {
 
   await page.waitForFunction(() => {
     const app = document.getElementById('app');
-    return app?.shadowRoot?.querySelector('forge-text') || app?.querySelector('forge-text');
+    return app?.shadowRoot?.querySelector('forgeui-text') || app?.querySelector('forgeui-text');
   }, { timeout: 10000 });
 
   // Should not throw — output is literal text or defined behavior
@@ -122,5 +122,5 @@ test('2000-char $expr: expression is rejected, does not hang', async ({ page }) 
 
   // It should either render with an error fallback or render empty —
   // the key assertion is it didn't hang and didn't crash
-  // console errors from <forge-error> fallback are acceptable
+  // console errors from <forgeui-error> fallback are acceptable
 });

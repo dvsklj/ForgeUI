@@ -103,12 +103,12 @@ export class ForgeElement extends LitElement {
 
   // ─── Action helpers ──────────────────────────────────────────
 
-  /** Dispatch a forge-action event */
+  /** Dispatch a forgeui-action event */
   protected dispatchAction(actionId: string, payload?: Record<string, unknown>) {
     if (this.onAction) {
       this.onAction(actionId, payload);
     }
-    this.dispatchEvent(new CustomEvent('forge-action', {
+    this.dispatchEvent(new CustomEvent('forgeui-action', {
       detail: { action: actionId, payload },
       bubbles: true,
       composed: true,
@@ -140,23 +140,23 @@ export class ForgeElement extends LitElement {
     const tokenMap: Record<string, string> = {
       'none': '0',
       '0': '0',
-      '3xs': 'var(--forge-space-3xs)',
-      '2xs': 'var(--forge-space-2xs)',
-      'xs': 'var(--forge-space-xs)',
-      'sm': 'var(--forge-space-sm)',
-      'md': 'var(--forge-space-md)',
-      'lg': 'var(--forge-space-lg)',
-      'xl': 'var(--forge-space-xl)',
-      '2xl': 'var(--forge-space-2xl)',
+      '3xs': 'var(--forgeui-space-3xs)',
+      '2xs': 'var(--forgeui-space-2xs)',
+      'xs': 'var(--forgeui-space-xs)',
+      'sm': 'var(--forgeui-space-sm)',
+      'md': 'var(--forgeui-space-md)',
+      'lg': 'var(--forgeui-space-lg)',
+      'xl': 'var(--forgeui-space-xl)',
+      '2xl': 'var(--forgeui-space-2xl)',
     };
-    if (gap === undefined || gap === null || gap === '') return 'var(--forge-space-md)';
+    if (gap === undefined || gap === null || gap === '') return 'var(--forgeui-space-md)';
     const key = String(gap);
     if (key in tokenMap) return tokenMap[key];
     // Numeric — treat as px
     if (/^\d+(\.\d+)?$/.test(key)) return `${key}px`;
     // Pass-through CSS length values (rem, px, em, %, etc.)
     if (/^\d+(\.\d+)?(px|rem|em|%|vw|vh|ch)$/.test(key)) return key;
-    return 'var(--forge-space-md)';
+    return 'var(--forgeui-space-md)';
   }
 
   // ─── Common styles ───────────────────────────────────────────

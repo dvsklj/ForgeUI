@@ -1,7 +1,7 @@
 /**
  * ForgeApp — The core web component entry point
  *
- * <forge-app manifest='...' surface='chat|standalone|embed' color-scheme='light|dark'></forge-app>
+ * <forgeui-app manifest='...' surface='chat|standalone|embed' color-scheme='light|dark'></forgeui-app>
  *
  * Creates a TinyBase store, validates the manifest, and renders the element tree.
  */
@@ -71,7 +71,7 @@ export declare class ForgeApp extends LitElement {
 }
 declare global {
     interface HTMLElementTagNameMap {
-        'forge-app': ForgeApp;
+        'forgeui-app': ForgeApp;
     }
 }
 //# sourceMappingURL=index.d.ts.map
