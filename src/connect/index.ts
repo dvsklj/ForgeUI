@@ -1,5 +1,5 @@
 /**
- * @forgeui/connect — MCP Server
+ * @nedast/forgeui-connect — MCP Server
  *
  * Provides MCP tools for LLM agents to create, update, and query Forge apps.
  *

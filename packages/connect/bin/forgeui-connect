@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @forgeui/connect MCP server entry point
+// @nedast/forgeui-connect MCP server entry point
 import { createRequire } from 'module';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';

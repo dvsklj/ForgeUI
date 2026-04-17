@@ -50,7 +50,7 @@ function section(title) {
 
 // ─── Step 1: Discover packages ─────────────────────────────
 
-section('1. Discover @forgeui/* packages');
+section('1. Discover @nedast/forgeui-* packages');
 
 const packagesDir = join(ROOT, 'packages');
 const pkgDirs = readdirSync(packagesDir)
@@ -59,7 +59,7 @@ const pkgDirs = readdirSync(packagesDir)
     const pj = join(d, 'package.json');
     if (!existsSync(pj)) return false;
     const pkg = JSON.parse(readFileSync(pj, 'utf8'));
-    return pkg.name?.startsWith('@forgeui/') && !pkg.private;
+    return pkg.name?.startsWith('@nedast/forgeui-') && !pkg.private;
   });
 
 const packages = pkgDirs.map(dir => {
@@ -218,7 +218,7 @@ if (installResult.status !== 0) {
   throw new Error('npm install failed');
 }
 
-// Install peer dependencies for @forgeui/runtime (lit, tinybase, ajv)
+// Install peer dependencies for @nedast/forgeui-runtime (lit, tinybase, ajv)
 console.log('  Installing peer dependencies...');
 const peerResult = run('npm install lit tinybase ajv', { cwd: scratchDir, timeout: 120_000 });
 if (peerResult.status !== 0) {
@@ -284,29 +284,29 @@ function spawnAndSend(cmd, args, input, timeout = 15_000) {
   });
 }
 
-// ── @forgeui/runtime ──
-console.log('\n  ── @forgeui/runtime ──');
+// ── @nedast/forgeui-runtime ──
+console.log('\n  ── @nedast/forgeui-runtime ──');
 
 // Import main entrypoint
 const runtimeMain = smokeRun('smoke-runtime-main.mjs', `
-import { ForgeUIApp, validateManifest, createForgeUIStore } from '@forgeui/runtime';
+import { ForgeUIApp, validateManifest, createForgeUIStore } from '@nedast/forgeui-runtime';
 console.log('ForgeUIApp:', typeof ForgeUIApp);
 console.log('validateManifest:', typeof validateManifest);
 console.log('createForgeUIStore:', typeof createForgeUIStore);
 console.log('OK');
 `);
 if (runtimeMain.ok) {
-  console.log(`  ✅ import { ForgeUIApp, validateManifest, createForgeUIStore } from '@forgeui/runtime'`);
+  console.log(`  ✅ import { ForgeUIApp, validateManifest, createForgeUIStore } from '@nedast/forgeui-runtime'`);
   console.log(`     ${runtimeMain.stdout.replace(/\n/g, '; ')}`);
 } else {
-  console.log(`  ❌ import from '@forgeui/runtime' FAILED`);
+  console.log(`  ❌ import from '@nedast/forgeui-runtime' FAILED`);
   console.log(`     stderr: ${runtimeMain.stderr.slice(0, 300)}`);
-  smokeFindings.push('@forgeui/runtime: main import failed');
+  smokeFindings.push('@nedast/forgeui-runtime: main import failed');
 }
 
 // Import components (side-effect)
 const runtimeComponents = smokeRun('smoke-runtime-components.mjs', `
-import '@forgeui/runtime/components';
+import '@nedast/forgeui-runtime/components';
 // The components bundle registers individual elements (forgeui-stack, forgeui-text, etc.)
 // but NOT forgeui-app (that's in the main/standalone bundle).
 // Check for a representative component.
@@ -315,35 +315,35 @@ console.log('forgeui-text registered:', typeof ctor === 'function');
 console.log('OK');
 `);
 if (runtimeComponents.ok) {
-  console.log(`  ✅ import '@forgeui/runtime/components' — custom elements registered`);
+  console.log(`  ✅ import '@nedast/forgeui-runtime/components' — custom elements registered`);
   console.log(`     ${runtimeComponents.stdout.replace(/\n/g, '; ')}`);
 } else {
-  console.log(`  ❌ import '@forgeui/runtime/components' FAILED`);
+  console.log(`  ❌ import '@nedast/forgeui-runtime/components' FAILED`);
   console.log(`     stderr: ${runtimeComponents.stderr.slice(0, 300)}`);
-  smokeFindings.push('@forgeui/runtime: components import failed');
+  smokeFindings.push('@nedast/forgeui-runtime: components import failed');
 }
 
 // Import standalone
 const runtimeStandalone = smokeRun('smoke-runtime-standalone.mjs', `
-import { ForgeUIApp } from '@forgeui/runtime/standalone';
+import { ForgeUIApp } from '@nedast/forgeui-runtime/standalone';
 console.log('ForgeUIApp:', typeof ForgeUIApp);
 console.log('OK');
 `);
 if (runtimeStandalone.ok) {
-  console.log(`  ✅ import { ForgeUIApp } from '@forgeui/runtime/standalone'`);
+  console.log(`  ✅ import { ForgeUIApp } from '@nedast/forgeui-runtime/standalone'`);
   console.log(`     ${runtimeStandalone.stdout.replace(/\n/g, '; ')}`);
 } else {
-  console.log(`  ❌ import from '@forgeui/runtime/standalone' FAILED`);
+  console.log(`  ❌ import from '@nedast/forgeui-runtime/standalone' FAILED`);
   console.log(`     stderr: ${runtimeStandalone.stderr.slice(0, 300)}`);
-  smokeFindings.push('@forgeui/runtime: standalone import failed');
+  smokeFindings.push('@nedast/forgeui-runtime: standalone import failed');
 }
 
-// ── @forgeui/server ──
-console.log('\n  ── @forgeui/server ──');
+// ── @nedast/forgeui-server ──
+console.log('\n  ── @nedast/forgeui-server ──');
 
 // Import createForgeUIServer
 const serverImport = smokeRun('smoke-server-import.mjs', `
-import { createForgeUIServer } from '@forgeui/server';
+import { createForgeUIServer } from '@nedast/forgeui-server';
 console.log('createForgeUIServer:', typeof createForgeUIServer);
 
 // Start on a specific port
@@ -360,12 +360,12 @@ server.stop();
 console.log('OK');
 `);
 if (serverImport.ok) {
-  console.log(`  ✅ import { createForgeUIServer } from '@forgeui/server'`);
+  console.log(`  ✅ import { createForgeUIServer } from '@nedast/forgeui-server'`);
   console.log(`     ${serverImport.stdout.replace(/\n/g, '; ')}`);
 } else {
-  console.log(`  ❌ import from '@forgeui/server' FAILED`);
+  console.log(`  ❌ import from '@nedast/forgeui-server' FAILED`);
   console.log(`     stderr: ${serverImport.stderr.slice(0, 500)}`);
-  smokeFindings.push('@forgeui/server: import failed');
+  smokeFindings.push('@nedast/forgeui-server: import failed');
 }
 
 // Bin: forgeui-server
@@ -382,7 +382,7 @@ if (existsSync(forgeServerBin)) {
   }
 } else {
   console.log(`  ❌ forgeui-server bin not found`);
-  smokeFindings.push('@forgeui/server: bin/forgeui-server not found');
+  smokeFindings.push('@nedast/forgeui-server: bin/forgeui-server not found');
 }
 
 // Bin: forge
@@ -403,11 +403,11 @@ if (existsSync(forgeBin)) {
   }
 } else {
   console.log(`  ❌ forge bin not found`);
-  smokeFindings.push('@forgeui/server: bin/forge not found');
+  smokeFindings.push('@nedast/forgeui-server: bin/forge not found');
 }
 
-// ── @forgeui/connect ──
-console.log('\n  ── @forgeui/connect ──');
+// ── @nedast/forgeui-connect ──
+console.log('\n  ── @nedast/forgeui-connect ──');
 
 const connectBin = join(scratchDir, 'node_modules/.bin/forgeui-connect');
 if (existsSync(connectBin)) {
@@ -431,34 +431,34 @@ if (existsSync(connectBin)) {
     console.log(`  ⚠️  forgeui-connect produced output but not valid MCP`);
     console.log(`     stdout: ${connectResult.stdout.slice(0, 300)}`);
     console.log(`     stderr: ${connectResult.stderr.slice(0, 300)}`);
-    smokeFindings.push('@forgeui/connect: MCP handshake unclear');
+    smokeFindings.push('@nedast/forgeui-connect: MCP handshake unclear');
   } else {
     console.log(`  ❌ forgeui-connect produced no output`);
     console.log(`     stderr: ${connectResult.stderr.slice(0, 300)}`);
-    smokeFindings.push('@forgeui/connect: no MCP output');
+    smokeFindings.push('@nedast/forgeui-connect: no MCP output');
   }
 } else {
   console.log(`  ❌ forgeui-connect bin not found`);
-  smokeFindings.push('@forgeui/connect: bin/forgeui-connect not found');
+  smokeFindings.push('@nedast/forgeui-connect: bin/forgeui-connect not found');
 }
 
-// ── @forgeui/catalog ──
-console.log('\n  ── @forgeui/catalog ──');
+// ── @nedast/forgeui-catalog ──
+console.log('\n  ── @nedast/forgeui-catalog ──');
 
 const catalogImport = smokeRun('smoke-catalog.mjs', `
-import { ALL_COMPONENT_TYPES, isValidComponentType, componentCategories } from '@forgeui/catalog';
+import { ALL_COMPONENT_TYPES, isValidComponentType, componentCategories } from '@nedast/forgeui-catalog';
 console.log('Component count:', ALL_COMPONENT_TYPES.length);
 console.log('Text valid:', isValidComponentType('Text'));
 console.log('FakeType valid:', isValidComponentType('FakeType'));
 console.log('OK');
 `);
 if (catalogImport.ok) {
-  console.log(`  ✅ import from '@forgeui/catalog'`);
+  console.log(`  ✅ import from '@nedast/forgeui-catalog'`);
   console.log(`     ${catalogImport.stdout.replace(/\n/g, '; ')}`);
 } else {
-  console.log(`  ❌ import from '@forgeui/catalog' FAILED`);
+  console.log(`  ❌ import from '@nedast/forgeui-catalog' FAILED`);
   console.log(`     stderr: ${catalogImport.stderr.slice(0, 300)}`);
-  smokeFindings.push('@forgeui/catalog: import failed');
+  smokeFindings.push('@nedast/forgeui-catalog: import failed');
 }
 
 // ─── Step 8: Type check ────────────────────────────────────
@@ -470,7 +470,7 @@ const typeFindings = [];
 for (const p of packages) {
   if (!p.pkg.types) {
     // Some packages (e.g. MCP bins) intentionally have no types
-    if (p.name === '@forgeui/connect') {
+    if (p.name === '@nedast/forgeui-connect') {
       console.log(`  ℹ️  ${p.name}: no "types" field (MCP bin, not an importable API)`);
     } else {
       console.log(`  ⚠️  ${p.name}: no "types" field in package.json`);
@@ -498,7 +498,7 @@ for (const p of packages) {
 const tsImports = [];
 for (const p of packages) {
   if (p.pkg.types) {
-    tsImports.push(`import type * as _${p.name.replace('@forgeui/', '').replace('-', '_')} from '${p.name}';`);
+    tsImports.push(`import type * as _${p.name.replace('@nedast/forgeui-', '').replace('-', '_')} from '${p.name}';`);
   }
 }
 

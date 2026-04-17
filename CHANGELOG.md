@@ -21,8 +21,8 @@ Initial public release.
 ### Added
 - WCAG 2.1 AA baseline across all 19 core components. Highlights: Dialog focus trap + Escape + `role="dialog"`+`aria-modal`; Toggle as `<button role="switch">` with keyboard + `aria-checked`; Alert/Error live regions (`role="alert"` / `role="status"` by variant); Progress `role="progressbar"` + `aria-valuenow/min/max`; label/input linkage across all form inputs; `prefers-reduced-motion` respected.
 - `extractManifest(rawText)` helper — strips Markdown code fences from LLM output for direct piping into `JSON.parse` → `validateManifest`.
-- Type declarations (`.d.ts`) emitted for `@forgeui/runtime`, `@forgeui/server`, and `@forgeui/catalog`.
-- Server library split: `@forgeui/server` now exports `createForgeUIServer` as an importable library (`dist/forgeui-server.js`) alongside the CLI runner (`dist/forgeui-cli.js`).
+- Type declarations (`.d.ts`) emitted for `@nedast/forgeui-runtime`, `@nedast/forgeui-server`, and `@nedast/forgeui-catalog`.
+- Server library split: `@nedast/forgeui-server` now exports `createForgeUIServer` as an importable library (`dist/forgeui-server.js`) alongside the CLI runner (`dist/forgeui-cli.js`).
 - Gauntlet harness: 50-archetype LLM manifest generation test (`npm run gauntlet`).
 - Tabs: arrow-key navigation with roving tabindex and `aria-controls`/`aria-labelledby` linkage.
 - Button: optional `aria-pressed` for toggle-state buttons.
@@ -67,7 +67,7 @@ Initial public release.
 - 511-test Vitest suite covering XSS defense, prototype-pollution resistance, patch endpoint integration, server hardening, renderer robustness, CSP headers, and a11y across all 19 core components.
 - ADR 0001: Ring 2 interfaces land in OSS first.
 - Dead code removed: `src/validation/migration.ts`, `src/catalog/schema-utils.ts`, `src/catalog/schemas/index.ts`.
-- Stale `ajv` dependency removed from `@forgeui/catalog`.
+- Stale `ajv` dependency removed from `@nedast/forgeui-catalog`.
 - `.gitignore` tightened.
 - `README.md` rewritten for pre-release audience.
 

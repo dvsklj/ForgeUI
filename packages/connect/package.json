@@ -1,5 +1,5 @@
 {
-  "name": "@forgeui/connect",
+  "name": "@nedast/forgeui-connect",
   "version": "0.1.0",
   "description": "Forge UI MCP connector — let AI agents create and manage Forge apps via Model Context Protocol.",
   "main": "forgeui-connect.mjs",

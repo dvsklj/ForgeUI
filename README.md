@@ -27,7 +27,7 @@ Drop one script tag, assign a manifest, done.
   <body>
     <forgeui-app id="app"></forgeui-app>
 
-    <script src="https://unpkg.com/@forgeui/runtime/forgeui.js"></script>
+    <script src="https://unpkg.com/@nedast/forgeui-runtime/forgeui.js"></script>
     <script>
       document.getElementById('app').manifest = {
         manifest: "0.1.0",
@@ -94,7 +94,7 @@ Pick the mode that matches how you want to run Forge.
 For chat embeds, iframes, demos, or prototyping. Zero dependencies, nothing to install.
 
 ```html
-<script src="https://unpkg.com/@forgeui/runtime/forgeui.js"></script>
+<script src="https://unpkg.com/@nedast/forgeui-runtime/forgeui.js"></script>
 ```
 
 The IIFE bundle inlines everything: Lit, TinyBase, the validator, and all components.
@@ -104,14 +104,14 @@ The IIFE bundle inlines everything: Lit, TinyBase, the validator, and all compon
 For projects that already have a build pipeline.
 
 ```bash
-npm install @forgeui/runtime
+npm install @nedast/forgeui-runtime
 ```
 
 ```js
-import { ForgeUIApp, validateManifest, extractManifest } from '@forgeui/runtime';
+import { ForgeUIApp, validateManifest, extractManifest } from '@nedast/forgeui-runtime';
 
 // Components-only entry (no validation, no state runtime):
-import '@forgeui/runtime/components';
+import '@nedast/forgeui-runtime/components';
 ```
 
 ### Server mode — persistent apps with shareable URLs
@@ -119,7 +119,7 @@ import '@forgeui/runtime/components';
 For hosting LLM-generated apps as real URLs, backed by SQLite.
 
 ```bash
-npm install @forgeui/server
+npm install @nedast/forgeui-server
 npx forgeui-server --port 3000 --db ./apps.db
 ```
 
@@ -130,7 +130,7 @@ The server exposes a REST CRUD API at `/api/apps/:id`, hosts the runtime at `/ru
 For LLM agents (Claude, any MCP-aware client) to create, update, and query Forge apps directly.
 
 ```bash
-npm install @forgeui/connect
+npm install @nedast/forgeui-connect
 ```
 
 Exposes five tools over stdio: `create_app`, `update_app`, `get_app`, `list_apps`, `delete_app`. See [`docs/api-reference.md`](docs/api-reference.md) for the full tool schemas.
@@ -142,7 +142,7 @@ Exposes five tools over stdio: `create_app`, `update_app`, `get_app`, `list_apps
 LLMs often wrap their output in Markdown code fences. Strip them with `extractManifest` before parsing:
 
 ```js
-import { extractManifest, validateManifest } from '@forgeui/runtime';
+import { extractManifest, validateManifest } from '@nedast/forgeui-runtime';
 
 const manifest = JSON.parse(extractManifest(llmOutput));
 const { valid, errors } = validateManifest(manifest);
@@ -154,7 +154,7 @@ if (valid) {
 
 The validator is strict by design: unknown keys, unknown component types, malformed URLs, and unsafe schemes (`javascript:`, `data:text/html`, …) are all rejected before any rendering happens. Bad manifests produce error states, never blank pages or runtime crashes.
 
-A ready-to-use system prompt describing the full component catalog is available via `generatePrompt()` from `@forgeui/runtime`, or see [`docs/components.md`](docs/components.md) for the full component reference.
+A ready-to-use system prompt describing the full component catalog is available via `generatePrompt()` from `@nedast/forgeui-runtime`, or see [`docs/components.md`](docs/components.md) for the full component reference.
 
 ---
 
@@ -166,7 +166,7 @@ The same manifest can run as a throwaway chat artifact, persist locally in the u
 |---|---|---|
 | 0 — Ephemeral | In-memory | Chat artifacts, previews, embeds |
 | 1 — Browser | IndexedDB | Single-user apps that persist across reloads |
-| 2 — Server | SQLite via `@forgeui/server` | Multi-device, shareable URLs |
+| 2 — Server | SQLite via `@nedast/forgeui-server` | Multi-device, shareable URLs |
 | 3 — Collaborative | CRDT (planned) | Real-time multi-user editing |
 
 See [`docs/architecture.md`](docs/architecture.md) for how the rings work and how Forge selects a persister.
@@ -180,7 +180,7 @@ Forge assumes manifest *authors* are trusted (you, your server, or an LLM runnin
 - **Four-layer validation** — JSON Schema, URL scheme allowlist, state-path resolution, component catalog. Invalid manifests never reach the renderer.
 - **XSS defense at the template layer** — rendering is Lit tagged templates, so interpolated values are escaped by the engine itself, not by an added filter.
 - **No dynamic code** — the `$expr:` and `$computed:` engines are deliberately narrow. No `eval`, no `Function`, no regex, no dynamic imports.
-- **Server hardening** — when running `@forgeui/server`, CORS allowlist, body size cap, per-IP rate limiting, and optional Bearer-token auth are configurable via env vars.
+- **Server hardening** — when running `@nedast/forgeui-server`, CORS allowlist, body size cap, per-IP rate limiting, and optional Bearer-token auth are configurable via env vars.
 
 See [`SECURITY.md`](SECURITY.md) for the reporting process and [`docs/architecture.md`](docs/architecture.md) §4 for the full validation pipeline.
 

@@ -1,5 +1,5 @@
 {
-  "name": "@forgeui/runtime",
+  "name": "@nedast/forgeui-runtime",
   "version": "0.1.0",
   "description": "Client-side renderer for Forge declarative UI manifests.",
   "main": "forgeui-standalone.js",

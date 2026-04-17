@@ -155,21 +155,21 @@ async function buildTypes() {
     cwd: process.cwd(),
   });
 
-  // @forgeui/runtime: copy full .d.ts tree (entry re-exports from siblings)
+  // @nedast/forgeui-runtime: copy full .d.ts tree (entry re-exports from siblings)
   for (const sub of ['runtime', 'state', 'validation', 'catalog', 'renderer', 'tokens', 'a2ui', 'components', 'types']) {
     execSync(`rsync -a --include='*/' --include='*.d.ts' --exclude='*' ${typeDir}/${sub}/ packages/runtime/${sub}/ 2>/dev/null || true`, { stdio: 'pipe' });
   }
   copyFileSync(`${typeDir}/index.d.ts`, 'packages/runtime/index.d.ts');
   copyFileSync(`${typeDir}/index.d.ts`, 'packages/runtime/forgeui-standalone.d.ts');
 
-  // @forgeui/catalog: needs registry.d.ts + types/ for ComponentType references
+  // @nedast/forgeui-catalog: needs registry.d.ts + types/ for ComponentType references
   mkdirSync('packages/catalog/catalog', { recursive: true });
   mkdirSync('packages/catalog/types', { recursive: true });
   copyFileSync(`${typeDir}/catalog/registry.d.ts`, 'packages/catalog/catalog/registry.d.ts');
   copyFileSync(`${typeDir}/types/index.d.ts`, 'packages/catalog/types/index.d.ts');
   copyFileSync(`${typeDir}/catalog/registry.d.ts`, 'packages/catalog/forgeui-catalog.d.ts');
 
-  // @forgeui/server: needs server/*.d.ts + types/ for ForgeUIManifest
+  // @nedast/forgeui-server: needs server/*.d.ts + types/ for ForgeUIManifest
   mkdirSync('packages/server/dist/server', { recursive: true });
   mkdirSync('packages/server/dist/types', { recursive: true });
   mkdirSync('packages/server/dist/validation', { recursive: true });

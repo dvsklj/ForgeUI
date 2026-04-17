@@ -3,11 +3,11 @@
 ## Local Development
 
 ```bash
-npm install @forgeui/server
+npm install @nedast/forgeui-server
 npx forgeui-server --port 3000 --db ./apps.db
 ```
 
-Or if `@forgeui/server` is installed globally:
+Or if `@nedast/forgeui-server` is installed globally:
 
 ```bash
 forgeui-server --port 3000 --db ./apps.db
@@ -22,7 +22,7 @@ CLI flags: `--port` (default 3000), `--host` (default 0.0.0.0), `--db` (default 
 ```dockerfile
 FROM node:20-slim
 WORKDIR /app
-RUN npm install -g @forgeui/server
+RUN npm install -g @nedast/forgeui-server
 EXPOSE 3000
 CMD ["forgeui-server", "--port", "3000", "--db", "/data/apps.db"]
 ```
@@ -95,7 +95,7 @@ Port, host, and database path are set via CLI flags (`--port`, `--host`, `--db`)
 
 **Single-instance** (SQLite): Good for < 1000 apps, single server. SQLite handles concurrent reads well; writes are serialized but fast.
 
-**Multi-instance**: For horizontal scaling, swap SQLite for PostgreSQL and use the `@forgeui/server` with a custom `db` adapter. The API surface is small (6 CRUD operations) so the swap is straightforward.
+**Multi-instance**: For horizontal scaling, swap SQLite for PostgreSQL and use the `@nedast/forgeui-server` with a custom `db` adapter. The API surface is small (6 CRUD operations) so the swap is straightforward.
 
 **CDN for runtime**: Serve `forgeui.js` from a CDN (Cloudflare, Fastly). The runtime is static and cacheable:
 

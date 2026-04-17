@@ -8,16 +8,16 @@ npm run build
 echo ""
 echo "=== Preparing packages ==="
 
-# @forgeui/runtime — types are already emitted by build to packages/runtime/
-echo "  @forgeui/runtime..."
+# @nedast/forgeui-runtime — types are already emitted by build to packages/runtime/
+echo "  @nedast/forgeui-runtime..."
 cp dist/forgeui.js packages/runtime/
 cp dist/forgeui-standalone.js packages/runtime/
 cp dist/forgeui-components.js packages/runtime/
 echo "    forgeui.js: $(du -h packages/runtime/forgeui.js | cut -f1)"
 echo "    forgeui-standalone.js: $(du -h packages/runtime/forgeui-standalone.js | cut -f1)"
 
-# @forgeui/server — types are already emitted by build to packages/server/dist/
-echo "  @forgeui/server..."
+# @nedast/forgeui-server — types are already emitted by build to packages/server/dist/
+echo "  @nedast/forgeui-server..."
 mkdir -p packages/server/dist
 cp dist/forgeui-server.js packages/server/dist/
 cp dist/forgeui-cli.js packages/server/dist/
@@ -26,13 +26,13 @@ echo "    forgeui-server.js: $(du -h packages/server/dist/forgeui-server.js | cu
 echo "    forgeui-cli.js: $(du -h packages/server/dist/forgeui-cli.js | cut -f1)"
 echo "    forgeui.mjs: $(du -h packages/server/dist/forgeui.mjs | cut -f1)"
 
-# @forgeui/catalog — types are already emitted by build to packages/catalog/
-echo "  @forgeui/catalog..."
+# @nedast/forgeui-catalog — types are already emitted by build to packages/catalog/
+echo "  @nedast/forgeui-catalog..."
 cp dist/forgeui-catalog.js packages/catalog/
 echo "    forgeui-catalog.js: $(du -h packages/catalog/forgeui-catalog.js | cut -f1)"
 
-# @forgeui/connect
-echo "  @forgeui/connect..."
+# @nedast/forgeui-connect
+echo "  @nedast/forgeui-connect..."
 cp dist/forgeui-connect.mjs packages/connect/
 echo "    forgeui-connect.mjs: $(du -h packages/connect/forgeui-connect.mjs | cut -f1)"
 
