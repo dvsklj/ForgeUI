@@ -80,7 +80,7 @@ export function renderElement(elementId: string, ctx: RenderContext): TemplateRe
       default:         return html`<forgeui-error .props=${({ msg: `Unknown: ${type}` })} .store=${ctx.store}></forgeui-error>`;
     }
   } catch (err: any) {
-    console.warn(`[forge] renderElement("${elementId}") threw:`, err?.message || err);
+    console.warn(`[forgeui] renderElement("${elementId}") threw:`, err?.message || err);
     return html`<forgeui-error .props=${({
       msg: `Element "${elementId}" failed to render: ${err?.message || 'unknown error'}`,
     })} .store=${ctx.store}></forgeui-error>`;

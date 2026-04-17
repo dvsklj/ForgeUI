@@ -342,7 +342,7 @@ function replaceTemplates(input: string, store: Store): string {
 }
 
 /** Convert ForgeUISchema to TinyBase TablesSchema */
-function forgeSchemaToTinyBase(schema: ForgeStateConfig['schema']): TablesSchema {
+function forgeuiSchemaToTinyBase(schema: ForgeStateConfig['schema']): TablesSchema {
   if (!schema) return {};
   
   const tablesSchema: TablesSchema = {};
@@ -360,7 +360,7 @@ export function createForgeUIStore(config: ForgeStateConfig): Store {
   const store = createStore();
   
   if (config.schema) {
-    const tablesSchema = forgeSchemaToTinyBase(config.schema);
+    const tablesSchema = forgeuiSchemaToTinyBase(config.schema);
     store.setTablesSchema(tablesSchema);
   }
   

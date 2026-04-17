@@ -56,15 +56,15 @@ export interface ForgePersister {
 
 /**
  * Database naming convention:
- *   forge_{appId}  — for app-specific storage
- *   forge_global   — for global/shared state
+ *   forgeui_{appId}  — for app-specific storage
+ *   forgeui_global   — for global/shared state
  *
- * Object store name: 'forge_data'
+ * Object store name: 'forgeui_data'
  */
 
 function getDbName(appId: string | undefined): string {
   const safeId = (appId || 'global').replace(/[^a-zA-Z0-9-]/g, '_');
-  return `forge_${safeId}`;
+  return `forgeui_${safeId}`;
 }
 
 export function createForgePersister(

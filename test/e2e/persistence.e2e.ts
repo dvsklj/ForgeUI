@@ -274,11 +274,11 @@ console.log('SERVER_READY');
       const fetched2 = await getRes2.json();
       expect(fetched2.manifest.state.count).toBe(42);
 
-      // Verify runtime endpoint serves forge.js (dev-mode path resolution)
-      const runtimeRes = await httpFetch(`${base}/runtime/forge.js`);
+      // Verify runtime endpoint serves forgeui.js (dev-mode path resolution)
+      const runtimeRes = await httpFetch(`${base}/runtime/forgeui.js`);
       expect(runtimeRes.status).toBe(200);
       const runtimeBody = await new Promise<string>((resolve) => {
-        const parsedUrl = new URL(`${base}/runtime/forge.js`);
+        const parsedUrl = new URL(`${base}/runtime/forgeui.js`);
         const req = http.request({ hostname: parsedUrl.hostname, port: parsedUrl.port, path: parsedUrl.pathname }, (res) => {
           let body = '';
           res.on('data', (chunk: any) => body += chunk);

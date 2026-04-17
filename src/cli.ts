@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
 /**
- * Forge CLI
+ * ForgeUI CLI
  *
  * Commands:
- *   forge serve                        Start the Forge Server
- *   forge deploy <manifest.json>       Deploy a manifest to the server
- *   forge validate <manifest.json>     Validate a manifest file
- *   forge catalog                      Show component catalog
- *   forge connect                      Start the MCP connector (stdio)
- *   forge dev                          Start dev server with file watching
+ *   forgeui serve                        Start the Forge UI Server
+ *   forgeui deploy <manifest.json>       Deploy a manifest to the server
+ *   forgeui validate <manifest.json>     Validate a manifest file
+ *   forgeui catalog                      Show component catalog
+ *   forgeui connect                      Start the MCP connector (stdio)
+ *   forgeui dev                          Start dev server with file watching
  *
  * Options:
  *   --port <port>        Server port (default: 3000)
@@ -66,7 +66,7 @@ async function main() {
   }
 }
 
-// ─── forge serve ────────────────────────────────────────────
+// ─── forgeui serve ────────────────────────────────────────────
 
 async function cmdServe() {
   const { createForgeUIServer } = await import('./server/index.js');
@@ -81,12 +81,12 @@ async function cmdServe() {
   await server.start();
 }
 
-// ─── forge deploy ───────────────────────────────────────────
+// ─── forgeui deploy ───────────────────────────────────────────
 
 async function cmdDeploy() {
   const file = args[1];
   if (!file) {
-    console.error('Usage: forge deploy <manifest.json>');
+    console.error('Usage: forgeui deploy <manifest.json>');
     process.exit(1);
   }
 
@@ -150,17 +150,17 @@ async function cmdDeploy() {
     }
   } catch (err: any) {
     console.error(`Failed to connect to server at ${serverUrl}: ${err.message}`);
-    console.error('Is the server running? Start it with: forge serve');
+    console.error('Is the server running? Start it with: forgeui serve');
     process.exit(1);
   }
 }
 
-// ─── forge validate ─────────────────────────────────────────
+// ─── forgeui validate ─────────────────────────────────────────
 
 async function cmdValidate() {
   const file = args[1];
   if (!file) {
-    console.error('Usage: forge validate <manifest.json>');
+    console.error('Usage: forgeui validate <manifest.json>');
     process.exit(1);
   }
 
@@ -209,7 +209,7 @@ async function cmdValidate() {
   }
 }
 
-// ─── forge catalog ──────────────────────────────────────────
+// ─── forgeui catalog ──────────────────────────────────────────
 
 async function cmdCatalog() {
   const tier = (getFlag('tier') as any) || 'full';
@@ -224,7 +224,7 @@ async function cmdCatalog() {
   }
 }
 
-// ─── forge connect ──────────────────────────────────────────
+// ─── forgeui connect ──────────────────────────────────────────
 
 async function cmdConnect() {
   const dbPath = getFlag('db') || './forgeui.db';
@@ -235,10 +235,10 @@ async function cmdConnect() {
   // The connect module auto-starts via its main() function
 }
 
-// ─── forge dev ──────────────────────────────────────────────
+// ─── forgeui dev ──────────────────────────────────────────────
 
 async function cmdDev() {
-  console.log('🔨 Starting Forge dev server...\n');
+  console.log('🔨 Starting Forge UI dev server...\n');
 
   const port = parseInt(getFlag('port') || '3000');
   const host = getFlag('host') || '0.0.0.0';
@@ -260,12 +260,12 @@ async function cmdDev() {
 
 function printHelp() {
   console.log(`
-🔥 Forge CLI — Dynamic web app platform
+🔥 ForgeUI CLI — Dynamic web app platform
 
-Usage: forge <command> [options]
+Usage: forgeui <command> [options]
 
 Commands:
-  serve                        Start the Forge Server
+  serve                        Start the Forge UI Server
   deploy <manifest.json>       Deploy a manifest to the server
   validate <manifest.json>     Validate a manifest file
   catalog                      Show component catalog
@@ -282,12 +282,12 @@ Options:
   --json               Output as JSON
 
 Examples:
-  forge serve --port 3000
-  forge deploy ./my-app.json
-  forge validate ./my-app.json
-  forge catalog --tier full --json
-  forge connect --db ./apps.db
-  forge dev --port 8080
+  forgeui serve --port 3000
+  forgeui deploy ./my-app.json
+  forgeui validate ./my-app.json
+  forgeui catalog --tier full --json
+  forgeui connect --db ./apps.db
+  forgeui dev --port 8080
 `);
 }
 

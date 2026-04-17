@@ -129,7 +129,7 @@ export class ForgeUIApp extends LitElement {
     this._setupPersistence(manifest)
       .then(() => this.requestUpdate())
       .catch((err) => {
-        console.warn('[forge] persister setup failed:', err);
+        console.warn('[forgeui] persister setup failed:', err);
         this.requestUpdate();
       });
 

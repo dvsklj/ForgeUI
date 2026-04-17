@@ -12,9 +12,9 @@
 import type { ForgeUIManifest, ForgeUIElement, ComponentType } from '../types/index.js';
 import { isValidComponentType } from '../catalog/registry.js';
 
-/** A2UI component type → Forge component type mapping */
-const A2UI_TO_FORGE: Record<string, ComponentType> = {
-  // A2UI has its own component vocabulary. Map to Forge equivalents.
+/** A2UI component type → ForgeUI component type mapping */
+const A2UI_TO_FORGEUI: Record<string, ComponentType> = {
+  // A2UI has its own component vocabulary. Map to ForgeUI equivalents.
   container: 'Stack',
   row: 'Stack',
   column: 'Stack',
@@ -82,9 +82,9 @@ export function a2uiToForge(payload: A2UIPayload): ForgeUIManifest {
 
   function flattenComponent(comp: A2UIComponent): string {
     const id = comp.id || `a2ui-${idCounter++}`;
-    const forgeType = A2UI_TO_FORGE[comp.type];
+    const forgeuiType = A2UI_TO_FORGEUI[comp.type];
 
-    if (!forgeType || !isValidComponentType(forgeType)) {
+    if (!forgeuiType || !isValidComponentType(forgeuiType)) {
       elements[id] = {
         type: 'Text' as ComponentType,
         props: { content: `[Unsupported A2UI type: ${comp.type}]`, variant: 'caption', colorScheme: 'secondary' },
@@ -98,7 +98,7 @@ export function a2uiToForge(payload: A2UIPayload): ForgeUIManifest {
     const childIds = (comp.children || []).map(child => flattenComponent(child));
 
     elements[id] = {
-      type: forgeType,
+      type: forgeuiType,
       props,
       children: childIds.length > 0 ? childIds : undefined,
     };

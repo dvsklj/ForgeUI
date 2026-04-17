@@ -4,10 +4,10 @@
  * Provides MCP tools for LLM agents to create, update, and query Forge apps.
  *
  * Tools:
- *   - forge_create_app        — Create an app from a manifest, returns URL
- *   - forge_update_app        — Update an existing app (full or JSON Merge Patch)
- *   - forge_validate_manifest — Validate a manifest without creating an app
- *   - forge_component_docs    — Return the component catalog for LLM prompts
+ *   - forgeui_create_app        — Create an app from a manifest, returns URL
+ *   - forgeui_update_app        — Update an existing app (full or JSON Merge Patch)
+ *   - forgeui_validate_manifest — Validate a manifest without creating an app
+ *   - forgeui_component_docs    — Return the component catalog for LLM prompts
  *
  * Usage (stdio):
  *   node forgeui-connect.mjs
@@ -42,7 +42,7 @@ const server = new McpServer({
   version: '1.0.0',
 });
 
-// ─── forge_create_app ──────────────────────────────────────
+// ─── forgeui_create_app ──────────────────────────────────────
 
 server.tool(
   'forgeui_create_app',
@@ -96,7 +96,7 @@ server.tool(
   }
 );
 
-// ─── forge_update_app ──────────────────────────────────────
+// ─── forgeui_update_app ──────────────────────────────────────
 
 server.tool(
   'forgeui_update_app',
@@ -157,7 +157,7 @@ server.tool(
   }
 );
 
-// ─── forge_validate_manifest ───────────────────────────────
+// ─── forgeui_validate_manifest ───────────────────────────────
 
 server.tool(
   'forgeui_validate_manifest',
@@ -188,7 +188,7 @@ server.tool(
   }
 );
 
-// ─── forge_component_docs ──────────────────────────────────
+// ─── forgeui_component_docs ──────────────────────────────────
 
 server.tool(
   'forgeui_component_docs',
@@ -220,7 +220,7 @@ server.tool(
   }
 );
 
-// ─── forge_list_apps ───────────────────────────────────────
+// ─── forgeui_list_apps ───────────────────────────────────────
 
 server.tool(
   'forgeui_list_apps',
@@ -255,7 +255,7 @@ server.tool(
   }
 );
 
-// ─── forge_get_app ─────────────────────────────────────────
+// ─── forgeui_get_app ─────────────────────────────────────────
 
 server.tool(
   'forgeui_get_app',
@@ -294,7 +294,7 @@ server.tool(
   }
 );
 
-// ─── forge_delete_app ──────────────────────────────────────
+// ─── forgeui_delete_app ──────────────────────────────────────
 
 server.tool(
   'forgeui_delete_app',
