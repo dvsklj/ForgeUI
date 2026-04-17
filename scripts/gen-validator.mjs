@@ -22,6 +22,12 @@ const { MANIFEST_SCHEMA } = await import('../src/validation/manifest-schema.ts')
 const validateFn = ajv.compile(MANIFEST_SCHEMA);
 const code = standaloneCode(ajv, validateFn);
 
+// Ajv standalone emits require() for runtime helpers. Replace with ESM imports.
+const fixedCode = code.replace(
+  /const (func\d+) = require\("([^"]+)"\)\.default;/g,
+  (match, fn, mod) => `import ${fn}Default from '${mod}.js';\nconst ${fn} = ${fn}Default.default ?? ${fn}Default;`
+);
+
 const header = `/* eslint-disable */
 // @ts-nocheck
 // AUTO-GENERATED — do not edit. Regenerate via \`npm run gen:validator\`.
@@ -29,5 +35,5 @@ const header = `/* eslint-disable */
 
 `;
 
-writeFileSync('src/validation/manifest-validator.generated.ts', header + code);
+writeFileSync('src/validation/manifest-validator.generated.ts', header + fixedCode);
 console.log('[gen] wrote src/validation/manifest-validator.generated.ts');

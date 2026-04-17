@@ -28,7 +28,8 @@
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "size": "node build.mjs && gzip -c dist/forge.js | wc -c",
-    "ci:size": "node scripts/check-size.mjs"
+    "ci:size": "node scripts/check-size.mjs",
+    "validate": "tsx scripts/validate-examples.mjs"
   },
   "keywords": [
     "llm",
