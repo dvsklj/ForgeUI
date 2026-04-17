@@ -43,7 +43,14 @@ Initial public release.
 - **Bundle size (IIFE gzip):** ~95 KB → ~47 KB. Roughly half the size.
   - Zod removed from runtime path (was leaking via catalog re-exports). Zod remains the build-time source of truth; runtime ships pre-generated JSON.
   - Ajv compiler removed via standalone precompilation. `validateManifest()` now runs a precompiled validator — also faster per call.
-- npm scope renamed from `@forge` to `@forgeui` (Atlassian owns `@forge`). Affects `@forgeui/runtime`, `@forgeui/catalog`, `@forgeui/connect`, `@forgeui/server`. Runtime identifiers (`ForgeUIApp`, `<forgeui-app>`, `forge-` tag prefix, `FORGE_*` env vars, `--forge-*` CSS props, `forge` CLI binary) unchanged.
+- **Full naming alignment**: npm scope renamed from `@forge` to `@forgeui` (Atlassian owns `@forge`), and all runtime identifiers renamed to match. Breaking for any pre-release code that referenced the old names.
+     - Web Component tag prefix: `<forge-*>` → `<forgeui-*>` (e.g., `<forgeui-app>`, `<forgeui-button>`).
+     - CSS custom properties: `--forge-*` → `--forgeui-*`.
+     - Environment variables: `FORGE_*` → `FORGEUI_*` (e.g., `FORGEUI_API_TOKEN`, `FORGEUI_DB_PATH`).
+     - Public API identifiers: `ForgeApp` → `ForgeUIApp`, `ForgeManifest` → `ForgeUIManifest`, `createForgeStore` → `createForgeUIStore`, etc.
+     - CLI binary: `forge` → `forgeui`, `forge-server` → `forgeui-server`, `forge-connect` → `forgeui-connect`.
+     - Bundle filenames: `dist/forge*.js` → `dist/forgeui*.js`.
+   - Fixed: `bin/forgeui` (formerly `bin/forge`) now correctly points at the full CLI bundle instead of the server-only runner.
 
 ### Fixed
 - PATCH endpoint was silently returning 400 while writing to the database — `validateManifest()` was called on the wrong object. Invalid PATCH responses now reflect reality.
@@ -57,7 +64,7 @@ Initial public release.
 - `$state:` refs validated against manifest state section at validation time (warn-level).
 
 ### Internal
-- 194-test Vitest suite covering XSS defense, prototype-pollution resistance, patch endpoint integration, server hardening, renderer robustness, CSP headers, and a11y across all 19 core components.
+- 511-test Vitest suite covering XSS defense, prototype-pollution resistance, patch endpoint integration, server hardening, renderer robustness, CSP headers, and a11y across all 19 core components.
 - ADR 0001: Ring 2 interfaces land in OSS first.
 - Dead code removed: `src/validation/migration.ts`, `src/catalog/schema-utils.ts`, `src/catalog/schemas/index.ts`.
 - Stale `ajv` dependency removed from `@forgeui/catalog`.
