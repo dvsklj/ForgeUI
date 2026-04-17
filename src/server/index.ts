@@ -36,6 +36,9 @@ import {
 } from './db.js';
 import type { ForgeManifest } from '../types/index.js';
 import { validateManifest, validateManifestPatch } from '../validation/index.js';
+import { createRateLimiter, type RateLimiter } from './rate-limit.js';
+import { readBoundedJson } from './body.js';
+import { getClientIp } from './client-ip.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const VALID_APP_ID = /^[a-z0-9][a-z0-9\-_]{0,127}$/;
@@ -106,6 +109,37 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
     }
     return next();
   });
+
+  // ─── Trust proxy & client IP ──────────────────────────────
+  const trustProxy = /^(1|true|yes)$/i.test(process.env.FORGE_TRUST_PROXY ?? '');
+  console.log(`[forge] trust proxy: ${trustProxy ? 'on' : 'off'}`);
+
+  // ─── Rate limiter on /api/* ────────────────────────────────
+  const rateLimitDisabled = process.env.FORGE_RATE_LIMIT_DISABLE === '1';
+  let rateLimiter: RateLimiter | null = null;
+
+  if (!rateLimitDisabled) {
+    const rpm = parseInt(process.env.FORGE_RATE_LIMIT_RPM ?? '60', 10);
+    const burst = parseInt(process.env.FORGE_RATE_LIMIT_BURST ?? String(rpm * 2), 10);
+    const refillPerSec = rpm / 60;
+
+    rateLimiter = createRateLimiter({
+      capacity: burst,
+      refillPerSec,
+      ttlMs: 300_000,
+    });
+
+    app.use('/api/*', async (c, next) => {
+      const ip = getClientIp(c, trustProxy);
+      const { allowed, retryAfterMs } = rateLimiter!.take(ip);
+      if (!allowed) {
+        const retryAfterSec = Math.ceil(retryAfterMs / 1000);
+        c.header('Retry-After', String(retryAfterSec));
+        return c.json({ error: 'rate_limited', retryAfter: retryAfterSec }, 429);
+      }
+      return next();
+    });
+  }
 
   // ─── Optional API token auth ───────────────────────────────
   const apiToken = process.env.FORGE_API_TOKEN?.trim() || undefined;
@@ -249,8 +283,12 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   // Create app
   app.post('/api/apps', async (c) => {
     try {
-      const body = await c.req.json();
-      const manifest = body as ForgeManifest;
+      const body = await readBoundedJson<ForgeManifest>(c.req.raw, maxBodyBytes);
+      if (body.ok !== true) {
+        const code = body.reason === 'too_large' ? 413 : 400;
+        return c.json({ error: body.reason === 'too_large' ? 'Request body too large' : 'Invalid JSON' }, code);
+      }
+      const manifest = body.value;
 
       if (!manifest.id) {
         manifest.id = generateAppId();
@@ -277,8 +315,12 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
       return c.json({ error: 'invalid id' }, 400);
     }
     try {
-      const body = await c.req.json();
-      const manifest = body as ForgeManifest;
+      const body = await readBoundedJson<ForgeManifest>(c.req.raw, maxBodyBytes);
+      if (body.ok !== true) {
+        const code = body.reason === 'too_large' ? 413 : 400;
+        return c.json({ error: body.reason === 'too_large' ? 'Request body too large' : 'Invalid JSON' }, code);
+      }
+      const manifest = body.value;
       manifest.id = id; // enforce path ID
 
       const validation = validateManifest(manifest);
@@ -308,24 +350,29 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
       return c.json({ error: 'invalid id' }, 400);
     }
     try {
-      const patch = await c.req.json();
+      const body = await readBoundedJson(c.req.raw, maxBodyBytes);
+      if (body.ok !== true) {
+        const code = body.reason === 'too_large' ? 413 : 400;
+        return c.json({ error: body.reason === 'too_large' ? 'Request body too large' : 'Invalid JSON' }, code);
+      }
+      const patch = body.value;
 
       const patchValidation = validateManifestPatch(patch);
       if (!patchValidation.valid) {
         return c.json({ error: 'Invalid patch', details: patchValidation.errors }, 400);
       }
 
-      const result = patchApp(id, patch, (m) => {
+      const patchResult = patchApp(id, patch, (m) => {
         const v = validateManifest(m);
         return { valid: v.valid, errors: v.errors.map((e) => e.message) };
       });
-      if (result.status === 'not-found') return c.json({ error: 'App not found' }, 404);
-      if (result.status === 'invalid') {
-        return c.json({ error: 'Validation failed after patch', details: result.errors }, 400);
+      if (patchResult.status === 'not-found') return c.json({ error: 'App not found' }, 404);
+      if (patchResult.status === 'invalid') {
+        return c.json({ error: 'Validation failed after patch', details: patchResult.errors }, 400);
       }
 
       const base = baseUrl || `${c.req.header('x-forwarded-proto') || 'http'}://${c.req.header('host')}`;
-      return c.json({ ...result.app, url: `${base}/apps/${result.app.id}` });
+      return c.json({ ...patchResult.app, url: `${base}/apps/${patchResult.app.id}` });
     } catch (err: any) {
       return c.json({ error: `Invalid patch: ${err.message}` }, 400);
     }
@@ -362,6 +409,10 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   }
 
   function stop(): void {
+    if (rateLimiter) {
+      rateLimiter.stop();
+      rateLimiter = null;
+    }
     if (serverHandle) {
       serverHandle.close();
       closeDatabase();

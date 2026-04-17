@@ -309,6 +309,30 @@ npx forge init my-project
 
 See [SECURITY-REVIEW.md](./SECURITY-REVIEW.md) for the full security analysis.
 
+## Deployment & Rate Limits
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `FORGE_RATE_LIMIT_RPM` | `60` | Sustained requests per minute per IP |
+| `FORGE_RATE_LIMIT_BURST` | `120` | Burst capacity (2 × RPM) |
+| `FORGE_RATE_LIMIT_DISABLE` | — | Set to `1` to skip rate limiting (tests, trusted networks) |
+| `FORGE_MAX_BODY_BYTES` | `1048576` | Max request body size in bytes (1 MB) |
+| `FORGE_TRUST_PROXY` | — | Set to `1` to honor `X-Forwarded-For` / `X-Real-IP` |
+| `FORGE_CORS_ORIGINS` | `http://localhost,http://127.0.0.1` | Comma-separated CORS allowlist |
+| `FORGE_API_TOKEN` | — | Bearer token for write endpoints |
+
+**When to set `FORGE_TRUST_PROXY=1`:** Only when the server is behind a reverse proxy (nginx, Caddy, Cloudflare, ELB) that sets `X-Forwarded-For`. Without it, the server uses the raw socket IP. If you set it when the server is directly exposed, any caller can spoof their IP to bypass rate limiting. If you leave it off behind a proxy, all traffic appears from the proxy's IP and shares a single rate bucket.
+
+```nginx
+# Example nginx config
+location / {
+    proxy_pass http://127.0.0.1:3000;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header Host $host;
+}
+```
+
 ## Performance
 
 | Metric | Value |
