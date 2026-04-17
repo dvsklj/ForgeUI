@@ -1,0 +1,37 @@
+# Top-level package is private — this is a safety net.
+# Ignores everything by default; only publish what the package.json
+# files field whitelists (currently empty, since package is private).
+
+# Source and tooling
+/src/
+/test/
+/tests/
+/scripts/
+/benchmark/
+/coverage/
+/examples/
+/docs/
+/playwright-report/
+/test-results/
+
+# Build config
+/tsconfig*.json
+/build.mjs
+/vitest.config.*
+/playwright.config.*
+/.eslintrc*
+/.prettierrc*
+
+# Repo state
+/.git/
+/.github/
+/.vscode/
+/.idea/
+/.DS_Store
+/node_modules/
+
+# Logs and local state
+/*.log
+/.env
+/.env.*
+/forge.db*
