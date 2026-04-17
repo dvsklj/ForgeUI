@@ -101,7 +101,7 @@ Create `my-app.json`:
 ## Step 3: Start the Server
 
 ```bash
-npx forge serve --port 3000
+npx forgeui serve --port 3000
 ```
 
 ## Step 4: Deploy Your App
@@ -233,7 +233,7 @@ Connect Forge to Claude Code or any MCP agent:
 ```json
 {
   "mcpServers": {
-    "forge": {
+    "forgeui": {
       "command": "npx",
       "args": ["@forgeui/connect"]
     }
@@ -248,7 +248,7 @@ The agent can now say "create a todo app" and Forge will generate and deploy it.
 **App not rendering?** Check the browser console for errors. Common issues:
 - Missing `root` field in manifest
 - `children` references to non-existent element IDs
-- Invalid component type (run `npx forge validate manifest.json` to check)
+- Invalid component type (run `npx forgeui validate manifest.json` to check)
 
 **Server won't start?** Make sure port 3000 is free:
 ```bash
@@ -257,7 +257,7 @@ lsof -i :3000
 
 **Validation errors?** Run the validator:
 ```bash
-npx forge validate my-app.json
+npx forgeui validate my-app.json
 ```
 
 It will tell you exactly what's wrong with line-by-line error details.

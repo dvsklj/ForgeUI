@@ -10,7 +10,7 @@ import { createForgeUIServer } from './index.js';
 const server = createForgeUIServer({
   port: 3000,
   host: '0.0.0.0',
-  dbPath: './forge.db',
+  dbPath: './forgeui.db',
 });
 
 process.on('SIGINT', () => { server.stop(); process.exit(0); });

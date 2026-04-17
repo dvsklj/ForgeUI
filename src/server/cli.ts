@@ -11,7 +11,7 @@ const { values } = parseArgs({
   options: {
     port: { type: 'string', default: '3000' },
     host: { type: 'string', default: '0.0.0.0' },
-    db: { type: 'string', default: './forge.db' },
+    db: { type: 'string', default: './forgeui.db' },
   },
   allowPositionals: false,
 });

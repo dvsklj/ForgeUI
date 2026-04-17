@@ -27,7 +27,7 @@ Drop one script tag, assign a manifest, done.
   <body>
     <forgeui-app id="app"></forgeui-app>
 
-    <script src="https://unpkg.com/@forgeui/runtime/forge.js"></script>
+    <script src="https://unpkg.com/@forgeui/runtime/forgeui.js"></script>
     <script>
       document.getElementById('app').manifest = {
         manifest: "0.1.0",
@@ -94,7 +94,7 @@ Pick the mode that matches how you want to run Forge.
 For chat embeds, iframes, demos, or prototyping. Zero dependencies, nothing to install.
 
 ```html
-<script src="https://unpkg.com/@forgeui/runtime/forge.js"></script>
+<script src="https://unpkg.com/@forgeui/runtime/forgeui.js"></script>
 ```
 
 The IIFE bundle inlines everything: Lit, TinyBase, the validator, and all components.
@@ -123,7 +123,7 @@ npm install @forgeui/server
 npx forgeui-server --port 3000 --db ./apps.db
 ```
 
-The server exposes a REST CRUD API at `/api/apps/:id`, hosts the runtime at `/runtime/forge.js`, and serves each stored app at `/apps/:id`. See [`docs/api-reference.md`](docs/api-reference.md) for the full surface and [`docs/deployment.md`](docs/deployment.md) for deploy recipes (Docker, systemd, nginx, Cloudflare Workers).
+The server exposes a REST CRUD API at `/api/apps/:id`, hosts the runtime at `/runtime/forgeui.js`, and serves each stored app at `/apps/:id`. See [`docs/api-reference.md`](docs/api-reference.md) for the full surface and [`docs/deployment.md`](docs/deployment.md) for deploy recipes (Docker, systemd, nginx, Cloudflare Workers).
 
 ### Agent mode — MCP connector
 

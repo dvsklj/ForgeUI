@@ -48,7 +48,7 @@ export interface ForgeServerOptions {
   port?: number;
   /** Host to bind to (default: '0.0.0.0') */
   host?: string;
-  /** Path to the SQLite database file (default: './forge.db') */
+  /** Path to the SQLite database file (default: './forgeui.db') */
   dbPath?: string;
   /** Base URL for shareable links (default: auto-detected) */
   baseUrl?: string;
@@ -58,7 +58,7 @@ export function createForgeUIServer(options: ForgeServerOptions = {}) {
   const {
     port = 3000,
     host = '0.0.0.0',
-    dbPath = './forge.db',
+    dbPath = './forgeui.db',
     baseUrl,
   } = options;
 
@@ -112,7 +112,7 @@ export function createForgeUIServer(options: ForgeServerOptions = {}) {
 
   // ─── Trust proxy & client IP ──────────────────────────────
   const trustProxy = /^(1|true|yes)$/i.test(process.env.FORGEUI_TRUST_PROXY ?? '');
-  console.log(`[forge] trust proxy: ${trustProxy ? 'on' : 'off'}`);
+  console.log(`[forgeui] trust proxy: ${trustProxy ? 'on' : 'off'}`);
 
   // ─── Rate limiter on /api/* ────────────────────────────────
   const rateLimitDisabled = process.env.FORGEUI_RATE_LIMIT_DISABLE === '1';
@@ -474,7 +474,7 @@ function renderAppPage(manifestJson: string, title: string, baseUrl: string, non
         app.style.background = '#0a0a0a';
         app.style.fontFamily = 'system-ui, sans-serif';
         app.textContent = 'Manifest could not be loaded. Check the server logs.';
-        if (window.console) console.error('[forge] Manifest parse failed:', err);
+        if (window.console) console.error('[forgeui] Manifest parse failed:', err);
       }
     })();
   </script>

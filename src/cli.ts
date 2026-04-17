@@ -14,7 +14,7 @@
  * Options:
  *   --port <port>        Server port (default: 3000)
  *   --host <host>        Server host (default: 0.0.0.0)
- *   --db <path>          Database path (default: ./forge.db)
+ *   --db <path>          Database path (default: ./forgeui.db)
  *   --server <url>       Server URL for deploy (default: http://localhost:3000)
  *   --json               Output as JSON
  */
@@ -73,7 +73,7 @@ async function cmdServe() {
 
   const port = parseInt(getFlag('port') || '3000');
   const host = getFlag('host') || '0.0.0.0';
-  const dbPath = getFlag('db') || './forge.db';
+  const dbPath = getFlag('db') || './forgeui.db';
 
   const server = createForgeUIServer({ port, host, dbPath });
   process.on('SIGINT', () => { server.stop(); process.exit(0); });
@@ -227,7 +227,7 @@ async function cmdCatalog() {
 // ─── forge connect ──────────────────────────────────────────
 
 async function cmdConnect() {
-  const dbPath = getFlag('db') || './forge.db';
+  const dbPath = getFlag('db') || './forgeui.db';
   process.env.FORGEUI_DB_PATH = dbPath;
 
   // Import and run the connect server
@@ -242,7 +242,7 @@ async function cmdDev() {
 
   const port = parseInt(getFlag('port') || '3000');
   const host = getFlag('host') || '0.0.0.0';
-  const dbPath = getFlag('db') || './forge.db';
+  const dbPath = getFlag('db') || './forgeui.db';
 
   // Import build to do initial build
   const { createForgeUIServer } = await import('./server/index.js');
@@ -276,7 +276,7 @@ Commands:
 Options:
   --port <port>        Server port (default: 3000)
   --host <host>        Server host (default: 0.0.0.0)
-  --db <path>          Database path (default: ./forge.db)
+  --db <path>          Database path (default: ./forgeui.db)
   --server <url>       Server URL for deploy (default: http://localhost:3000)
   --tier <level>       Catalog detail: minimal|default|full
   --json               Output as JSON

@@ -45,7 +45,7 @@ const server = new McpServer({
 // ─── forge_create_app ──────────────────────────────────────
 
 server.tool(
-  'forge_create_app',
+  'forgeui_create_app',
   'Create a new Forge app from a JSON manifest. The manifest defines the UI layout, data schema, and actions. Returns the app ID and shareable URL.',
   {
     manifest: z.object({}).passthrough().describe('A valid Forge manifest object following the Forge specification.'),
@@ -99,7 +99,7 @@ server.tool(
 // ─── forge_update_app ──────────────────────────────────────
 
 server.tool(
-  'forge_update_app',
+  'forgeui_update_app',
   'Update an existing Forge app. Pass the full manifest to replace it, or a partial manifest to apply a JSON Merge Patch (RFC 7396).',
   {
     app_id: z.string().describe('The app ID to update.'),
@@ -160,7 +160,7 @@ server.tool(
 // ─── forge_validate_manifest ───────────────────────────────
 
 server.tool(
-  'forge_validate_manifest',
+  'forgeui_validate_manifest',
   'Validate a Forge manifest without creating an app. Returns validation errors and warnings.',
   {
     manifest: z.object({}).passthrough().describe('The manifest to validate.'),
@@ -191,7 +191,7 @@ server.tool(
 // ─── forge_component_docs ──────────────────────────────────
 
 server.tool(
-  'forge_component_docs',
+  'forgeui_component_docs',
   'Get the Forge component catalog — all available component types, their props, and the manifest schema. Use this to understand what components are available when building Forge apps.',
   {
     tier: z.enum(['minimal', 'default', 'full']).optional().describe('Detail level. "minimal" = names only, "default" = types + names, "full" = complete schemas. Default: "full"'),
@@ -223,7 +223,7 @@ server.tool(
 // ─── forge_list_apps ───────────────────────────────────────
 
 server.tool(
-  'forge_list_apps',
+  'forgeui_list_apps',
   'List all hosted Forge apps, newest first.',
   {
     limit: z.number().optional().describe('Max apps to return (default: 20)'),
@@ -258,7 +258,7 @@ server.tool(
 // ─── forge_get_app ─────────────────────────────────────────
 
 server.tool(
-  'forge_get_app',
+  'forgeui_get_app',
   'Get the full manifest of a specific Forge app by ID.',
   {
     app_id: z.string().describe('The app ID to retrieve.'),
@@ -297,7 +297,7 @@ server.tool(
 // ─── forge_delete_app ──────────────────────────────────────
 
 server.tool(
-  'forge_delete_app',
+  'forgeui_delete_app',
   'Delete a Forge app by ID. This is permanent.',
   {
     app_id: z.string().describe('The app ID to delete.'),
@@ -331,7 +331,7 @@ server.tool(
 
 async function main() {
   // Init database
-  const dbPath = process.env.FORGEUI_DB_PATH || './forge.db';
+  const dbPath = process.env.FORGEUI_DB_PATH || './forgeui.db';
   initDatabase(dbPath);
 
   const transport = new StdioServerTransport();

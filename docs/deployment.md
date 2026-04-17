@@ -15,7 +15,7 @@ forgeui-server --port 3000 --db ./apps.db
 
 App at `http://localhost:3000/apps/<id>`, API at `http://localhost:3000/api/apps`.
 
-CLI flags: `--port` (default 3000), `--host` (default 0.0.0.0), `--db` (default ./forge.db).
+CLI flags: `--port` (default 3000), `--host` (default 0.0.0.0), `--db` (default ./forgeui.db).
 
 ## Docker
 
@@ -42,8 +42,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=forge
-WorkingDirectory=/opt/forge
+User=forgeui
+WorkingDirectory=/opt/forgeui
 ExecStart=/usr/bin/npx forgeui-server --port 3000 --db /opt/forge/apps.db
 Restart=always
 RestartSec=5
@@ -85,7 +85,7 @@ Set `FORGEUI_TRUST_PROXY=1` so the server honors `X-Forwarded-For` / `X-Real-IP`
 | `FORGEUI_RATE_LIMIT_BURST` | `RPM × 2` | Token-bucket burst size. |
 | `FORGEUI_RATE_LIMIT_DISABLE` | *(unset)* | Set to `1` to disable rate limiting entirely. |
 | `FORGEUI_API_TOKEN` | *(unset)* | Bearer token for `/api/apps/*` write operations (POST, PUT, PATCH, DELETE). **Required in production** — if `NODE_ENV=production` and this is unset, the server logs a warning and rejects all writes with 401. |
-| `FORGEUI_RUNTIME_PATH` | *(auto)* | Override path for `/runtime/forge.js`. By default the server resolves from its own location or walks up to `dist/forge.js`. |
+| `FORGEUI_RUNTIME_PATH` | *(auto)* | Override path for `/runtime/forgeui.js`. By default the server resolves from its own location or walks up to `dist/forgeui.js`. |
 | `FORGEUI_STANDALONE_PATH` | *(auto)* | Override path for `/runtime/forgeui-standalone.js`. |
 | `NODE_ENV` | *(unset)* | When set to `production`, enforces `FORGEUI_API_TOKEN`. |
 
@@ -97,7 +97,7 @@ Port, host, and database path are set via CLI flags (`--port`, `--host`, `--db`)
 
 **Multi-instance**: For horizontal scaling, swap SQLite for PostgreSQL and use the `@forgeui/server` with a custom `db` adapter. The API surface is small (6 CRUD operations) so the swap is straightforward.
 
-**CDN for runtime**: Serve `forge.js` from a CDN (Cloudflare, Fastly). The runtime is static and cacheable:
+**CDN for runtime**: Serve `forgeui.js` from a CDN (Cloudflare, Fastly). The runtime is static and cacheable:
 
 ```
 Cache-Control: public, max-age=3600
@@ -115,7 +115,7 @@ Cache-Control: public, max-age=3600
 ```html
 <!-- Drop this anywhere -->
 <forgeui-app id="my-widget"></forgeui-app>
-<script type="module" src="https://cdn.example.com/forge.js"></script>
+<script type="module" src="https://cdn.example.com/forgeui.js"></script>
 <script>
   document.getElementById('my-widget').manifest = { /* your manifest */ };
 </script>

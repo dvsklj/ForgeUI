@@ -390,7 +390,7 @@ Four validation layers, every time:
 |--------|----------|------------|
 | Manifest injection via prompt injection | CRITICAL | Structured output + Ajv + catalog allowlist |
 | Expression-language injection | CRITICAL | Grammar has no arbitrary JS hooks; fuzz-tested |
-| Agent-to-agent prompt injection via manifest content | HIGH | Manifest content visible to reader LLMs is treated as untrusted input; `forge_read_app_data` strips component-rendered text before returning to caller LLMs; audit-log suspicious payloads |
+| Agent-to-agent prompt injection via manifest content | HIGH | Manifest content visible to reader LLMs is treated as untrusted input; `forgeui_read_app_data` strips component-rendered text before returning to caller LLMs; audit-log suspicious payloads |
 | Sandbox escape (iframe or V8) | HIGH | Defense in depth: iframe sandbox + CSP (Ring 1), V8 isolate + MPK (Ring 3) |
 | Cross-tenant data access | CRITICAL | Per-app IndexedDB databases (browser); Durable Object Facets (Ring 3) |
 | Phishing via spoofed login UI | HIGH | No password input in catalog; CSP `form-action 'none'` in sandbox mode |
@@ -401,7 +401,7 @@ The agent-to-agent row is new and worth underlining. In a world where
 agent A writes a manifest, agent B reads user-contributed content from
 that manifest's data (via Phase 3 read tools), agent B's context can be
 poisoned by strings the user *or another agent* injected. Treat every
-manifest field and every cell returned by `forge_read_app_data` as
+manifest field and every cell returned by `forgeui_read_app_data` as
 untrusted input to whatever agent consumes it next.
 
 ### Shadow DOM is not a security boundary
@@ -418,16 +418,16 @@ never from Shadow DOM.
 
 Write-side (already shipped):
 
-- `forge_create_app(manifest) → { url }`
-- `forge_update_app(app_id, patch)`
-- `forge_get_app(app_id) → { manifest }`
-- `forge_list_apps() → [{ app_id, ... }]`
-- `forge_delete_app(app_id)`
+- `forgeui_create_app(manifest) → { url }`
+- `forgeui_update_app(app_id, patch)`
+- `forgeui_get_app(app_id) → { manifest }`
+- `forgeui_list_apps() → [{ app_id, ... }]`
+- `forgeui_delete_app(app_id)`
 
 Read-side (Phase 3, specified below):
 
-- `forge_read_app_data(app_id, tables, limit, since) → { data }`
-- `forge_query_app_data(app_id, queries) → { results }`
+- `forgeui_read_app_data(app_id, tables, limit, since) → { data }`
+- `forgeui_query_app_data(app_id, queries) → { results }`
 
 The read tools exist so agents can reason about the data *inside* a
 Forge app without dumping the entire store into a context window. They
@@ -449,7 +449,7 @@ ingester at the spec level.
 - **Standalone PWA** — service worker, dynamic `manifest.json`.
 - **Enterprise embed** — standard web component; drops into Salesforce
   Lightning, SAP UI5, or plain HTML without modification.
-- **Agent-deployed** — MCP `forge_create_app` returns a URL; optional TTL
+- **Agent-deployed** — MCP `forgeui_create_app` returns a URL; optional TTL
   for ephemeral apps.
 
 ---
@@ -500,13 +500,13 @@ personalized updates."*
 
 **2. Two MCP tools.**
 
-`forge_read_app_data` — raw rows, bounded:
+`forgeui_read_app_data` — raw rows, bounded:
 ```
 Input: { app_id, tables: ["workouts"], limit: 20, since: "2026-04-01" }
 Output: { schema, data: { workouts: [...] }, rowCounts: { workouts: 147 } }
 ```
 
-`forge_query_app_data` — aggregates, token-efficient:
+`forgeui_query_app_data` — aggregates, token-efficient:
 ```
 Input: { app_id, queries: [{ table: "workouts", aggregate: "max", column: "weight", groupBy: "exercise" }] }
 Output: { results: [{ data: { "Bench Press": 85, "Squat": 110 } }] }
@@ -520,11 +520,11 @@ through the same permission gate.
 
 - Week 1: LLM generates a manifest with a workout plan, exercise table,
   logging form. Declares `dataAccess.enabled: true` with user consent.
-  Deploys via `forge_create_app`.
-- Week 3: user asks "how am I doing?" LLM calls `forge_query_app_data` —
+  Deploys via `forgeui_create_app`.
+- Week 3: user asks "how am I doing?" LLM calls `forgeui_query_app_data` —
   gets trends per exercise, consistency, volume progression. Reasons:
   squat plateauing, bench progressing, leg day skipped twice.
-- LLM calls `forge_update_app` with a manifest patch: adjusts squat
+- LLM calls `forgeui_update_app` with a manifest patch: adjusts squat
   scheme 5×5 → 3×8 deload, adds reminder Alert for leg day, updates the
   bench Metric goal. User sees the updated plan — no manual editing.
 
@@ -538,8 +538,8 @@ the app *around* the data.
 | Approach | Tokens per interaction |
 |----------|------------------------|
 | Dump entire TinyBase store | 2,000–10,000 (scales with data) |
-| `forge_read_app_data` with limit + since | 200–500 (bounded) |
-| `forge_query_app_data` with aggregates | 50–150 (minimal) |
+| `forgeui_read_app_data` with limit + since | 200–500 (bounded) |
+| `forgeui_query_app_data` with aggregates | 50–150 (minimal) |
 | Event-driven push (single row) | 30–80 (tiny) |
 
 ### Future: event-driven data push
@@ -633,7 +633,7 @@ z-index bug, open CORS, auth middleware, body size limits.
 ### Phase 3 — data read channel (specced, see §9)
 
 - `dataAccess` manifest field + consent UI
-- `forge_read_app_data` and `forge_query_app_data`
+- `forgeui_read_app_data` and `forgeui_query_app_data`
 - LLM prompt updates documenting the read-reason-update cycle
 - Event-driven push (stretch)
 

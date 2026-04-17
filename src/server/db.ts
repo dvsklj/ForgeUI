@@ -19,7 +19,7 @@ export interface StoredApp {
 
 let _db: Database.Database | null = null;
 
-export function initDatabase(dbPath: string = './forge.db'): Database.Database {
+export function initDatabase(dbPath: string = './forgeui.db'): Database.Database {
   if (_db) return _db;
 
   _db = new Database(dbPath);

@@ -121,13 +121,13 @@ Returns: Full HTML page with embedded manifest and runtime script.
 
 ## MCP Tools
 
-### forge_create_app
+### forgeui_create_app
 
 Create a new app from a manifest.
 
 ```json
 {
-  "name": "forge_create_app",
+  "name": "forgeui_create_app",
   "arguments": {
     "manifest": {
       "manifest": "0.1.0",
@@ -139,13 +139,13 @@ Create a new app from a manifest.
 }
 ```
 
-### forge_update_app
+### forgeui_update_app
 
 Update an existing app.
 
 ```json
 {
-  "name": "forge_update_app",
+  "name": "forgeui_update_app",
   "arguments": {
     "id": "abc12345",
     "manifest": { ... }
@@ -153,35 +153,35 @@ Update an existing app.
 }
 ```
 
-### forge_get_app
+### forgeui_get_app
 
 Get an app's manifest.
 
 ```json
 {
-  "name": "forge_get_app",
+  "name": "forgeui_get_app",
   "arguments": { "id": "abc12345" }
 }
 ```
 
-### forge_list_apps
+### forgeui_list_apps
 
 List all apps.
 
 ```json
 {
-  "name": "forge_list_apps",
+  "name": "forgeui_list_apps",
   "arguments": { "limit": 10, "offset": 0 }
 }
 ```
 
-### forge_delete_app
+### forgeui_delete_app
 
 Delete an app.
 
 ```json
 {
-  "name": "forge_delete_app",
+  "name": "forgeui_delete_app",
   "arguments": { "id": "abc12345" }
 }
 ```
