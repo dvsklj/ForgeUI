@@ -94,6 +94,15 @@ A manifest is JSON. The `<forge-app>` web component accepts it as a string attri
 
 The manifest itself is flat and ID-indexed — elements reference each other by ID in a `children` array, not by DOM nesting. Flat structures are more reliable for LLMs to generate, and they make JSON Merge Patch (RFC 7396) straightforward for incremental updates.
 
+### LLM integration
+
+LLM outputs are often code-fenced. Consumers building on top of Forge should strip Markdown fences before parsing. The runtime exports `extractManifest(rawText)` for this — it returns the unfenced string if a fence is present, or the original input otherwise.
+
+```js
+import { extractManifest, validateManifest } from '@forgeui/runtime';
+const result = validateManifest(JSON.parse(extractManifest(llmOutput)));
+```
+
 The renderer uses Lit tagged template literals, so interpolated values are escaped at the template layer — XSS defense is the rendering engine, not an added filter. State is a TinyBase reactive store. Expressions are evaluated by a deliberately narrow engine: path access plus a small set of named operations (`count:`, `sum:`, `avg:` in `$computed:`; `values`, `keys`, `count`, `sum`, `first`, `last` as pipe filters in `$expr:`). No `eval`, no `Function`, no regex. See [`docs/architecture.md`](docs/architecture.md) for the full pipeline, and [`docs/security/2026-04-expression-audit.md`](docs/security/2026-04-expression-audit.md) for the expression engine audit.
 
 ## The persistence spectrum

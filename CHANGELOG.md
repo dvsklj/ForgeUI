@@ -11,6 +11,7 @@ Initial public release.
 ### Security
 - XSS hardening: property-bound attribute rendering prevents HTML attribute injection. See `docs/security/2026-04-xss-repro.md` for the reproduction that motivated the fix.
 - Prototype pollution defense in PATCH: manifest patches reject `__proto__`, `prototype`, and `constructor` keys at parse time, before any merge happens.
+- Schema strictness: `additionalProperties: false` at every level of the manifest JSON Schema (top-level, `schema`, `elements[id]`, `dataAccess`). Previously `additionalProperties: true` at the top allowed arbitrary keys through validation.
 - `VALID_APP_ID` regex enforced on all six app-id endpoints.
 - Content Security Policy with per-request nonce on rendered app pages.
 - Server middleware: CORS allowlist (`FORGE_CORS_ORIGINS`), body size limit (`FORGE_MAX_BODY_BYTES`, default 1 MB), query-param clamping on LIST, optional Bearer-token auth (`FORGE_API_TOKEN`) on writes, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` on `/api/*`.
@@ -19,6 +20,10 @@ Initial public release.
 
 ### Added
 - WCAG 2.1 AA baseline across all 19 core components. Highlights: Dialog focus trap + Escape + `role="dialog"`+`aria-modal`; Toggle as `<button role="switch">` with keyboard + `aria-checked`; Alert/Error live regions (`role="alert"` / `role="status"` by variant); Progress `role="progressbar"` + `aria-valuenow/min/max`; label/input linkage across all form inputs; `prefers-reduced-motion` respected.
+- `extractManifest(rawText)` helper — strips Markdown code fences from LLM output for direct piping into `JSON.parse` → `validateManifest`.
+- Type declarations (`.d.ts`) emitted for `@forgeui/runtime`, `@forgeui/server`, and `@forgeui/catalog`.
+- Server library split: `@forgeui/server` now exports `createForgeServer` as an importable library (`dist/forge-server.js`) alongside the CLI runner (`dist/forge-cli.js`).
+- Gauntlet harness: 50-archetype LLM manifest generation test (`npm run gauntlet`).
 - Tabs: arrow-key navigation with roving tabindex and `aria-controls`/`aria-labelledby` linkage.
 - Button: optional `aria-pressed` for toggle-state buttons.
 - Text: heading variants render semantic `<h1>`/`<h2>`/`<h3>`.

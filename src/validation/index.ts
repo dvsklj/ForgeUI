@@ -407,3 +407,22 @@ function detectCycles(manifest: ForgeManifest, errors: ValidationError[]) {
   
   dfs(manifest.root, []);
 }
+
+/**
+ * Strip Markdown code fences from LLM output.
+ *
+ * LLMs routinely wrap JSON in ```json ... ``` fences.
+ * This helper returns the unfenced string so callers can
+ * pipe directly into JSON.parse → validateManifest.
+ *
+ * Never throws. Returns input unchanged if no fence is found.
+ */
+export function extractManifest(rawText: string): string {
+  const trimmed = rawText.trim();
+
+  // Match ```json\n...\n``` or ```\n...\n```
+  const fenced = trimmed.match(/^```(?:json)?\s*\n?([\s\S]*?)\n?\s*```$/);
+  if (fenced) return fenced[1].trim();
+
+  return trimmed;
+}

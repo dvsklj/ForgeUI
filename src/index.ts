@@ -24,7 +24,7 @@ export type {
 export { createForgeStore, resolveRef, executeAction } from './state/index.js';
 
 // Re-export validation
-export { validateManifest } from './validation/index.js';
+export { validateManifest, extractManifest } from './validation/index.js';
 export type { ValidationResult, ValidationError } from './validation/index.js';
 
 // Re-export catalog utilities

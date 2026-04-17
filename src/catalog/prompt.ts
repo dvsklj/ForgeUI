@@ -248,6 +248,8 @@ function buildFullPrompt(): string {
     '  }',
     '}',
     '',
+    'For sets of repetitive actions (one per day, one per item, etc.), define a single parameterized action and pass the distinguishing value at dispatch time rather than defining one action per item.',
+    '',
     'GUIDELINES:',
     '1. Always use design tokens — never raw CSS, hex colors, or pixel sizes.',
     '2. Keep manifests under ~100KB — if an app needs more, it outgrew Forge.',
