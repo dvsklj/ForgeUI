@@ -32,6 +32,7 @@
     "validate": "tsx scripts/validate-examples.mjs",
     "bench:server": "tsx scripts/bench-server.mjs",
     "smoke:pack": "tsx scripts/pack-smoke.mjs",
+    "gauntlet": "tsx test/gauntlet/run.mts",
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed",
     "e2e:ui": "playwright test --ui"

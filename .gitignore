@@ -11,3 +11,4 @@ coverage/
 tmp/
 test-results/
 playwright-report/
+test/gauntlet/outputs/
