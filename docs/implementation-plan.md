@@ -78,7 +78,7 @@
 - esbuild bundle for browser (ESM)
 - Artifact mode: inline everything
 - Standalone mode: external deps from CDN
-- Size targets: ~42 KB gzip for ESM full-runtime bundle; ~14 KB gzip for per-component ESM entry; IIFE CDN bundle ~95 KB (work planned to reduce).
+- Size targets (completed on 2026-04-17): ~28 KB gzip for ESM full-runtime bundle; ~16 KB gzip for per-component ESM entry; IIFE CDN bundle ~46 KB (down from 95 KB via Zod removal + Ajv precompilation).
 
 ### Step 13: Tests (tests/)
 - Manifest parsing tests

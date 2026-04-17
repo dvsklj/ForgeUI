@@ -1,5 +1,12 @@
 # Bundle size audit — 2026-04
 
+> **Update — 2026-04-17:** The two size regressions this audit called out have been fixed. IIFE gzip dropped from 95,029 bytes to 46,940 bytes (-51%).
+>
+> - Zod removed from IIFE (commit f2df37e): -16.3 KB gzip. Runtime now imports pre-generated data, not Zod. See CHANGELOG 0.1.0.
+> - Ajv compiler removed via standalone precompilation (commit 9ffbb58): -33.7 KB gzip. `validateManifest()` now runs a precompiled validator — also O(validation), not O(recompile + validation).
+>
+> The rest of this document is preserved as a point-in-time audit.
+
 ## Executive summary
 
 The `@forge/runtime` IIFE ships at **334 KB raw / 95 KB gzipped** — the architecture doc (§10) claims ~308 KB raw / ~40 KB gzipped, meaning the real number is **~8% over on raw and 2.4× over on gzip**. The primary culprits are Ajv (25 KB gzip), Zod (14 KB gzip), and TinyBase (13 KB gzip), all of which are fully inlined into the IIFE despite the description claiming "zero dependencies." Every other published package also exceeds reasonable expectations for its domain.

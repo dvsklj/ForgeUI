@@ -2,7 +2,7 @@
 
 ## What Is Forge UI
 
-A platform where **AI agents generate JSON manifests** and the **Forge runtime renders them as live web apps**. No framework code. No build step. ESM standalone ~42 KB gzip; IIFE CDN ~95 KB gzip.
+A platform where **AI agents generate JSON manifests** and the **Forge runtime renders them as live web apps**. No framework code. No build step. ESM standalone ~28 KB gzip; IIFE CDN ~46 KB gzip.
 
 ```
 LLM generates JSON manifest → Forge runtime → Working web app
@@ -15,7 +15,7 @@ LLM generates JSON manifest → Forge runtime → Working web app
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    @forge/runtime                        │
-│  IIFE ~95 KB gzip / ESM standalone ~42 KB gzip           │
+│  IIFE ~46 KB gzip / ESM standalone ~28 KB gzip           │
 │  <forge-app> Web Component + 39 pre-built components     │
 │  TinyBase reactive state + Ajv validation                │
 │  Works: artifacts, iframes, embeds, standalone pages     │
@@ -104,7 +104,7 @@ All packages prepared in `packages/` directory:
 
 | Package | Size | Contents |
 |---------|------|----------|
-| `@forge/runtime` | 312 KB | `forge.js` (IIFE), `forge-standalone.js`, `forge-components.js` |
+| `@forge/runtime` | 163 KB | `forge.js` (IIFE), `forge-standalone.js`, `forge-components.js` |
 | `@forge/server` | 228 KB | Hono server + SQLite + CLI tools |
 | `@forge/catalog` | 32 KB | Component catalog + validation schemas |
 | `@forge/connect` | 368 KB | MCP stdio connector |

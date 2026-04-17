@@ -162,7 +162,7 @@ async function main() {
       console.log(`  ${file}: ${kb} KB`);
     } catch {}
   }
-  console.log('\nTarget: ~40KB gzip for forge.js (full artifact bundle)');
+  console.log(`\nBudget: 50 KB gzip for dist/forge.js (enforced via scripts/check-size.mjs).`);
 }
 
 main().catch(err => {
