@@ -20,6 +20,15 @@
   ],
   "author": "Davor Skulj",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dvsklj/ForgeUI.git",
+    "directory": "packages/connect"
+  },
+  "bugs": {
+    "url": "https://github.com/dvsklj/ForgeUI/issues"
+  },
+  "homepage": "https://github.com/dvsklj/ForgeUI#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0"
   },

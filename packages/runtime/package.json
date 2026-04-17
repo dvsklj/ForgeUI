@@ -1,7 +1,7 @@
 {
   "name": "@forge/runtime",
   "version": "0.1.0",
-  "description": "Client-side renderer for Forge declarative UI manifests. ESM bundle ~42 KB gzipped; IIFE/CDN ~95 KB gzipped.",
+  "description": "Client-side renderer for Forge declarative UI manifests.",
   "main": "forge.js",
   "module": "forge.js",
   "types": "forge.d.ts",
@@ -29,10 +29,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/forge-ui/forge.git"
+    "url": "git+https://github.com/dvsklj/ForgeUI.git",
+    "directory": "packages/runtime"
   },
-  "peerDependencies": {},
-  "scripts": {
-    "postinstall": "echo 'Forge UI runtime installed. See https://forgeui.dev for docs.'"
-  }
+  "bugs": {
+    "url": "https://github.com/dvsklj/ForgeUI/issues"
+  },
+  "homepage": "https://github.com/dvsklj/ForgeUI#readme",
+  "peerDependencies": {}
 }
