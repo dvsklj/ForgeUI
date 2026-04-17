@@ -5,7 +5,7 @@
 import { readFileSync, statSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 
-const BUDGET_BYTES = 84_000; // ~80.6 KB gzip after Zod removal. Ratchet down further as needed.
+const BUDGET_BYTES = 50_000; // ~47 KB gzip after Ajv standalone precompile. Ratchet down further as needed.
 
 const path = 'dist/forge.js';
 let raw;

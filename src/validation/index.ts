@@ -8,9 +8,12 @@
  * 4. Component catalog enforcement
  */
 
-import Ajv from 'ajv';
+import type { ErrorObject, ValidateFunction } from 'ajv';
 import type { ForgeManifest } from '../types/index.js';
-import { isValidComponentType, ALL_COMPONENT_TYPES } from '../catalog/registry.js';
+import { isValidComponentType } from '../catalog/registry.js';
+import _validate from './manifest-validator.generated.js';
+
+const validate = _validate as ValidateFunction;
 
 /** Dangerous URL schemes that must be rejected */
 const DANGEROUS_SCHEMES = ['javascript:', 'data:text/html', 'data:text/javascript', 'data:application/javascript', 'vbscript:', 'file:'];
@@ -53,64 +56,6 @@ export interface ValidationError {
   severity: 'error' | 'warning';
 }
 
-/** Create the Ajv instance with strict validation */
-function createAjv(): Ajv {
-  return new Ajv({
-    strict: true,
-    allErrors: true,
-    removeAdditional: false,
-    useDefaults: false,
-  });
-}
-
-/** Manifest JSON Schema for Ajv validation */
-const MANIFEST_SCHEMA = {
-  type: 'object',
-  required: ['manifest', 'id', 'root', 'elements'],
-  additionalProperties: true,
-  properties: {
-    manifest: { type: 'string', pattern: '^0\\.\\d+\\.\\d+$' },
-    id: { type: 'string', minLength: 1, maxLength: 128 },
-    root: { type: 'string', minLength: 1 },
-    schema: {
-      type: 'object',
-      properties: {
-        version: { type: 'integer', minimum: 1 },
-        tables: { type: 'object' },
-        migrations: { type: 'array' },
-      },
-    },
-    state: { type: 'object' },
-    elements: {
-      type: 'object',
-      minProperties: 1,
-      additionalProperties: {
-        type: 'object',
-        required: ['type'],
-        properties: {
-          type: { type: 'string', enum: ALL_COMPONENT_TYPES },
-          props: { type: 'object' },
-          children: { type: 'array', items: { type: 'string' } },
-          visible: { type: 'object' },
-        },
-      },
-    },
-    actions: { type: 'object' },
-    meta: { type: 'object' },
-    persistState: { type: 'boolean' },
-    skipPersistState: { type: 'boolean' },
-    dataAccess: {
-      type: 'object',
-      properties: {
-        enabled: { type: 'boolean' },
-        readable: { type: 'array', items: { type: 'string' } },
-        restricted: { type: 'array', items: { type: 'string' } },
-        summaries: { type: 'boolean' },
-      },
-    },
-  },
-};
-
 /**
  * Validate a Forge manifest through all four layers.
  * Reject — never repair — invalid manifests.
@@ -119,12 +64,10 @@ export function validateManifest(data: unknown): ValidationResult {
   const errors: ValidationError[] = [];
   
   // ─── Layer 1: JSON Schema validation ───
-  const ajv = createAjv();
-  const validate = ajv.compile(MANIFEST_SCHEMA);
   const schemaValid = validate(data);
   
   if (!schemaValid && validate.errors) {
-    for (const err of validate.errors) {
+    for (const err of validate.errors as ErrorObject[]) {
       errors.push({
         path: err.instancePath || '/',
         message: err.message || 'Schema validation error',
