@@ -48,5 +48,8 @@
     "url": "https://github.com/dvsklj/ForgeUI/issues"
   },
   "homepage": "https://github.com/dvsklj/ForgeUI#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {}
 }

@@ -4,7 +4,7 @@ All notable changes to Forge UI are documented in this file. Format follows [Kee
 
 ## [Unreleased]
 
-## [0.1.0] — UNRELEASED
+## [0.1.0] — 2026-04-17
 
 Initial public release.
 
