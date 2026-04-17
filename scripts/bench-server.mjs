@@ -29,7 +29,11 @@ process.env.FORGE_MAX_BODY_BYTES = String(10 * 1024 * 1024);
 process.env.FORGE_CORS_ORIGINS = '*';
 
 const { createForgeServer } = await import('../src/server/index.js');
-const { initDatabase } = await import('../src/server/db.js');
+const { initDatabase, getDatabase } = await import('../src/server/db.js');
+
+function rowCount() {
+  return getDatabase().prepare('SELECT COUNT(*) as c FROM apps').get().c;
+}
 
 initDatabase(':memory:');
 const { start, stop } = createForgeServer({
@@ -58,36 +62,35 @@ async function run(label, opts) {
   process.stdout.write(`  ⏱️  ${label} ...`);
   const result = await autocannon(opts);
   results.push({ label, ...result });
-  // Clear the progress line
   process.stdout.write(`\r  ✅ ${label} — ${result.requests.average} req/s avg, p99 latency ${result.latency.p99}ms\n`);
 }
 
 try {
   await run('GET /api/health', {
-    url: 'http://127.0.0.1:3456',
-    path: '/api/health',
+    url: 'http://127.0.0.1:3456/api/health',
     connections: 100,
     duration: 10,
     method: 'GET',
   });
 
   await run('GET /api/apps', {
-    url: 'http://127.0.0.1:3456',
-    path: '/api/apps',
+    url: 'http://127.0.0.1:3456/api/apps',
     connections: 100,
     duration: 10,
     method: 'GET',
   });
 
+  const prePostCount = rowCount();
   await run('POST /api/apps', {
-    url: 'http://127.0.0.1:3456',
-    path: '/api/apps',
+    url: 'http://127.0.0.1:3456/api/apps',
     connections: 10,
     duration: 10,
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: smallManifest,
   });
+  const postPostCount = rowCount();
+  console.log(`  📊 DB rows before POST bench: ${prePostCount}, after: ${postPostCount}, delta: ${postPostCount - prePostCount}`);
 } catch (err) {
   console.error('\n  ❌ Benchmark error:', err.message);
 }
