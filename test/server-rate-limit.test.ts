@@ -94,9 +94,9 @@ describe('token bucket rate limiter', () => {
 
 describe('rate limiting middleware', () => {
   it('allows burst of requests then returns 429 with Retry-After', async () => {
-    delete process.env.FORGE_RATE_LIMIT_DISABLE;
-    process.env.FORGE_RATE_LIMIT_RPM = '60';
-    process.env.FORGE_RATE_LIMIT_BURST = '5'; // small burst for testing
+    delete process.env.FORGEUI_RATE_LIMIT_DISABLE;
+    process.env.FORGEUI_RATE_LIMIT_RPM = '60';
+    process.env.FORGEUI_RATE_LIMIT_BURST = '5'; // small burst for testing
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -116,9 +116,9 @@ describe('rate limiting middleware', () => {
     expect(body.retryAfter).toBe(retryAfter);
   });
 
-  it('FORGE_RATE_LIMIT_DISABLE=1 skips rate limiting', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
-    process.env.FORGE_RATE_LIMIT_BURST = '1';
+  it('FORGEUI_RATE_LIMIT_DISABLE=1 skips rate limiting', async () => {
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_BURST = '1';
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -130,7 +130,7 @@ describe('rate limiting middleware', () => {
   });
 
   it('rate limiting only applies to /api/*', async () => {
-    process.env.FORGE_RATE_LIMIT_BURST = '1';
+    process.env.FORGEUI_RATE_LIMIT_BURST = '1';
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -146,8 +146,8 @@ describe('rate limiting middleware', () => {
 
 describe('body size enforcement', () => {
   it('Content-Length > max returns 413', async () => {
-    delete process.env.FORGE_MAX_BODY_BYTES;
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    delete process.env.FORGEUI_MAX_BODY_BYTES;
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -165,8 +165,8 @@ describe('body size enforcement', () => {
   });
 
   it('streaming body exceeding max returns 413', async () => {
-    process.env.FORGE_MAX_BODY_BYTES = '1024'; // 1 KB
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_MAX_BODY_BYTES = '1024'; // 1 KB
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -184,8 +184,8 @@ describe('body size enforcement', () => {
   });
 
   it('body under limit succeeds', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
-    delete process.env.FORGE_MAX_BODY_BYTES;
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
+    delete process.env.FORGEUI_MAX_BODY_BYTES;
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -206,10 +206,10 @@ describe('body size enforcement', () => {
 // ─── HTTP integration: trust proxy ────────────────────────────
 
 describe('trust proxy', () => {
-  it('FORGE_TRUST_PROXY=0: X-Forwarded-For is ignored — same rate bucket', async () => {
-    process.env.FORGE_TRUST_PROXY = '0';
-    process.env.FORGE_RATE_LIMIT_BURST = '3';
-    process.env.FORGE_RATE_LIMIT_RPM = '60';
+  it('FORGEUI_TRUST_PROXY=0: X-Forwarded-For is ignored — same rate bucket', async () => {
+    process.env.FORGEUI_TRUST_PROXY = '0';
+    process.env.FORGEUI_RATE_LIMIT_BURST = '3';
+    process.env.FORGEUI_RATE_LIMIT_RPM = '60';
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -228,10 +228,10 @@ describe('trust proxy', () => {
     expect(res.status).toBe(429);
   });
 
-  it('FORGE_TRUST_PROXY=1: X-Forwarded-For yields separate buckets', async () => {
-    process.env.FORGE_TRUST_PROXY = '1';
-    process.env.FORGE_RATE_LIMIT_BURST = '2';
-    process.env.FORGE_RATE_LIMIT_RPM = '60';
+  it('FORGEUI_TRUST_PROXY=1: X-Forwarded-For yields separate buckets', async () => {
+    process.env.FORGEUI_TRUST_PROXY = '1';
+    process.env.FORGEUI_RATE_LIMIT_BURST = '2';
+    process.env.FORGEUI_RATE_LIMIT_RPM = '60';
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -247,9 +247,9 @@ describe('trust proxy', () => {
   });
 
   it('trust proxy: X-Real-IP is also honored when X-Forwarded-For is absent', async () => {
-    process.env.FORGE_TRUST_PROXY = '1';
-    process.env.FORGE_RATE_LIMIT_BURST = '2';
-    process.env.FORGE_RATE_LIMIT_RPM = '60';
+    process.env.FORGEUI_TRUST_PROXY = '1';
+    process.env.FORGEUI_RATE_LIMIT_BURST = '2';
+    process.env.FORGEUI_RATE_LIMIT_RPM = '60';
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -261,7 +261,7 @@ describe('trust proxy', () => {
 
   it('startup logs trust proxy state', async () => {
     // Just verify the config parses correctly
-    process.env.FORGE_TRUST_PROXY = 'yes';
+    process.env.FORGEUI_TRUST_PROXY = 'yes';
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
     // If we got here without throwing, the config was parsed
@@ -274,9 +274,9 @@ describe('trust proxy', () => {
 
 describe('server hardening edge cases', () => {
   it('429 response body includes error and retryAfter fields', async () => {
-    process.env.FORGE_RATE_LIMIT_BURST = '1';
-    process.env.FORGE_RATE_LIMIT_RPM = '60';
-    process.env.FORGE_RATE_LIMIT_DISABLE = '';
+    process.env.FORGEUI_RATE_LIMIT_BURST = '1';
+    process.env.FORGEUI_RATE_LIMIT_RPM = '60';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '';
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -291,7 +291,7 @@ describe('server hardening edge cases', () => {
   });
 
   it('Content-Length: 0 on POST still works (empty body)', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -307,9 +307,9 @@ describe('server hardening edge cases', () => {
     expect(res.status).not.toBe(413);
   });
 
-  it('non-numeric FORGE_MAX_BODY_BYTES falls back to 1 MB', async () => {
-    process.env.FORGE_MAX_BODY_BYTES = 'not-a-number';
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+  it('non-numeric FORGEUI_MAX_BODY_BYTES falls back to 1 MB', async () => {
+    process.env.FORGEUI_MAX_BODY_BYTES = 'not-a-number';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
     // Should not throw during server creation
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
@@ -318,8 +318,8 @@ describe('server hardening edge cases', () => {
   });
 
   it('PUT /api/apps/:id body goes through bounded reader', async () => {
-    process.env.FORGE_MAX_BODY_BYTES = '512';
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_MAX_BODY_BYTES = '512';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -333,8 +333,8 @@ describe('server hardening edge cases', () => {
   });
 
   it('PATCH /api/apps/:id body goes through bounded reader', async () => {
-    process.env.FORGE_MAX_BODY_BYTES = '512';
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_MAX_BODY_BYTES = '512';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 

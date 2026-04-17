@@ -24,9 +24,9 @@ try {
 
 // ── Dynamically import the server ───────────────────────────
 
-process.env.FORGE_RATE_LIMIT_DISABLE = '1';
-process.env.FORGE_MAX_BODY_BYTES = String(10 * 1024 * 1024);
-process.env.FORGE_CORS_ORIGINS = '*';
+process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
+process.env.FORGEUI_MAX_BODY_BYTES = String(10 * 1024 * 1024);
+process.env.FORGEUI_CORS_ORIGINS = '*';
 
 const { createForgeServer } = await import('../src/server/index.js');
 const { initDatabase, getDatabase } = await import('../src/server/db.js');

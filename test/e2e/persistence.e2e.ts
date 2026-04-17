@@ -221,7 +221,7 @@ console.log('SERVER_READY');
       serverProc = spawn('npx', ['tsx', scriptPath], {
         cwd: process.cwd(),
         stdio: ['pipe', 'pipe', 'pipe'],
-        env: { ...process.env, FORGE_RATE_LIMIT_DISABLE: '1' },
+        env: { ...process.env, FORGEUI_RATE_LIMIT_DISABLE: '1' },
       });
 
       // Wait for server to be ready

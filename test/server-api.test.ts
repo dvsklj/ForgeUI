@@ -16,7 +16,7 @@ describe('Server API — Full CRUD', () => {
   }
 
   it('GET /api/health returns ok', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     const { app } = setup();
     const res = await app.request('/api/health');
     expect(res.status).toBe(200);
@@ -26,7 +26,7 @@ describe('Server API — Full CRUD', () => {
   });
 
   it('POST /api/apps creates a new app', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     const { app } = setup();
     const res = await app.request('/api/apps', {
       method: 'POST',
@@ -46,7 +46,7 @@ describe('Server API — Full CRUD', () => {
   });
 
   it('POST /api/apps generates ID when omitted', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     const { app } = setup();
     const res = await app.request('/api/apps', {
       method: 'POST',
@@ -63,7 +63,7 @@ describe('Server API — Full CRUD', () => {
   });
 
   it('GET /api/apps lists apps', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     const { app } = setup();
     createApp({ id: 'list-1', manifest: '0.1.0', root: 'm', elements: { m: { type: 'Text' } } } as any);
     const res = await app.request('/api/apps');
@@ -74,7 +74,7 @@ describe('Server API — Full CRUD', () => {
   });
 
   it('GET /api/apps/:id retrieves a specific app', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     const { app } = setup();
     createApp({ id: 'get-app', manifest: '0.1.0', root: 'm', elements: { m: { type: 'Text' } } } as any);
     const res = await app.request('/api/apps/get-app');
@@ -84,14 +84,14 @@ describe('Server API — Full CRUD', () => {
   });
 
   it('GET /api/apps/:id returns 404 for unknown app', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     const { app } = setup();
     const res = await app.request('/api/apps/nonexistent');
     expect(res.status).toBe(404);
   });
 
   it('PUT /api/apps/:id updates an app', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     const { app } = setup();
     createApp({ id: 'put-app', manifest: '0.1.0', root: 'm', elements: { m: { type: 'Text' } }, meta: { title: 'Old' } } as any);
     const res = await app.request('/api/apps/put-app', {
@@ -111,7 +111,7 @@ describe('Server API — Full CRUD', () => {
   });
 
   it('PUT /api/apps/:id validates manifest', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     const { app } = setup();
     createApp({ id: 'put-invalid', manifest: '0.1.0', root: 'm', elements: { m: { type: 'Text' } } } as any);
     const res = await app.request('/api/apps/put-invalid', {
@@ -128,7 +128,7 @@ describe('Server API — Full CRUD', () => {
   });
 
   it('DELETE /api/apps/:id deletes an app', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     const { app } = setup();
     createApp({ id: 'del-app', manifest: '0.1.0', root: 'm', elements: { m: { type: 'Text' } } } as any);
     const res = await app.request('/api/apps/del-app', { method: 'DELETE' });
@@ -138,7 +138,7 @@ describe('Server API — Full CRUD', () => {
   });
 
   it('DELETE /api/apps/:id returns 404 for unknown app', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     const { app } = setup();
     const res = await app.request('/api/apps/nonexistent', { method: 'DELETE' });
     expect(res.status).toBe(404);
@@ -147,7 +147,7 @@ describe('Server API — Full CRUD', () => {
 
 describe('Server API — App pages', () => {
   it('GET /apps/:id returns HTML for valid app', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
     createApp({ id: 'page-app', manifest: '0.1.0', root: 'm', elements: { m: { type: 'Text' } }, meta: { title: 'My Page' } } as any);
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
@@ -161,7 +161,7 @@ describe('Server API — App pages', () => {
   });
 
   it('GET /apps/:id returns 404 for unknown app', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
     const res = await app.request('/apps/nonexistent');
@@ -169,7 +169,7 @@ describe('Server API — App pages', () => {
   });
 
   it('GET / returns landing page', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
     const res = await app.request('/');
@@ -181,7 +181,7 @@ describe('Server API — App pages', () => {
 
 describe('Server API — Invalid input handling', () => {
   it('POST /api/apps with invalid JSON returns 400', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
     const res = await app.request('/api/apps', {
@@ -193,7 +193,7 @@ describe('Server API — Invalid input handling', () => {
   });
 
   it('POST /api/apps with empty body returns 400', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
     const res = await app.request('/api/apps', {

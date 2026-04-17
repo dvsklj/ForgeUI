@@ -68,7 +68,7 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   const app = new Hono();
 
   // ─── CORS allowlist ────────────────────────────────────────
-  const corsOriginsEnv = process.env.FORGE_CORS_ORIGINS?.trim();
+  const corsOriginsEnv = process.env.FORGEUI_CORS_ORIGINS?.trim();
   const corsOrigins: string[] = corsOriginsEnv
     ? corsOriginsEnv === '*'
       ? ['*']
@@ -92,7 +92,7 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   }));
 
   // ─── Body size limit ───────────────────────────────────────
-  const maxBodyBytes = parseInt(process.env.FORGE_MAX_BODY_BYTES ?? '1048576', 10);
+  const maxBodyBytes = parseInt(process.env.FORGEUI_MAX_BODY_BYTES ?? '1048576', 10);
 
   app.use('*', async (c, next) => {
     const method = c.req.method;
@@ -111,16 +111,16 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   });
 
   // ─── Trust proxy & client IP ──────────────────────────────
-  const trustProxy = /^(1|true|yes)$/i.test(process.env.FORGE_TRUST_PROXY ?? '');
+  const trustProxy = /^(1|true|yes)$/i.test(process.env.FORGEUI_TRUST_PROXY ?? '');
   console.log(`[forge] trust proxy: ${trustProxy ? 'on' : 'off'}`);
 
   // ─── Rate limiter on /api/* ────────────────────────────────
-  const rateLimitDisabled = process.env.FORGE_RATE_LIMIT_DISABLE === '1';
+  const rateLimitDisabled = process.env.FORGEUI_RATE_LIMIT_DISABLE === '1';
   let rateLimiter: RateLimiter | null = null;
 
   if (!rateLimitDisabled) {
-    const rpm = parseInt(process.env.FORGE_RATE_LIMIT_RPM ?? '60', 10);
-    const burst = parseInt(process.env.FORGE_RATE_LIMIT_BURST ?? String(rpm * 2), 10);
+    const rpm = parseInt(process.env.FORGEUI_RATE_LIMIT_RPM ?? '60', 10);
+    const burst = parseInt(process.env.FORGEUI_RATE_LIMIT_BURST ?? String(rpm * 2), 10);
     const refillPerSec = rpm / 60;
 
     rateLimiter = createRateLimiter({
@@ -142,7 +142,7 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   }
 
   // ─── Optional API token auth ───────────────────────────────
-  const apiToken = process.env.FORGE_API_TOKEN?.trim() || undefined;
+  const apiToken = process.env.FORGEUI_API_TOKEN?.trim() || undefined;
 
   if (apiToken) {
     app.use('/api/*', async (c, next) => {
@@ -159,7 +159,7 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   }
 
   if (!apiToken && process.env.NODE_ENV === 'production') {
-    console.warn('[forge-server] FORGE_API_TOKEN is not set; /api/apps/* writes are unauthenticated.');
+    console.warn('[forge-server] FORGEUI_API_TOKEN is not set; /api/apps/* writes are unauthenticated.');
   }
 
   // ─── Security response headers ─────────────────────────────
@@ -174,7 +174,7 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
 
   // Resolve runtime file paths. In production (dist/forgeui-server.js), the
   // runtime is a sibling. In dev (tsx src/server/index.ts), walk up to the
-  // repo root. FORGE_RUNTIME_PATH / FORGE_STANDALONE_PATH override.
+  // repo root. FORGEUI_RUNTIME_PATH / FORGEUI_STANDALONE_PATH override.
   function resolveRuntime(filename: string): string {
     if (filename === 'forgeui.js' && process.env.FORGEUI_RUNTIME_PATH) return process.env.FORGEUI_RUNTIME_PATH;
     if (filename === 'forgeui-standalone.js' && process.env.FORGEUI_STANDALONE_PATH) return process.env.FORGEUI_STANDALONE_PATH;

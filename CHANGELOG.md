@@ -14,7 +14,7 @@ Initial public release.
 - Schema strictness: `additionalProperties: false` at every level of the manifest JSON Schema (top-level, `schema`, `elements[id]`, `dataAccess`). Previously `additionalProperties: true` at the top allowed arbitrary keys through validation.
 - `VALID_APP_ID` regex enforced on all six app-id endpoints.
 - Content Security Policy with per-request nonce on rendered app pages.
-- Server middleware: CORS allowlist (`FORGE_CORS_ORIGINS`), body size limit (`FORGE_MAX_BODY_BYTES`, default 1 MB), query-param clamping on LIST, optional Bearer-token auth (`FORGE_API_TOKEN`) on writes, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` on `/api/*`.
+- Server middleware: CORS allowlist (`FORGEUI_CORS_ORIGINS`), body size limit (`FORGEUI_MAX_BODY_BYTES`, default 1 MB), query-param clamping on LIST, optional Bearer-token auth (`FORGEUI_API_TOKEN`) on writes, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` on `/api/*`.
 - Transactional PATCH: validation now happens **before** database write; invalid merged manifests no longer touch disk.
 - All 31 WCAG 2.1 AA findings from the 2026-04 core-components audit resolved (8 P0, 19 P1, 4 P2).
 
@@ -33,9 +33,9 @@ Initial public release.
 - MIT LICENSE.
 - Expression engine audit (`docs/security/2026-04-expression-audit.md`) — grammar documentation and pathological-input corpus.
 - Expression engine fuzz harness — 30-case corpus plus seeded 1000-iteration generative fuzz across `$state:`, `$computed:`, `$expr:`, `$item:`.
-- Per-IP token-bucket rate limiting on `/api/*` — `FORGE_RATE_LIMIT_RPM`, `FORGE_RATE_LIMIT_BURST`, `FORGE_RATE_LIMIT_DISABLE`.
-- Request body size cap — `FORGE_MAX_BODY_BYTES` (default 1 MB), enforced at both Content-Length precheck and streaming.
-- `FORGE_TRUST_PROXY` env var gating `X-Forwarded-For` / `X-Real-IP` honoring.
+- Per-IP token-bucket rate limiting on `/api/*` — `FORGEUI_RATE_LIMIT_RPM`, `FORGEUI_RATE_LIMIT_BURST`, `FORGEUI_RATE_LIMIT_DISABLE`.
+- Request body size cap — `FORGEUI_MAX_BODY_BYTES` (default 1 MB), enforced at both Content-Length precheck and streaming.
+- `FORGEUI_TRUST_PROXY` env var gating `X-Forwarded-For` / `X-Real-IP` honoring.
 - Table `caption` prop renders `<caption>` as first child of `<table>`.
 - `--forge-color-chart-6` through `--forge-color-chart-10` design tokens; Chart palette no longer uses hardcoded hex for slots 6–10.
 

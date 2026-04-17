@@ -72,22 +72,22 @@ server {
 }
 ```
 
-Set `FORGE_TRUST_PROXY=1` so the server honors `X-Forwarded-For` / `X-Real-IP` headers from nginx.
+Set `FORGEUI_TRUST_PROXY=1` so the server honors `X-Forwarded-For` / `X-Real-IP` headers from nginx.
 
 ## Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `FORGE_CORS_ORIGINS` | `http://localhost, http://127.0.0.1` | Comma-separated CORS origin allowlist. Set to `*` to allow all origins. |
-| `FORGE_MAX_BODY_BYTES` | `1048576` (1 MB) | Max request body size in bytes. Enforced at Content-Length precheck and streaming. |
-| `FORGE_TRUST_PROXY` | *(unset)* | Set to `1`, `true`, or `yes` to honor `X-Forwarded-For` / `X-Real-IP` headers. Required when behind a reverse proxy. |
-| `FORGE_RATE_LIMIT_RPM` | `60` | Per-IP requests per minute on `/api/*`. |
-| `FORGE_RATE_LIMIT_BURST` | `RPM × 2` | Token-bucket burst size. |
-| `FORGE_RATE_LIMIT_DISABLE` | *(unset)* | Set to `1` to disable rate limiting entirely. |
-| `FORGE_API_TOKEN` | *(unset)* | Bearer token for `/api/apps/*` write operations (POST, PUT, PATCH, DELETE). **Required in production** — if `NODE_ENV=production` and this is unset, the server logs a warning and rejects all writes with 401. |
-| `FORGE_RUNTIME_PATH` | *(auto)* | Override path for `/runtime/forge.js`. By default the server resolves from its own location or walks up to `dist/forge.js`. |
-| `FORGE_STANDALONE_PATH` | *(auto)* | Override path for `/runtime/forge-standalone.js`. |
-| `NODE_ENV` | *(unset)* | When set to `production`, enforces `FORGE_API_TOKEN`. |
+| `FORGEUI_CORS_ORIGINS` | `http://localhost, http://127.0.0.1` | Comma-separated CORS origin allowlist. Set to `*` to allow all origins. |
+| `FORGEUI_MAX_BODY_BYTES` | `1048576` (1 MB) | Max request body size in bytes. Enforced at Content-Length precheck and streaming. |
+| `FORGEUI_TRUST_PROXY` | *(unset)* | Set to `1`, `true`, or `yes` to honor `X-Forwarded-For` / `X-Real-IP` headers. Required when behind a reverse proxy. |
+| `FORGEUI_RATE_LIMIT_RPM` | `60` | Per-IP requests per minute on `/api/*`. |
+| `FORGEUI_RATE_LIMIT_BURST` | `RPM × 2` | Token-bucket burst size. |
+| `FORGEUI_RATE_LIMIT_DISABLE` | *(unset)* | Set to `1` to disable rate limiting entirely. |
+| `FORGEUI_API_TOKEN` | *(unset)* | Bearer token for `/api/apps/*` write operations (POST, PUT, PATCH, DELETE). **Required in production** — if `NODE_ENV=production` and this is unset, the server logs a warning and rejects all writes with 401. |
+| `FORGEUI_RUNTIME_PATH` | *(auto)* | Override path for `/runtime/forge.js`. By default the server resolves from its own location or walks up to `dist/forge.js`. |
+| `FORGEUI_STANDALONE_PATH` | *(auto)* | Override path for `/runtime/forge-standalone.js`. |
+| `NODE_ENV` | *(unset)* | When set to `production`, enforces `FORGEUI_API_TOKEN`. |
 
 Port, host, and database path are set via CLI flags (`--port`, `--host`, `--db`), not environment variables.
 

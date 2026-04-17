@@ -331,7 +331,7 @@ server.tool(
 
 async function main() {
   // Init database
-  const dbPath = process.env.FORGE_DB_PATH || './forge.db';
+  const dbPath = process.env.FORGEUI_DB_PATH || './forge.db';
   initDatabase(dbPath);
 
   const transport = new StdioServerTransport();

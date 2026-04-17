@@ -1,7 +1,7 @@
 /**
  * Client IP extraction with optional proxy trust.
  *
- * When FORGE_TRUST_PROXY is off (default), we use the raw socket address.
+ * When FORGEUI_TRUST_PROXY is off (default), we use the raw socket address.
  * When on, we honor X-Forwarded-For / X-Real-IP — useful only when the
  * server is genuinely behind a reverse proxy.
  */

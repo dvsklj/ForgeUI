@@ -228,7 +228,7 @@ async function cmdCatalog() {
 
 async function cmdConnect() {
   const dbPath = getFlag('db') || './forge.db';
-  process.env.FORGE_DB_PATH = dbPath;
+  process.env.FORGEUI_DB_PATH = dbPath;
 
   // Import and run the connect server
   await import('./connect/index.js');

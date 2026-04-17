@@ -71,7 +71,7 @@ describe('Transactional patch', () => {
 
 describe('CORS allowlist', () => {
   it('default: OPTIONS from http://localhost:5173 reflects origin', async () => {
-    delete process.env.FORGE_CORS_ORIGINS;
+    delete process.env.FORGEUI_CORS_ORIGINS;
     seedApp();
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -88,7 +88,7 @@ describe('CORS allowlist', () => {
   });
 
   it('default: OPTIONS from http://evil.example.com has no ACAO header', async () => {
-    delete process.env.FORGE_CORS_ORIGINS;
+    delete process.env.FORGEUI_CORS_ORIGINS;
     seedApp();
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -106,7 +106,7 @@ describe('CORS allowlist', () => {
   });
 
   it('explicit allowlist: custom origin allowed, localhost rejected', async () => {
-    process.env.FORGE_CORS_ORIGINS = 'https://forge.example.com';
+    process.env.FORGEUI_CORS_ORIGINS = 'https://forge.example.com';
     seedApp();
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -136,7 +136,7 @@ describe('CORS allowlist', () => {
 
 describe('Body size limit', () => {
   it('POST with Content-Length > default 1 MB returns 413', async () => {
-    delete process.env.FORGE_MAX_BODY_BYTES;
+    delete process.env.FORGEUI_MAX_BODY_BYTES;
     seedApp();
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -154,8 +154,8 @@ describe('Body size limit', () => {
     expect(body.error).toMatch(/too large/i);
   });
 
-  it('custom limit: FORGE_MAX_BODY_BYTES=2048 rejects 4 KB body', async () => {
-    process.env.FORGE_MAX_BODY_BYTES = '2048';
+  it('custom limit: FORGEUI_MAX_BODY_BYTES=2048 rejects 4 KB body', async () => {
+    process.env.FORGEUI_MAX_BODY_BYTES = '2048';
     seedApp();
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -215,7 +215,7 @@ describe('Query param clamping', () => {
 
 describe('API token auth', () => {
   it('unset: POST /api/apps without Authorization succeeds', async () => {
-    delete process.env.FORGE_API_TOKEN;
+    delete process.env.FORGEUI_API_TOKEN;
     seedApp();
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -234,7 +234,7 @@ describe('API token auth', () => {
   });
 
   it('token set: POST without Authorization returns 401', async () => {
-    process.env.FORGE_API_TOKEN = 'abc123';
+    process.env.FORGEUI_API_TOKEN = 'abc123';
     seedApp();
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -253,7 +253,7 @@ describe('API token auth', () => {
   });
 
   it('token set: POST with Bearer token succeeds', async () => {
-    process.env.FORGE_API_TOKEN = 'abc123';
+    process.env.FORGEUI_API_TOKEN = 'abc123';
     seedApp();
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -275,7 +275,7 @@ describe('API token auth', () => {
   });
 
   it('token set: GET /api/apps (read) is allowed without auth', async () => {
-    process.env.FORGE_API_TOKEN = 'abc123';
+    process.env.FORGEUI_API_TOKEN = 'abc123';
     seedApp();
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 

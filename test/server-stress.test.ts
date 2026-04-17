@@ -129,9 +129,9 @@ describe('1. Rate-limit flood (injected clock)', () => {
 
 describe('2. Rate-limit end-to-end via HTTP', () => {
   it('first 5 return 200, requests 6-20 return 429 with Retry-After ≥ 1', async () => {
-    process.env.FORGE_RATE_LIMIT_RPM = '60';
-    process.env.FORGE_RATE_LIMIT_BURST = '5';
-    delete process.env.FORGE_RATE_LIMIT_DISABLE;
+    process.env.FORGEUI_RATE_LIMIT_RPM = '60';
+    process.env.FORGEUI_RATE_LIMIT_BURST = '5';
+    delete process.env.FORGEUI_RATE_LIMIT_DISABLE;
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -167,8 +167,8 @@ describe('4. Body cap — spoofed / missing Content-Length (streaming)', () => {
   let port: number;
 
   async function startServer() {
-    process.env.FORGE_MAX_BODY_BYTES = '1048576'; // 1 MB
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_MAX_BODY_BYTES = '1048576'; // 1 MB
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
     const { start, stop } = createForgeServer({ port: 0, host: '127.0.0.1', baseUrl: 'http://localhost' });
     await start();
@@ -192,8 +192,8 @@ describe('4. Body cap — spoofed / missing Content-Length (streaming)', () => {
   });
 
   it('4a. CL omitted, body 2 MB chunked → 413 with /too large/i', async () => {
-    process.env.FORGE_MAX_BODY_BYTES = '1048576';
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_MAX_BODY_BYTES = '1048576';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
 
     const { serve } = await import('@hono/node-server');
@@ -224,8 +224,8 @@ describe('4. Body cap — spoofed / missing Content-Length (streaming)', () => {
   }, 15_000);
 
   it('4b. CL=100 present, body actually 2 MB → 413/400, no hang, no 500', async () => {
-    process.env.FORGE_MAX_BODY_BYTES = '1048576';
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_MAX_BODY_BYTES = '1048576';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
 
     const { serve } = await import('@hono/node-server');
@@ -316,8 +316,8 @@ describe('5. Adversarial manifest corpus over HTTP', () => {
   ];
 
   it('POST /api/apps — every response is 400 or 413 (no 500)', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
-    delete process.env.FORGE_MAX_BODY_BYTES;
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
+    delete process.env.FORGEUI_MAX_BODY_BYTES;
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -335,8 +335,8 @@ describe('5. Adversarial manifest corpus over HTTP', () => {
   });
 
   it('PUT /api/apps/existing — every response is 400 or 413 (no 500)', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
-    delete process.env.FORGE_MAX_BODY_BYTES;
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
+    delete process.env.FORGEUI_MAX_BODY_BYTES;
     seedApp();
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -352,7 +352,7 @@ describe('5. Adversarial manifest corpus over HTTP', () => {
   });
 
   it('PATCH with own-property __proto__ must not mutate stored manifest prototype', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     const app = seedApp();
     const { app: server } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -376,8 +376,8 @@ describe('5. Adversarial manifest corpus over HTTP', () => {
   });
 
   it('PUT with 800KB string prop (under 1MB cap) — should accept, not 413', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
-    delete process.env.FORGE_MAX_BODY_BYTES; // default 1 MB
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
+    delete process.env.FORGEUI_MAX_BODY_BYTES; // default 1 MB
     seedApp();
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -394,8 +394,8 @@ describe('5. Adversarial manifest corpus over HTTP', () => {
   });
 
   it('PUT with 2MB string prop (over 1MB cap) — must return 413', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
-    delete process.env.FORGE_MAX_BODY_BYTES; // default 1 MB
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
+    delete process.env.FORGEUI_MAX_BODY_BYTES; // default 1 MB
     seedApp();
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -409,8 +409,8 @@ describe('5. Adversarial manifest corpus over HTTP', () => {
   });
 
   it('server is still responsive after full corpus: GET /api/health → 200', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
-    delete process.env.FORGE_MAX_BODY_BYTES;
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
+    delete process.env.FORGEUI_MAX_BODY_BYTES;
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -437,7 +437,7 @@ describe('5. Adversarial manifest corpus over HTTP', () => {
 
 describe('6. Concurrent PATCH — write race', () => {
   it('10 concurrent patches: all 200/400, final GET meta.title matches one of the 10', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     seedApp();
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
@@ -527,7 +527,7 @@ describe('7. Bucket eviction (injected clock)', () => {
 
 describe('8. Health under sustained load', () => {
   it('GET /api/health stays under 200ms while write loop runs for 3s', async () => {
-    process.env.FORGE_RATE_LIMIT_DISABLE = '1';
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     initDatabase(':memory:');
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
 
