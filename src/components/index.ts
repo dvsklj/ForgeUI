@@ -175,10 +175,28 @@ export class ForgeTabs extends ForgeElement {
       else kid.removeAttribute('data-active');
     });
   }
+  _moveTo(newIndex: number, arr: any[]) {
+    const newKey = this._itemKey(arr[newIndex]) || String(newIndex);
+    this._active = newKey;
+    this.requestUpdate();
+    this.dispatchAction('tab-change', { active: newKey });
+    this.updateComplete.then(() => {
+      this.shadowRoot?.querySelector<HTMLButtonElement>(`#${this._instanceId}-tab-${newIndex}`)?.focus();
+    });
+  }
   render() {
     const items: unknown = this.getProp('items') || [];
     const arr = Array.isArray(items) ? items : [];
     if (!this._active && arr.length > 0) this._active = this._itemKey(arr[0]) || '0';
+    const activeIndex = arr.findIndex((item: any, i: number) => (this._itemKey(item) || String(i)) === this._active);
+    const handleKeydown = (e: KeyboardEvent, i: number) => {
+      let newIndex = -1;
+      if (e.key === 'ArrowRight') newIndex = (i + 1) % arr.length;
+      else if (e.key === 'ArrowLeft') newIndex = (i - 1 + arr.length) % arr.length;
+      else if (e.key === 'Home') newIndex = 0;
+      else if (e.key === 'End') newIndex = arr.length - 1;
+      if (newIndex !== -1) { e.preventDefault(); this._moveTo(newIndex, arr); }
+    };
     return html`
       <div class="tabs" role="tablist">${arr.map((item: any, i: number) => {
         const key = this._itemKey(item) || String(i);
@@ -186,10 +204,15 @@ export class ForgeTabs extends ForgeElement {
         const active = key === this._active;
         return html`
           <button class="tab" ?active=${active} role="tab" aria-selected=${active}
-            @click=${() => { this._active = key; this.requestUpdate(); this.dispatchAction('tab-change', { active: key }); }}>${label}</button>
+            id="${this._instanceId}-tab-${i}"
+            aria-controls="${this._instanceId}-panel"
+            tabindex="${active ? 0 : -1}"
+            @click=${() => { this._active = key; this.requestUpdate(); this.dispatchAction('tab-change', { active: key }); }}
+            @keydown=${(e: KeyboardEvent) => handleKeydown(e, i)}>${label}</button>
         `;
       })}</div>
-      <div class="panel" role="tabpanel"><slot></slot></div>
+      <div class="panel" role="tabpanel" id="${this._instanceId}-panel"
+        aria-labelledby="${this._instanceId}-tab-${activeIndex >= 0 ? activeIndex : 0}"><slot></slot></div>
     `;
   }
 }
@@ -316,6 +339,10 @@ export class ForgeText extends ForgeElement {
     if (colorScheme && colorMap[colorScheme]) styles.push(`color:${colorMap[colorScheme]}`);
     if (weight && weightMap[weight]) styles.push(`font-weight:${weightMap[weight]}`);
     const alignCls = align ? `align-${align}` : '';
+    const inner = html`${content}<slot></slot>`;
+    if (cls === 'heading1') return html`<h1 class="${cls} ${alignCls}" style="${styles.join(';')}">${inner}</h1>`;
+    if (cls === 'heading2') return html`<h2 class="${cls} ${alignCls}" style="${styles.join(';')}">${inner}</h2>`;
+    if (cls === 'heading3') return html`<h3 class="${cls} ${alignCls}" style="${styles.join(';')}">${inner}</h3>`;
     return html`<div class="${cls} ${alignCls}" style="${styles.join(';')}">${content}<slot></slot></div>`;
   }
 }
@@ -698,6 +725,7 @@ export class ForgeButton extends ForgeElement {
     .sm { height:2rem; padding:0 var(--forge-space-sm); font-size:var(--forge-text-xs); }
     .lg { height:3rem; padding:0 var(--forge-space-lg); font-size:var(--forge-text-base); }
     button:disabled { opacity:0.5; cursor:not-allowed; }
+    button[aria-pressed="true"] { background:var(--forge-color-primary-subtle); color:var(--forge-color-primary); }
     @media (prefers-reduced-motion: reduce) {
       button { transition:none; }
     }
@@ -707,7 +735,10 @@ export class ForgeButton extends ForgeElement {
     const variant = this.getString('variant', 'primary');
     const size = this.getString('size', '');
     const disabled = this.getBool('disabled');
-    return html`<button class="${variant} ${size}" ?disabled=${disabled} @click=${(e: Event) => this.handleAction(e)}>${label}<slot></slot></button>`;
+    const pressed = this.getProp('pressed');
+    return html`<button class="${variant} ${size}" ?disabled=${disabled}
+      aria-pressed=${pressed === undefined || pressed === null ? nothing : String(!!pressed)}
+      @click=${(e: Event) => this.handleAction(e)}>${label}<slot></slot></button>`;
   }
 }
 customElements.define('forge-button', ForgeButton);
@@ -763,6 +794,7 @@ export class ForgeTable extends ForgeElement {
     .col-center th, .col-center td { text-align:center; }
     .row-action { cursor:pointer; }
     .row-action:hover td { background:var(--forge-color-surface-hover); }
+    .row-action:focus-visible { outline:2px solid var(--forge-color-primary); outline-offset:-2px; }
   `; }
   _statusClass(val: unknown): string {
     const s = String(val ?? '').toLowerCase().trim();
@@ -820,13 +852,21 @@ export class ForgeTable extends ForgeElement {
         })}</tr></thead>
         <tbody>${data.length === 0
           ? html`<tr><td colspan=${cols.length} class="empty">${emptyMsg}</td></tr>`
-          : data.map((row: any, i: number) => html`<tr class="${rowAction ? 'row-action' : ''}"
-              @click=${rowAction ? () => this.dispatchAction(rowAction, { row, index: i }) : undefined}>
-            ${cols.map((c: any) => {
-              const align = typeof c === 'object' ? c.align : undefined;
-              const alignCls = align === 'right' ? 'align-right' : align === 'center' ? 'align-center' : '';
-              return html`<td class="${alignCls}">${this._renderCell(c, row)}</td>`;
-            })}</tr>`)
+          : data.map((row: any, i: number) => {
+              const hasAction = !!rowAction;
+              const rowLabel = hasAction ? String(row[typeof cols[0] === 'string' ? cols[0] : cols[0]?.key] ?? `Row ${i + 1}`) : '';
+              return html`<tr class="${hasAction ? 'row-action' : ''}"
+                tabindex=${hasAction ? 0 : nothing}
+                role=${hasAction ? 'button' : nothing}
+                aria-label=${hasAction ? rowLabel : nothing}
+                @click=${hasAction ? () => this.dispatchAction(rowAction, { row, index: i }) : undefined}
+                @keydown=${hasAction ? (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.dispatchAction(rowAction, { row, index: i }); } } : undefined}>
+              ${cols.map((c: any) => {
+                const align = typeof c === 'object' ? c.align : undefined;
+                const alignCls = align === 'right' ? 'align-right' : align === 'center' ? 'align-center' : '';
+                return html`<td class="${alignCls}">${this._renderCell(c, row)}</td>`;
+              })}</tr>`;
+            })
         }</tbody>
       </table>
     `;
@@ -1120,7 +1160,8 @@ export class ForgeAlert extends ForgeElement {
     const variant = this.getString('variant', 'info');
     const title = this.getString('title', '');
     const message = this.getString('message', '');
-    return html`<div class="alert ${variant}" role="alert">
+    const role = (variant === 'error' || variant === 'warning') ? 'alert' : 'status';
+    return html`<div class="alert ${variant}" role=${role}>
       ${title ? html`<strong>${title}</strong> ` : nothing}${message}<slot></slot>
     </div>`;
   }
