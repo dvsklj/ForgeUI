@@ -4,9 +4,16 @@
   "description": "Forge UI component catalog — 37 pre-built components for manifest-driven web apps.",
   "main": "forge-catalog.js",
   "types": "forge-catalog.d.ts",
+  "exports": {
+    ".": {
+      "types": "./forge-catalog.d.ts",
+      "default": "./forge-catalog.js"
+    }
+  },
   "files": [
     "forge-catalog.js",
     "forge-catalog.d.ts",
+    "catalog/",
     "types/",
     "README.md"
   ],
@@ -32,5 +39,13 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {}
+  "peerDependencies": {
+    "zod": "^3.23.0"
+  },
+  "peerDependenciesMeta": {
+    "zod": { "optional": false }
+  },
+  "engines": {
+    "node": ">=20"
+  }
 }
