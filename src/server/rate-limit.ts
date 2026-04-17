@@ -30,7 +30,6 @@ export function createRateLimiter(cfg: RateLimitConfig): RateLimiter {
     const cutoff = now() - cfg.ttlMs;
     for (const [k, b] of buckets) if (b.lastRefillMs < cutoff) buckets.delete(k);
   }, 60_000);
-  // @ts-ignore — unref exists on Node timers but not in all lib targets
   if (typeof sweep.unref === 'function') sweep.unref();
 
   return {

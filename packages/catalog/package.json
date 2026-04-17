@@ -27,7 +27,6 @@
     "url": "https://github.com/dvsklj/ForgeUI/issues"
   },
   "homepage": "https://github.com/dvsklj/ForgeUI#readme",
-  "dependencies": {
-    "ajv": "^8.17.0"
-  }
+  "dependencies": {}
+
 }
