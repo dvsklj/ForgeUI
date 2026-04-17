@@ -53,9 +53,11 @@ export class ForgeElement extends LitElement {
     if (this.itemContext) {
       setItemContext(this.itemContext);
     }
-    const result = resolveRef(this.store, value);
-    setItemContext(null);
-    return result;
+    try {
+      return resolveRef(this.store, value);
+    } finally {
+      setItemContext(null);
+    }
   }
 
   /** Get a prop value, resolving any references */

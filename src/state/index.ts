@@ -9,6 +9,17 @@
 
 import { createStore, Store, TablesSchema } from 'tinybase';
 
+// ─── Security: path safety ────────────────────────────────────────
+
+const FORBIDDEN = new Set(['__proto__','prototype','constructor']);
+
+function isSafe(p: string): boolean {
+  if (p.length === 0 || p.length > 256) return false;
+  for (const s of p.normalize('NFC').split('.'))
+    if (FORBIDDEN.has(s)) return false;
+  return true;
+}
+
 export interface ForgeStateConfig {
   schema?: {
     version: number;
@@ -121,6 +132,9 @@ function evaluateExpression(store: Store, expr: string): unknown {
   if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
     return trimmed.slice(1, -1);
   }
+  // Unclosed quotes — reject and warn once
+  if ((trimmed.startsWith('"') && !trimmed.endsWith('"')) || (trimmed.startsWith("'") && !trimmed.endsWith("'")))
+    return undefined;
   if (trimmed === 'true') return true;
   if (trimmed === 'false') return false;
   if (trimmed === 'null') return null;
@@ -187,7 +201,9 @@ function applyFilter(value: unknown, name: string, _args: string[]): unknown {
 
 function getDeepPath(obj: unknown, path: string): unknown {
   if (!obj || typeof obj !== 'object' || !path) return undefined;
+  if (!isSafe(path)) return undefined;
   const parts = path.split('.');
+  if (parts.length > 32) return undefined;
   let cur: any = obj;
   for (const p of parts) {
     if (cur === null || cur === undefined) return undefined;
@@ -257,37 +273,72 @@ function resolveStateDotPath(store: Store, path: string): unknown {
  * - Plain value → returned as-is
  */
 export function resolveRef(store: Store, value: unknown): unknown {
-  if (typeof value !== 'string') return value;
+  if (typeof value !== 'string') {
+    if (value !== null && typeof value === 'object') {
+      const o = value as Record<string, unknown>;
+      if ('$expr' in o) return resolveRef(store, `$expr:${o.$expr}`);
+      if ('$state' in o) return resolveRef(store, `$state:${o.$state}`);
+      if ('$computed' in o) return resolveRef(store, `$computed:${o.$computed}`);
+      if ('$item' in o) return resolveRef(store, `$item:${o.$item}`);
+    }
+    return value;
+  }
 
   if (value.startsWith('$state:')) {
     const path = value.slice(7);
+    if (!isSafe(path)) return undefined;
     return resolveStatePath(store, path);
   }
 
   if (value.startsWith('$computed:')) {
     const expression = value.slice(10);
+    if (expression.length > 1024) return undefined;
     return evaluateComputed(store, expression);
   }
 
+  // $item: resolution — supports dot-notation paths (same traversal as $expr:item.<path>)
   if (value.startsWith('$item:')) {
     const field = value.slice(6);
+    if (!isSafe(field)) return undefined;
+    if (field.includes('.')) return getDeepPath(currentItemContext, field);
     return currentItemContext?.[field];
   }
 
   if (value.startsWith('$expr:')) {
     const expression = value.slice(6);
+    if (expression.length > 1024) return undefined;
     return evaluateExpression(store, expression);
   }
 
   // Template interpolation: "Hello {{state.name}}, you have {{item.count}} items"
+  if (value.length > 4096) return value;
   if (value.includes('{{') && value.includes('}}')) {
-    return value.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (_, expr) => {
-      const v = evaluateExpression(store, String(expr));
-      return v === undefined || v === null ? '' : String(v);
-    });
+    return replaceTemplates(value, store);
   }
 
   return value;
+}
+
+function replaceTemplates(input: string, store: Store): string {
+  let out='',i=0;
+  while(i<input.length){
+    if(input[i]==='{'&&input[i+1]==='{'){
+      let s=i+2,d=1,j=s;
+      while(j<input.length-1&&d>0){
+        const a=input[j],b=input[j+1];
+        if(a==='{'&&b==='{'){d++;j+=2}
+        else if(a==='}'&&b==='}'){d--;j+=2}
+        else j++;
+      }
+      if(!d){
+        const inner=input.slice(s,j-2);
+        if(inner.length<=256){const v=evaluateExpression(store,inner.trim());out+=v==null?'':String(v)}
+        else out+=input.slice(i,j);
+        i=j;
+      }else out+=input[i++];
+    }else out+=input[i++];
+  }
+  return out;
 }
 
 /** Convert ForgeSchema to TinyBase TablesSchema */

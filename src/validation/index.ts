@@ -213,13 +213,30 @@ function looksLikeUrl(value: string): boolean {
 
 /** Validate $state and $computed references against schema */
 function validateStatePaths(manifest: ForgeManifest, errors: ValidationError[]) {
-  if (!manifest.schema?.tables) return;
-  
-  const tables = Object.keys(manifest.schema.tables);
+  const tables = manifest.schema?.tables ? Object.keys(manifest.schema.tables) : [];
+  // Collect known state value keys for $state: path validation (P2-7)
+  const stateKeys = new Set<string>();
+  if (manifest.state) {
+    for (const key of Object.keys(manifest.state)) stateKeys.add(key);
+  }
+  // Nothing to validate against
+  if (tables.length === 0 && stateKeys.size === 0) return;
   
   for (const [id, element] of Object.entries(manifest.elements)) {
     if (!element.props) continue;
     for (const [key, value] of Object.entries(element.props)) {
+      // $state:<path> validation — warn-level
+      if (typeof value === 'string' && value.startsWith('$state:')) {
+        const path = value.slice(7);
+        const root = path.split('/')[0].split('.')[0];
+        if (root && !stateKeys.has(root) && !tables.includes(root)) {
+          errors.push({
+            path: `/elements/${id}/props/${key}`,
+            message: `$state:${path} references unknown state path`,
+            severity: 'warning',
+          });
+        }
+      }
       if (typeof value === 'string' && value.startsWith('$computed:')) {
         const expr = value.slice(10);
         if (expr.startsWith('sum:') || expr.startsWith('avg:')) {
@@ -231,7 +248,7 @@ function validateStatePaths(manifest: ForgeManifest, errors: ValidationError[]) 
               message: `$computed references unknown table: ${table}`,
               severity: 'error',
             });
-          } else if (column && manifest.schema.tables[table]) {
+          } else if (column && manifest.schema?.tables[table]) {
             const columns = Object.keys(manifest.schema.tables[table].columns);
             if (!columns.includes(column)) {
               errors.push({
