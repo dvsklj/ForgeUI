@@ -11,8 +11,8 @@
     }
   },
   "bin": {
-    "forge-server": "bin/forge-server",
-    "forge": "bin/forge"
+    "forgeui-server": "bin/forgeui-server",
+    "forgeui": "bin/forgeui"
   },
   "files": [
     "dist/",

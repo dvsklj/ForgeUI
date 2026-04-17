@@ -9,4 +9,4 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Load the compiled connector
-await import(join(__dirname, '..', 'forge-connect.mjs'));
+await import(join(__dirname, '..', 'forgeui-connect.mjs'));

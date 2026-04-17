@@ -7,4 +7,4 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Load the compiled CLI runner
-await import(join(__dirname, '..', 'dist', 'forge-cli.js'));
+await import(join(__dirname, '..', 'dist', 'forgeui-cli.js'));

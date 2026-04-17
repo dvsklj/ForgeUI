@@ -7,7 +7,7 @@
     ".": "./forge-connect.mjs"
   },
   "bin": {
-    "forge-connect": "bin/forge-connect"
+    "forgeui-connect": "bin/forgeui-connect"
   },
   "files": [
     "forge-connect.mjs",

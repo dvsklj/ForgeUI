@@ -1,0 +1,69 @@
+{
+  "manifest": "0.1.0",
+  "id": "issue-tracker",
+  "meta": { "title": "Bugs", "description": "Issue tracking table", "generator": "manual" },
+  "state": {
+    "issues": [
+      { "id": "FRG-102", "title": "Memory leak in renderer", "status": "open", "priority": "high", "assignee": "davor" },
+      { "id": "FRG-103", "title": "Add DatePicker component", "status": "in-progress", "priority": "medium", "assignee": "alice" },
+      { "id": "FRG-104", "title": "Typo in README.md", "status": "resolved", "priority": "low", "assignee": "unassigned" }
+    ],
+    "modal_open": false
+  },
+  "root": "shell",
+  "elements": {
+    "shell": {
+      "type": "Stack",
+      "props": { "gap": "24", "padding": "24", "align": "stretch" },
+      "children": ["header-actions", "table-card", "new-issue-modal"]
+    },
+    "header-actions": {
+      "type": "Stack",
+      "props": { "direction": "horizontal", "gap": "16", "align": "center" },
+      "children": ["page-title", "spacer", "new-btn"]
+    },
+    "page-title": { "type": "Text", "props": { "content": "Backlog", "variant": "heading1" } },
+    "spacer": { "type": "Spacer", "props": { "width": "100%" } },
+    "new-btn": { "type": "Button", "props": { "label": "New Issue", "variant": "primary" } },
+
+    "table-card": {
+      "type": "Card",
+      "props": {},
+      "children": ["issue-table"]
+    },
+    "issue-table": {
+      "type": "Table",
+      "props": {
+        "data": { "$expr": "state.issues" },
+        "selectable": true,
+        "columns": [
+          { "key": "id", "label": "ID", "type": "text" },
+          { "key": "title", "label": "Title", "type": "text" },
+          { "key": "status", "label": "Status", "type": "badge", "badgeMap": { "open": "error", "in-progress": "warning", "resolved": "success" } },
+          { "key": "priority", "label": "Priority", "type": "text" },
+          { "key": "assignee", "label": "Assignee", "type": "text" }
+        ]
+      }
+    },
+
+    "new-issue-modal": {
+      "type": "Modal",
+      "props": { "title": "Create New Issue", "open": { "$expr": "state.modal_open" } },
+      "children": ["modal-form"]
+    },
+    "modal-form": {
+      "type": "Stack",
+      "props": { "gap": "16" },
+      "children": ["m-title", "m-desc", "m-actions"]
+    },
+    "m-title": { "type": "TextInput", "props": { "label": "Title", "required": true } },
+    "m-desc": { "type": "TextInput", "props": { "label": "Description" } },
+    "m-actions": {
+      "type": "Stack",
+      "props": { "direction": "horizontal", "gap": "8" },
+      "children": ["btn-cancel", "btn-create"]
+    },
+    "btn-cancel": { "type": "Button", "props": { "label": "Cancel", "variant": "ghost" } },
+    "btn-create": { "type": "Button", "props": { "label": "Create", "variant": "primary" } }
+  }
+}

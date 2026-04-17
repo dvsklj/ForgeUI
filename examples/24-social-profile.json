@@ -1,0 +1,95 @@
+{
+  "manifest": "0.1.0",
+  "id": "social-profile",
+  "meta": { "title": "Social Profile", "description": "User profile view", "generator": "manual" },
+  "root": "shell",
+  "elements": {
+    "shell": {
+      "type": "Stack",
+      "props": { "gap": "24", "padding": "0" },
+      "children": ["cover-photo", "profile-content"]
+    },
+    "cover-photo": {
+      "type": "Card",
+      "props": {},
+      "children": ["cover-placeholder"]
+    },
+    "cover-placeholder": { "type": "Spacer", "props": { "height": "120" } },
+
+    "profile-content": {
+      "type": "Stack",
+      "props": { "gap": "24", "padding": "24" },
+      "children": ["header-row", "bio-text", "stats-grid", "tabs"]
+    },
+    "header-row": {
+      "type": "Stack",
+      "props": { "direction": "horizontal", "gap": "16", "align": "center" },
+      "children": ["avatar", "name-info", "spacer", "follow-btn"]
+    },
+    "avatar": { "type": "Metric", "props": { "label": "", "value": "JB" } },
+    "name-info": {
+      "type": "Stack",
+      "props": { "gap": "4" },
+      "children": ["display-name", "username"]
+    },
+    "display-name": { "type": "Text", "props": { "content": "Jian-Yang", "variant": "heading2" } },
+    "username": { "type": "Text", "props": { "content": "@jianyang", "variant": "muted" } },
+    "spacer": { "type": "Spacer", "props": { "width": "100%" } },
+    "follow-btn": { "type": "Button", "props": { "label": "Follow", "variant": "primary" } },
+
+    "bio-text": { "type": "Text", "props": { "content": "Building new app. Not hotdog. Better than Aviato.", "variant": "body" } },
+
+    "stats-grid": {
+      "type": "Grid",
+      "props": { "columns": 3, "gap": "16" },
+      "children": ["stat-posts", "stat-followers", "stat-following"]
+    },
+    "stat-posts": { "type": "Metric", "props": { "label": "Posts", "value": "142" } },
+    "stat-followers": { "type": "Metric", "props": { "label": "Followers", "value": "12.4K" } },
+    "stat-following": { "type": "Metric", "props": { "label": "Following", "value": "3" } },
+
+    "tabs": {
+      "type": "Tabs",
+      "props": {
+        "tabs": [
+          { "label": "Posts", "id": "posts" },
+          { "label": "Media", "id": "media" },
+          { "label": "Likes", "id": "likes" }
+        ],
+        "activeTab": "posts"
+      },
+      "children": ["tab-posts", "tab-media", "tab-likes"]
+    },
+    
+    "tab-posts": {
+      "type": "Container",
+      "props": { "slot": "posts" },
+      "children": ["post-1"]
+    },
+    "post-1": {
+      "type": "Card",
+      "props": {},
+      "children": ["p1-stack"]
+    },
+    "p1-stack": {
+      "type": "Stack",
+      "props": { "gap": "8" },
+      "children": ["p1-meta", "p1-content", "p1-actions"]
+    },
+    "p1-meta": { "type": "Text", "props": { "content": "Jian-Yang • 2h ago", "variant": "muted" } },
+    "p1-content": { "type": "Text", "props": { "content": "I make a new internet. Faster. Better." } },
+    "p1-actions": {
+      "type": "ButtonGroup",
+      "props": {},
+      "children": ["p1-like", "p1-rt"]
+    },
+    "p1-like": { "type": "Button", "props": { "label": "Like (420)", "variant": "ghost" } },
+    "p1-rt": { "type": "Button", "props": { "label": "Share", "variant": "ghost" } },
+
+    "tab-media": { "type": "Container", "props": { "slot": "media", "padding": "16" }, "children": ["media-empty"] },
+    "media-empty": { "type": "Text", "props": { "content": "No media found.", "variant": "muted" } },
+
+    "tab-likes": { "type": "Container", "props": { "slot": "likes", "padding": "16" }, "children": ["likes-empty"] },
+    "likes-empty": { "type": "Text", "props": { "content": "No likes found.", "variant": "muted" } }
+  }
+}
