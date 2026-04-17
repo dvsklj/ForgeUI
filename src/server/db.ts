@@ -125,14 +125,30 @@ export function updateApp(id: string, manifest: ForgeManifest): StoredApp | null
   return getApp(id);
 }
 
-/** Apply a JSON Merge Patch to an existing app's manifest. */
-export function patchApp(id: string, patch: Partial<ForgeManifest>): StoredApp | null {
-  const existing = getApp(id);
-  if (!existing) return null;
+/** Result of a transactional patch attempt. */
+export type PatchResult =
+  | { status: 'ok'; app: StoredApp }
+  | { status: 'invalid'; errors: string[] }
+  | { status: 'not-found' };
 
-  // Simple deep merge (RFC 7396 JSON Merge Patch)
-  const merged = mergePatch(existing.manifest, patch);
-  return updateApp(id, merged as ForgeManifest);
+/** Apply a JSON Merge Patch to an existing app's manifest.
+ *  Validates BEFORE writing — an invalid merged manifest never lands on disk.
+ */
+export function patchApp(
+  id: string,
+  patch: Partial<ForgeManifest>,
+  validate: (m: ForgeManifest) => { valid: boolean; errors?: string[] },
+): PatchResult {
+  const existing = getApp(id);
+  if (!existing) return { status: 'not-found' };
+
+  const merged = mergePatch(existing.manifest, patch) as ForgeManifest;
+  const v = validate(merged);
+  if (!v.valid) return { status: 'invalid', errors: v.errors ?? ['validation failed'] };
+
+  const written = updateApp(id, merged);
+  if (!written) return { status: 'not-found' };
+  return { status: 'ok', app: written };
 }
 
 /** Delete an app. Returns true if deleted. */

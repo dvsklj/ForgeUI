@@ -3,18 +3,26 @@
 ## Local Development
 
 ```bash
-npm install @forge/server
-npx forge serve --port 3000 --db ./apps.db
+npm install @forgeui/server
+npx forge-server --port 3000 --db ./apps.db
+```
+
+Or if `@forgeui/server` is installed globally:
+
+```bash
+forge-server --port 3000 --db ./apps.db
 ```
 
 App at `http://localhost:3000/apps/<id>`, API at `http://localhost:3000/api/apps`.
+
+CLI flags: `--port` (default 3000), `--host` (default 0.0.0.0), `--db` (default ./forge.db).
 
 ## Docker
 
 ```dockerfile
 FROM node:20-slim
 WORKDIR /app
-RUN npm install -g @forge/server
+RUN npm install -g @forgeui/server
 EXPOSE 3000
 CMD ["forge-server", "--port", "3000", "--db", "/data/apps.db"]
 ```
@@ -48,21 +56,6 @@ WantedBy=multi-user.target
 sudo systemctl enable --now forge-server
 ```
 
-## Cloudflare Workers (Edge)
-
-The server can run on Cloudflare Workers with a D1 database:
-
-```javascript
-import { createForgeServer } from '@forge/server';
-
-export default {
-  async fetch(request, env) {
-    const server = createForgeServer({ dbPath: env.D1_BINDING });
-    return server.app.fetch(request);
-  }
-};
-```
-
 ## Reverse Proxy (nginx)
 
 ```nginx
@@ -79,20 +72,30 @@ server {
 }
 ```
 
+Set `FORGE_TRUST_PROXY=1` so the server honors `X-Forwarded-For` / `X-Real-IP` headers from nginx.
+
 ## Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `PORT` | `3000` | Server port |
-| `HOST` | `0.0.0.0` | Bind address |
-| `DB_PATH` | `./forge.db` | SQLite database path |
-| `BASE_URL` | auto | Base URL for generated links |
+| `FORGE_CORS_ORIGINS` | `http://localhost, http://127.0.0.1` | Comma-separated CORS origin allowlist. Set to `*` to allow all origins. |
+| `FORGE_MAX_BODY_BYTES` | `1048576` (1 MB) | Max request body size in bytes. Enforced at Content-Length precheck and streaming. |
+| `FORGE_TRUST_PROXY` | *(unset)* | Set to `1`, `true`, or `yes` to honor `X-Forwarded-For` / `X-Real-IP` headers. Required when behind a reverse proxy. |
+| `FORGE_RATE_LIMIT_RPM` | `60` | Per-IP requests per minute on `/api/*`. |
+| `FORGE_RATE_LIMIT_BURST` | `RPM × 2` | Token-bucket burst size. |
+| `FORGE_RATE_LIMIT_DISABLE` | *(unset)* | Set to `1` to disable rate limiting entirely. |
+| `FORGE_API_TOKEN` | *(unset)* | Bearer token for `/api/apps/*` write operations (POST, PUT, PATCH, DELETE). **Required in production** — if `NODE_ENV=production` and this is unset, the server logs a warning and rejects all writes with 401. |
+| `FORGE_RUNTIME_PATH` | *(auto)* | Override path for `/runtime/forge.js`. By default the server resolves from its own location or walks up to `dist/forge.js`. |
+| `FORGE_STANDALONE_PATH` | *(auto)* | Override path for `/runtime/forge-standalone.js`. |
+| `NODE_ENV` | *(unset)* | When set to `production`, enforces `FORGE_API_TOKEN`. |
+
+Port, host, and database path are set via CLI flags (`--port`, `--host`, `--db`), not environment variables.
 
 ## Scaling Considerations
 
 **Single-instance** (SQLite): Good for < 1000 apps, single server. SQLite handles concurrent reads well; writes are serialized but fast.
 
-**Multi-instance**: For horizontal scaling, swap SQLite for PostgreSQL and use the `@forge/server` with a custom `db` adapter. The API surface is small (6 CRUD operations) so the swap is straightforward.
+**Multi-instance**: For horizontal scaling, swap SQLite for PostgreSQL and use the `@forgeui/server` with a custom `db` adapter. The API surface is small (6 CRUD operations) so the swap is straightforward.
 
 **CDN for runtime**: Serve `forge.js` from a CDN (Cloudflare, Fastly). The runtime is static and cacheable:
 

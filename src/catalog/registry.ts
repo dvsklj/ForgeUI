@@ -5,14 +5,12 @@
  * Generates LLM system prompts and JSON Schemas from the catalog.
  */
 
-import { z } from 'zod';
-import { catalogSchemas as componentSchemas } from '../catalog/schemas/index.js';
 import type { ComponentType, ComponentCategory } from '../types/index.js';
 
-/** Category mapping for all 37 components */
+/** Category mapping for all 39 components */
 export const componentCategories: Record<ComponentType, ComponentCategory> = {
   Stack: 'layout', Grid: 'layout', Card: 'layout', Container: 'layout',
-  Tabs: 'layout', Accordion: 'layout', Divider: 'layout', Spacer: 'layout',
+  Tabs: 'layout', Accordion: 'layout', Divider: 'layout', Spacer: 'layout', Repeater: 'layout',
   
   Text: 'content', Image: 'content', Icon: 'content', Badge: 'content',
   Avatar: 'content', EmptyState: 'content',
@@ -33,7 +31,7 @@ export const componentCategories: Record<ComponentType, ComponentCategory> = {
 
 /** Components grouped by category */
 export const componentsByCategory: Record<ComponentCategory, ComponentType[]> = {
-  layout: ['Stack', 'Grid', 'Card', 'Container', 'Tabs', 'Accordion', 'Divider', 'Spacer'],
+  layout: ['Stack', 'Grid', 'Card', 'Container', 'Tabs', 'Accordion', 'Divider', 'Spacer', 'Repeater'],
   content: ['Text', 'Image', 'Icon', 'Badge', 'Avatar', 'EmptyState'],
   input: ['TextInput', 'NumberInput', 'Select', 'MultiSelect', 'Checkbox', 'Toggle', 'DatePicker', 'Slider', 'FileUpload'],
   action: ['Button', 'ButtonGroup', 'Link'],
@@ -53,40 +51,5 @@ export function isValidComponentType(type: string): type is ComponentType {
   return type in componentCategories;
 }
 
-/** Get the Zod schema for a component type */
-export function getComponentSchema(type: ComponentType): z.ZodTypeAny {
-  return componentSchemas[type];
-}
-
-// Re-export from prompt.ts (authoritative implementation)
-export { catalogPrompt, catalogToJsonSchema } from './prompt.js';
-
-/** Convert a Zod schema to JSON Schema (simplified) — kept for backward compat */
-export function schemaToJsonSchema(zodSchema: z.ZodTypeAny): object {
-  try {
-    // @ts-expect-error - zodToJsonSchema may not be available
-    if (typeof zodSchema.toJsonSchema === 'function') {
-      // @ts-expect-error
-      return zodSchema.toJsonSchema();
-    }
-  } catch {}
-  const def = zodSchema._def;
-  if (!def) return {};
-  if (def.typeName === 'ZodObject') {
-    const shape = def.shape();
-    const properties: Record<string, object> = {};
-    for (const [key, value] of Object.entries(shape)) {
-      properties[key] = schemaToJsonSchema(value as z.ZodTypeAny);
-    }
-    return { type: 'object', properties };
-  }
-  if (def.typeName === 'ZodString') return { type: 'string' };
-  if (def.typeName === 'ZodNumber') return { type: 'number' };
-  if (def.typeName === 'ZodBoolean') return { type: 'boolean' };
-  if (def.typeName === 'ZodArray') return { type: 'array', items: schemaToJsonSchema(def.type) };
-  if (def.typeName === 'ZodEnum') return { type: 'string', enum: def.values };
-  if (def.typeName === 'ZodOptional' || def.typeName === 'ZodDefault') return schemaToJsonSchema(def.innerType);
-  if (def.typeName === 'ZodUnion') return { oneOf: def.options.map(schemaToJsonSchema) };
-  if (def.typeName === 'ZodLiteral') return { const: def.value };
-  return {};
-}
+// Zod-dependent utilities (getComponentSchema, schemaToJsonSchema) live in ./schema-utils.js
+// Re-export from prompt.ts removed — consumers import from prompt.ts directly.

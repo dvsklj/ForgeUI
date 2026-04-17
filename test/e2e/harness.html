@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Forge E2E Harness</title>
+</head>
+<body>
+  <forge-app id="app" surface="standalone"></forge-app>
+  <script src="/dist/forge.js"></script>
+  <script>
+    window.loadManifest = function(manifest) {
+      document.getElementById('app').manifest = manifest;
+    };
+    window.getAppElement = function() {
+      return document.getElementById('app');
+    };
+  </script>
+</body>
+</html>

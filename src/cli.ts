@@ -213,7 +213,7 @@ async function cmdValidate() {
 
 async function cmdCatalog() {
   const tier = (getFlag('tier') as any) || 'full';
-  const { catalogPrompt, catalogToJsonSchema } = await import('./catalog/registry.js');
+  const { catalogPrompt, catalogToJsonSchema } = await import('./catalog/prompt.js');
 
   if (getFlagBool('json')) {
     const schema = catalogToJsonSchema();
@@ -231,7 +231,7 @@ async function cmdConnect() {
   process.env.FORGE_DB_PATH = dbPath;
 
   // Import and run the connect server
-  const { default: connectModule } = await import('./connect/index.js');
+  await import('./connect/index.js');
   // The connect module auto-starts via its main() function
 }
 

@@ -19,8 +19,8 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { serve } from '@hono/node-server';
-import { serveStatic } from '@hono/node-server/serve-static';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
+import { randomBytes } from 'node:crypto';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -35,9 +35,13 @@ import {
   generateAppId,
 } from './db.js';
 import type { ForgeManifest } from '../types/index.js';
-import { validateManifest } from '../validation/index.js';
+import { validateManifest, validateManifestPatch } from '../validation/index.js';
+import { createRateLimiter, type RateLimiter } from './rate-limit.js';
+import { readBoundedJson } from './body.js';
+import { getClientIp } from './client-ip.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const VALID_APP_ID = /^[a-z0-9][a-z0-9\-_]{0,127}$/;
 
 export interface ForgeServerOptions {
   /** Port to listen on (default: 3000) */
@@ -63,14 +67,130 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
 
   const app = new Hono();
 
-  // CORS for API routes
-  app.use('/api/*', cors());
+  // ─── CORS allowlist ────────────────────────────────────────
+  const corsOriginsEnv = process.env.FORGE_CORS_ORIGINS?.trim();
+  const corsOrigins: string[] = corsOriginsEnv
+    ? corsOriginsEnv === '*'
+      ? ['*']
+      : corsOriginsEnv.split(',').map((s) => s.trim()).filter(Boolean)
+    : ['http://localhost', 'http://127.0.0.1'];
+
+  app.use('*', cors({
+    origin: (origin) => {
+      if (!origin) return null;
+      if (corsOrigins.includes('*')) return origin;
+      for (const allowed of corsOrigins) {
+        if (origin === allowed) return origin;
+        if (allowed === 'http://localhost' && /^http:\/\/localhost(:\d+)?$/.test(origin)) return origin;
+        if (allowed === 'http://127.0.0.1' && /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) return origin;
+      }
+      return null;
+    },
+    credentials: true,
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+  }));
+
+  // ─── Body size limit ───────────────────────────────────────
+  const maxBodyBytes = parseInt(process.env.FORGE_MAX_BODY_BYTES ?? '1048576', 10);
+
+  app.use('*', async (c, next) => {
+    const method = c.req.method;
+    if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return next();
+    const lenHeader = c.req.header('content-length');
+    if (lenHeader !== undefined) {
+      const len = parseInt(lenHeader, 10);
+      if (!Number.isFinite(len) || len < 0) {
+        return c.json({ error: 'Invalid Content-Length' }, 400);
+      }
+      if (len > maxBodyBytes) {
+        return c.json({ error: 'Request body too large', limit: maxBodyBytes }, 413);
+      }
+    }
+    return next();
+  });
+
+  // ─── Trust proxy & client IP ──────────────────────────────
+  const trustProxy = /^(1|true|yes)$/i.test(process.env.FORGE_TRUST_PROXY ?? '');
+  console.log(`[forge] trust proxy: ${trustProxy ? 'on' : 'off'}`);
+
+  // ─── Rate limiter on /api/* ────────────────────────────────
+  const rateLimitDisabled = process.env.FORGE_RATE_LIMIT_DISABLE === '1';
+  let rateLimiter: RateLimiter | null = null;
+
+  if (!rateLimitDisabled) {
+    const rpm = parseInt(process.env.FORGE_RATE_LIMIT_RPM ?? '60', 10);
+    const burst = parseInt(process.env.FORGE_RATE_LIMIT_BURST ?? String(rpm * 2), 10);
+    const refillPerSec = rpm / 60;
+
+    rateLimiter = createRateLimiter({
+      capacity: burst,
+      refillPerSec,
+      ttlMs: 300_000,
+    });
+
+    app.use('/api/*', async (c, next) => {
+      const ip = getClientIp(c, trustProxy);
+      const { allowed, retryAfterMs } = rateLimiter!.take(ip);
+      if (!allowed) {
+        const retryAfterSec = Math.ceil(retryAfterMs / 1000);
+        c.header('Retry-After', String(retryAfterSec));
+        return c.json({ error: 'rate_limited', retryAfter: retryAfterSec }, 429);
+      }
+      return next();
+    });
+  }
+
+  // ─── Optional API token auth ───────────────────────────────
+  const apiToken = process.env.FORGE_API_TOKEN?.trim() || undefined;
+
+  if (apiToken) {
+    app.use('/api/*', async (c, next) => {
+      const method = c.req.method;
+      if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return next();
+      const auth = c.req.header('authorization') ?? '';
+      const expected = `Bearer ${apiToken}`;
+      if (auth.length !== expected.length) return c.json({ error: 'unauthorized' }, 401);
+      let diff = 0;
+      for (let i = 0; i < auth.length; i++) diff |= auth.charCodeAt(i) ^ expected.charCodeAt(i);
+      if (diff !== 0) return c.json({ error: 'unauthorized' }, 401);
+      return next();
+    });
+  }
+
+  if (!apiToken && process.env.NODE_ENV === 'production') {
+    console.warn('[forge-server] FORGE_API_TOKEN is not set; /api/apps/* writes are unauthenticated.');
+  }
+
+  // ─── Security response headers ─────────────────────────────
+  app.use('/api/*', async (c, next) => {
+    await next();
+    c.header('X-Content-Type-Options', 'nosniff');
+    c.header('X-Frame-Options', 'DENY');
+    c.header('Referrer-Policy', 'no-referrer');
+  });
 
   // ─── Static Files ──────────────────────────────────────────
 
-  // Serve the Forge runtime bundle
-  const runtimePath = join(__dirname, 'forge.js');
-  const standalonePath = join(__dirname, 'forge-standalone.js');
+  // Resolve runtime file paths. In production (dist/forge-server.js), the
+  // runtime is a sibling. In dev (tsx src/server/index.ts), walk up to the
+  // repo root. FORGE_RUNTIME_PATH / FORGE_STANDALONE_PATH override.
+  function resolveRuntime(filename: string): string {
+    if (filename === 'forge.js' && process.env.FORGE_RUNTIME_PATH) return process.env.FORGE_RUNTIME_PATH;
+    if (filename === 'forge-standalone.js' && process.env.FORGE_STANDALONE_PATH) return process.env.FORGE_STANDALONE_PATH;
+    // Sibling (production build)
+    const sibling = join(__dirname, filename);
+    if (existsSync(sibling)) return sibling;
+    // Walk up to project root (dev mode via tsx)
+    for (let i = 1; i <= 5; i++) {
+      const candidate = join(__dirname, ...Array(i).fill('..'), 'dist', filename);
+      if (existsSync(candidate)) return candidate;
+    }
+    return sibling; // will 404 at read time
+  }
+
+  const runtimePath = resolveRuntime('forge.js');
+  const standalonePath = resolveRuntime('forge-standalone.js');
 
   app.get('/runtime/forge.js', (c) => {
     try {
@@ -101,24 +221,49 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   // Serve a specific app
   app.get('/apps/:id', (c) => {
     const id = c.req.param('id');
+    if (!VALID_APP_ID.test(id)) {
+      return c.html(renderErrorPage('Invalid app ID', 'The requested app ID contains invalid characters'), 400);
+    }
     const stored = getApp(id);
 
     if (!stored) {
       return c.html(renderErrorPage('App not found', `No app with ID "${id}"`), 404);
     }
 
-    const manifestJson = JSON.stringify(stored.manifest).replace(/</g, '\\u003c').replace(/"/g, '&quot;');
+    const manifestJson = JSON.stringify(stored.manifest).replace(/</g, '\\u003c');
     const base = baseUrl || `${c.req.header('x-forwarded-proto') || 'http'}://${c.req.header('host')}`;
 
-    return c.html(renderAppPage(manifestJson, stored.title, base));
+    const nonce = randomBytes(16).toString('base64');
+    const csp = [
+      `default-src 'self'`,
+      `script-src 'self' 'nonce-${nonce}'`,
+      `style-src 'self' 'unsafe-inline'`,
+      `img-src * data: blob:`,
+      `connect-src 'self'`,
+      `object-src 'none'`,
+      `base-uri 'self'`,
+    ].join('; ');
+    c.header('Content-Security-Policy', csp);
+
+    return c.html(renderAppPage(manifestJson, stored.title, base, nonce));
   });
 
   // Landing page
   app.get('/', (c) => {
     const { apps, total } = listApps(20);
-    const base = baseUrl || `${c.req.header('x-forwarded-proto') || 'http'}://${c.req.header('host')}`;
 
-    return c.html(renderLandingPage(apps, total, base));
+    const csp = [
+      `default-src 'self'`,
+      `script-src 'self'`,
+      `style-src 'self' 'unsafe-inline'`,
+      `img-src * data: blob:`,
+      `connect-src 'self'`,
+      `object-src 'none'`,
+      `base-uri 'self'`,
+    ].join('; ');
+    c.header('Content-Security-Policy', csp);
+
+    return c.html(renderLandingPage(apps, total));
   });
 
   // ─── API Routes ────────────────────────────────────────────
@@ -130,8 +275,10 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
 
   // List apps
   app.get('/api/apps', (c) => {
-    const limit = parseInt(c.req.query('limit') || '50');
-    const offset = parseInt(c.req.query('offset') || '0');
+    const rawLimit = parseInt(c.req.query('limit') ?? '20', 10);
+    const rawOffset = parseInt(c.req.query('offset') ?? '0', 10);
+    const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 100) : 20;
+    const offset = Number.isFinite(rawOffset) && rawOffset >= 0 ? rawOffset : 0;
     const result = listApps(limit, offset);
     return c.json(result);
   });
@@ -139,6 +286,9 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   // Get app manifest
   app.get('/api/apps/:id', (c) => {
     const id = c.req.param('id');
+    if (!VALID_APP_ID.test(id)) {
+      return c.json({ error: 'invalid id' }, 400);
+    }
     const app = getApp(id);
     if (!app) {
       return c.json({ error: 'App not found' }, 404);
@@ -149,11 +299,17 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   // Create app
   app.post('/api/apps', async (c) => {
     try {
-      const body = await c.req.json();
-      const manifest = body as ForgeManifest;
+      const body = await readBoundedJson<ForgeManifest>(c.req.raw, maxBodyBytes);
+      if (body.ok !== true) {
+        const code = body.reason === 'too_large' ? 413 : 400;
+        return c.json({ error: body.reason === 'too_large' ? 'Request body too large' : 'Invalid JSON' }, code);
+      }
+      const manifest = body.value;
 
       if (!manifest.id) {
         manifest.id = generateAppId();
+      } else if (!VALID_APP_ID.test(manifest.id)) {
+        return c.json({ error: 'invalid id' }, 400);
       }
 
       const stored = createApp(manifest);
@@ -171,9 +327,16 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   // Update app (full replacement)
   app.put('/api/apps/:id', async (c) => {
     const id = c.req.param('id');
+    if (!VALID_APP_ID.test(id)) {
+      return c.json({ error: 'invalid id' }, 400);
+    }
     try {
-      const body = await c.req.json();
-      const manifest = body as ForgeManifest;
+      const body = await readBoundedJson<ForgeManifest>(c.req.raw, maxBodyBytes);
+      if (body.ok !== true) {
+        const code = body.reason === 'too_large' ? 413 : 400;
+        return c.json({ error: body.reason === 'too_large' ? 'Request body too large' : 'Invalid JSON' }, code);
+      }
+      const manifest = body.value;
       manifest.id = id; // enforce path ID
 
       const validation = validateManifest(manifest);
@@ -199,23 +362,33 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   // Patch app (JSON Merge Patch)
   app.patch('/api/apps/:id', async (c) => {
     const id = c.req.param('id');
+    if (!VALID_APP_ID.test(id)) {
+      return c.json({ error: 'invalid id' }, 400);
+    }
     try {
-      const patch = await c.req.json();
-      const updated = patchApp(id, patch);
-      if (!updated) {
-        return c.json({ error: 'App not found' }, 404);
+      const body = await readBoundedJson(c.req.raw, maxBodyBytes);
+      if (body.ok !== true) {
+        const code = body.reason === 'too_large' ? 413 : 400;
+        return c.json({ error: body.reason === 'too_large' ? 'Request body too large' : 'Invalid JSON' }, code);
+      }
+      const patch = body.value;
+
+      const patchValidation = validateManifestPatch(patch);
+      if (!patchValidation.valid) {
+        return c.json({ error: 'Invalid patch', details: patchValidation.errors }, 400);
       }
 
-      const validation = validateManifest(updated);
-      if (!validation.valid) {
-        return c.json({ error: 'Validation failed after patch', details: validation.errors }, 400);
+      const patchResult = patchApp(id, patch, (m) => {
+        const v = validateManifest(m);
+        return { valid: v.valid, errors: v.errors.map((e) => e.message) };
+      });
+      if (patchResult.status === 'not-found') return c.json({ error: 'App not found' }, 404);
+      if (patchResult.status === 'invalid') {
+        return c.json({ error: 'Validation failed after patch', details: patchResult.errors }, 400);
       }
 
       const base = baseUrl || `${c.req.header('x-forwarded-proto') || 'http'}://${c.req.header('host')}`;
-      return c.json({
-        ...updated,
-        url: `${base}/apps/${updated.id}`,
-      });
+      return c.json({ ...patchResult.app, url: `${base}/apps/${patchResult.app.id}` });
     } catch (err: any) {
       return c.json({ error: `Invalid patch: ${err.message}` }, 400);
     }
@@ -224,6 +397,9 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   // Delete app
   app.delete('/api/apps/:id', (c) => {
     const id = c.req.param('id');
+    if (!VALID_APP_ID.test(id)) {
+      return c.json({ error: 'invalid id' }, 400);
+    }
     const deleted = deleteApp(id);
     if (!deleted) {
       return c.json({ error: 'App not found' }, 404);
@@ -249,6 +425,10 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   }
 
   function stop(): void {
+    if (rateLimiter) {
+      rateLimiter.stop();
+      rateLimiter = null;
+    }
     if (serverHandle) {
       serverHandle.close();
       closeDatabase();
@@ -261,7 +441,7 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
 
 // ─── HTML Templates ──────────────────────────────────────────
 
-function renderAppPage(manifestJson: string, title: string, baseUrl: string): string {
+function renderAppPage(manifestJson: string, title: string, baseUrl: string, nonce: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -276,13 +456,34 @@ function renderAppPage(manifestJson: string, title: string, baseUrl: string): st
   </style>
 </head>
 <body>
-  <forge-app manifest="${manifestJson}" surface="standalone"></forge-app>
+  <script type="application/json" id="forge-manifest-data">${manifestJson}</script>
+  <forge-app id="forge-app" surface="standalone"></forge-app>
+  <script nonce="${nonce}">
+    (function () {
+      try {
+        var raw = document.getElementById('forge-manifest-data').textContent;
+        var parsed = JSON.parse(raw);
+        document.getElementById('forge-app').manifest = parsed;
+      } catch (err) {
+        var app = document.getElementById('forge-app');
+        app.style.display = 'flex';
+        app.style.alignItems = 'center';
+        app.style.justifyContent = 'center';
+        app.style.minHeight = '100vh';
+        app.style.color = '#e0e0e0';
+        app.style.background = '#0a0a0a';
+        app.style.fontFamily = 'system-ui, sans-serif';
+        app.textContent = 'Manifest could not be loaded. Check the server logs.';
+        if (window.console) console.error('[forge] Manifest parse failed:', err);
+      }
+    })();
+  </script>
   <script type="module" src="${baseUrl}/runtime/forge.js"></script>
 </body>
 </html>`;
 }
 
-function renderLandingPage(apps: any[], total: number, baseUrl: string): string {
+function renderLandingPage(apps: any[], total: number): string {
   const appList = apps.map(a => `
     <a href="/apps/${escapeHtml(a.id)}" class="app-card">
       <h3>${escapeHtml(a.title)}</h3>
@@ -330,5 +531,11 @@ function renderErrorPage(title: string, message: string): string {
 }
 
 function escapeHtml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return str
+    .replace(/\x00/g, '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }

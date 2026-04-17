@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ForgeUI Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f6f7f9;
+      color: #111827;
+      min-height: 100vh;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 1.25rem;
+      background: #0b0d10;
+      color: #e6e8ec;
+      border-bottom: 1px solid #262b33;
+      font-size: 0.85rem;
+    }
+    .topbar a {
+      color: #8a92a1;
+      text-decoration: none;
+      padding: 4px 10px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      transition: all 120ms ease;
+    }
+    .topbar a:hover { color: #fff; border-color: #262b33; background: #14171c; }
+    .topbar .sep { color: #3a4150; }
+    .topbar .title { font-weight: 600; color: #e6e8ec; }
+    .topbar .spacer { flex: 1; }
+    .topbar .pill {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.75rem;
+      color: #8a92a1;
+      background: #14171c;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid #262b33;
+    }
+    .stage {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+    .status {
+      padding: 1rem 1.25rem;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      color: #6b7280;
+      font-size: 0.9rem;
+    }
+    .status.error {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #b91c1c;
+    }
+    forge-app {
+      display: block;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="index.html">← Gallery</a>
+    <span class="sep">/</span>
+    <span class="title" id="demo-title">Loading…</span>
+    <div class="spacer"></div>
+    <span class="pill" id="demo-slug">—</span>
+  </div>
+
+  <div class="stage">
+    <div id="status" class="status">Loading manifest…</div>
+    <forge-app id="app" surface="standalone" style="display:none"></forge-app>
+  </div>
+
+  <script src="../dist/forge.js"></script>
+  <script>
+    (async () => {
+      const params = new URLSearchParams(location.search);
+      const demo = params.get('demo') || '02-analytics-dashboard';
+      const slug = document.getElementById('demo-slug');
+      const title = document.getElementById('demo-title');
+      const status = document.getElementById('status');
+      const app = document.getElementById('app');
+      slug.textContent = demo + '.json';
+
+      try {
+        const res = await fetch('../examples/' + demo + '.json');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const manifest = await res.json();
+        title.textContent = (manifest.meta && manifest.meta.title) || manifest.name || demo;
+        document.title = 'ForgeUI — ' + title.textContent;
+        status.style.display = 'none';
+        app.style.display = 'block';
+        app.manifest = manifest;
+      } catch (err) {
+        status.className = 'status error';
+        status.textContent = 'Failed to load ' + demo + '.json — ' + err.message;
+      }
+    })();
+  </script>
+</body>
+</html>

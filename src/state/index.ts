@@ -9,6 +9,17 @@
 
 import { createStore, Store, TablesSchema } from 'tinybase';
 
+// ─── Security: path safety ────────────────────────────────────────
+
+const FORBIDDEN = new Set(['__proto__','prototype','constructor']);
+
+function isSafe(p: string): boolean {
+  if (p.length === 0 || p.length > 256) return false;
+  for (const s of p.normalize('NFC').split('.'))
+    if (FORBIDDEN.has(s)) return false;
+  return true;
+}
+
 export interface ForgeStateConfig {
   schema?: {
     version: number;
@@ -102,32 +113,232 @@ export function getItemContext(): Record<string, unknown> | null {
   return currentItemContext;
 }
 
-/** 
+/**
+ * Evaluate an $expr: expression against the store.
+ * Supported patterns:
+ *   state.foo.bar           → read a nested value from state values or tables
+ *   state.table.row.col     → direct cell access
+ *   state.table | values    → return all rows of a table as an array
+ *   state.table | count     → row count
+ *   state.table | keys      → row ids
+ *   item.field              → repeater item field
+ *   literal "hello", 42, true/false/null
+ */
+function evaluateExpression(store: Store, expr: string): unknown {
+  const trimmed = expr.trim();
+  if (trimmed === '') return undefined;
+
+  // Literal strings
+  if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+    return trimmed.slice(1, -1);
+  }
+  // Unclosed quotes — reject and warn once
+  if ((trimmed.startsWith('"') && !trimmed.endsWith('"')) || (trimmed.startsWith("'") && !trimmed.endsWith("'")))
+    return undefined;
+  if (trimmed === 'true') return true;
+  if (trimmed === 'false') return false;
+  if (trimmed === 'null') return null;
+  if (/^-?\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed);
+
+  // Pipe operator: `path | filter [arg]`
+  if (trimmed.includes('|')) {
+    const [lhs, ...rhsParts] = trimmed.split('|').map((s) => s.trim());
+    const base = evaluateExpression(store, lhs);
+    let result: unknown = base;
+    for (const filter of rhsParts) {
+      const [fname, ...fargs] = filter.split(/\s+/);
+      result = applyFilter(result, fname, fargs);
+    }
+    return result;
+  }
+
+  // item.field (repeater context)
+  if (trimmed.startsWith('item.') || trimmed === 'item') {
+    if (trimmed === 'item') return currentItemContext;
+    const path = trimmed.slice(5);
+    return getDeepPath(currentItemContext, path);
+  }
+
+  // state.foo.bar — try cell access, then table row, then value, then deep value lookup
+  if (trimmed.startsWith('state.') || trimmed === 'state') {
+    if (trimmed === 'state') return undefined;
+    const path = trimmed.slice(6);
+    return resolveStateDotPath(store, path);
+  }
+
+  // Fallback: treat as a plain state path
+  return resolveStatePath(store, trimmed);
+}
+
+function applyFilter(value: unknown, name: string, _args: string[]): unknown {
+  switch (name) {
+    case 'values':
+      if (Array.isArray(value)) return value;
+      if (value && typeof value === 'object') return Object.values(value as Record<string, unknown>);
+      return [];
+    case 'keys':
+      if (value && typeof value === 'object') return Object.keys(value as Record<string, unknown>);
+      return [];
+    case 'count':
+    case 'length':
+      if (Array.isArray(value)) return value.length;
+      if (value && typeof value === 'object') return Object.keys(value as Record<string, unknown>).length;
+      if (typeof value === 'string') return value.length;
+      return 0;
+    case 'sum':
+      if (Array.isArray(value)) return value.reduce((a: number, b: any) => a + (typeof b === 'number' ? b : 0), 0);
+      return 0;
+    case 'first':
+      if (Array.isArray(value)) return value[0];
+      return undefined;
+    case 'last':
+      if (Array.isArray(value)) return value[value.length - 1];
+      return undefined;
+    default:
+      return value;
+  }
+}
+
+function getDeepPath(obj: unknown, path: string): unknown {
+  if (!obj || typeof obj !== 'object' || !path) return undefined;
+  if (!isSafe(path)) return undefined;
+  const parts = path.split('.');
+  if (parts.length > 32) return undefined;
+  let cur: any = obj;
+  for (const p of parts) {
+    if (cur === null || cur === undefined) return undefined;
+    cur = cur[p];
+  }
+  return cur;
+}
+
+function resolveStateDotPath(store: Store, path: string): unknown {
+  // Try value first (for simple flat keys like "state.name")
+  const direct = store.getValue(path);
+  if (direct !== undefined) return direct;
+
+  const parts = path.split('.');
+  // [table, row, col]
+  if (parts.length >= 3) {
+    const [table, row, col, ...rest] = parts;
+    if (store.hasTable(table) && store.hasRow(table, row)) {
+      const cell = store.getCell(table, row, col);
+      if (rest.length === 0) return cell;
+      if (typeof cell === 'string') {
+        try {
+          const parsed = JSON.parse(cell);
+          return getDeepPath(parsed, rest.join('.'));
+        } catch { /* not JSON */ }
+      }
+      return undefined;
+    }
+  }
+  // [table, row] — return row as object
+  if (parts.length >= 2) {
+    const [table, row, ...rest] = parts;
+    if (store.hasTable(table) && store.hasRow(table, row)) {
+      const rowObj = store.getRow(table, row);
+      return rest.length === 0 ? rowObj : getDeepPath(rowObj, rest.join('.'));
+    }
+  }
+  // [table] — return all rows keyed by row id
+  if (parts.length >= 1) {
+    const [table, ...rest] = parts;
+    if (store.hasTable(table)) {
+      const rowIds = store.getRowIds(table);
+      const tableData: Record<string, Record<string, unknown>> = {};
+      for (const rid of rowIds) tableData[rid] = store.getRow(table, rid);
+      return rest.length === 0 ? tableData : getDeepPath(tableData, rest.join('.'));
+    }
+  }
+
+  // Fallback: try parsing a JSON-valued state value at first segment
+  const rootVal = store.getValue(parts[0]);
+  if (typeof rootVal === 'string' && parts.length > 1) {
+    try {
+      const parsed = JSON.parse(rootVal);
+      return getDeepPath(parsed, parts.slice(1).join('.'));
+    } catch { /* no-op */ }
+  }
+  return undefined;
+}
+
+/**
  * Resolve any reference string to its actual value.
  * - $state:path → store value
  * - $computed:expression → computed value
  * - $item:field → current repeater item field
+ * - $expr:expression → expression evaluated against store and item context
+ * - {{state.x}} / {{item.x}} → interpolated string
  * - Plain value → returned as-is
  */
 export function resolveRef(store: Store, value: unknown): unknown {
-  if (typeof value !== 'string') return value;
-  
+  if (typeof value !== 'string') {
+    if (value !== null && typeof value === 'object') {
+      const o = value as Record<string, unknown>;
+      if ('$expr' in o) return resolveRef(store, `$expr:${o.$expr}`);
+      if ('$state' in o) return resolveRef(store, `$state:${o.$state}`);
+      if ('$computed' in o) return resolveRef(store, `$computed:${o.$computed}`);
+      if ('$item' in o) return resolveRef(store, `$item:${o.$item}`);
+    }
+    return value;
+  }
+
   if (value.startsWith('$state:')) {
     const path = value.slice(7);
+    if (!isSafe(path)) return undefined;
     return resolveStatePath(store, path);
   }
-  
+
   if (value.startsWith('$computed:')) {
     const expression = value.slice(10);
+    if (expression.length > 1024) return undefined;
     return evaluateComputed(store, expression);
   }
-  
+
+  // $item: resolution — supports dot-notation paths (same traversal as $expr:item.<path>)
   if (value.startsWith('$item:')) {
     const field = value.slice(6);
+    if (!isSafe(field)) return undefined;
+    if (field.includes('.')) return getDeepPath(currentItemContext, field);
     return currentItemContext?.[field];
   }
-  
+
+  if (value.startsWith('$expr:')) {
+    const expression = value.slice(6);
+    if (expression.length > 1024) return undefined;
+    return evaluateExpression(store, expression);
+  }
+
+  // Template interpolation: "Hello {{state.name}}, you have {{item.count}} items"
+  if (value.length > 4096) return value;
+  if (value.includes('{{') && value.includes('}}')) {
+    return replaceTemplates(value, store);
+  }
+
   return value;
+}
+
+function replaceTemplates(input: string, store: Store): string {
+  let out='',i=0;
+  while(i<input.length){
+    if(input[i]==='{'&&input[i+1]==='{'){
+      let s=i+2,d=1,j=s;
+      while(j<input.length-1&&d>0){
+        const a=input[j],b=input[j+1];
+        if(a==='{'&&b==='{'){d++;j+=2}
+        else if(a==='}'&&b==='}'){d--;j+=2}
+        else j++;
+      }
+      if(!d){
+        const inner=input.slice(s,j-2);
+        if(inner.length<=256){const v=evaluateExpression(store,inner.trim());out+=v==null?'':String(v)}
+        else out+=input.slice(i,j);
+        i=j;
+      }else out+=input[i++];
+    }else out+=input[i++];
+  }
+  return out;
 }
 
 /** Convert ForgeSchema to TinyBase TablesSchema */

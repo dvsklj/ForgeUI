@@ -1,11 +1,13 @@
 {
-  "name": "@forge/catalog",
+  "name": "@forgeui/catalog",
   "version": "0.1.0",
   "description": "Forge UI component catalog — 37 pre-built components for manifest-driven web apps.",
   "main": "forge-catalog.js",
   "types": "forge-catalog.d.ts",
   "files": [
     "forge-catalog.js",
+    "forge-catalog.d.ts",
+    "types/",
     "README.md"
   ],
   "keywords": [
@@ -18,7 +20,17 @@
   ],
   "author": "Davor Skulj",
   "license": "MIT",
-  "dependencies": {
-    "ajv": "^8.17.0"
-  }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dvsklj/ForgeUI.git",
+    "directory": "packages/catalog"
+  },
+  "bugs": {
+    "url": "https://github.com/dvsklj/ForgeUI/issues"
+  },
+  "homepage": "https://github.com/dvsklj/ForgeUI#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {}
 }

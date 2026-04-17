@@ -17,24 +17,26 @@ forgeui/
 ├── src/
 │   ├── index.ts                 # Runtime entry — IIFE bundle
 │   ├── components/
-│   │   ├── index.ts             # Component barrel export
-│   │   ├── base.ts              # ForgeElement base class
-│   │   ├── structural/          # Stack, Grid, Card, Container, etc.
-│   │   ├── data/                # Table, Chart, Metric
-│   │   ├── input/               # TextInput, Select, Toggle, Slider, etc.
-│   │   └── presentation/        # Button, Tabs, Modal, Alert, Badge, Text
+│   │   ├── index.ts             # All 39 components in one file (by design)
+│   │   └── base.ts              # ForgeElement base class
 │   ├── runtime/
 │   │   ├── index.ts             # ForgeAppElement (web component host)
 │   │   └── expressions.ts       # $expr evaluation engine
 │   ├── renderer/
 │   │   └── index.ts             # Manifest → Lit template compiler
 │   ├── validation/
-│   │   ├── index.ts             # validateManifest() — 3-layer pipeline
-│   │   └── schemas.ts           # JSON Schema definitions
-│   ├── store/
+│   │   ├── index.ts             # validateManifest() — 4-layer pipeline
+│   │   ├── manifest-schema.ts   # JSON Schema definition for ForgeManifest
+│   │   └── manifest-validator.generated.ts  # Precompiled Ajv standalone validator
+│   ├── state/
 │   │   └── index.ts             # TinyBase store creation
 │   ├── catalog/
-│   │   └── registry.ts          # Component catalog + type definitions
+│   │   ├── registry.ts          # Component catalog + type definitions
+│   │   └── prompt.ts            # LLM system prompt generation
+│   ├── tokens/
+│   │   └── index.ts             # CSS design tokens
+│   ├── a2ui/
+│   │   └── index.ts             # A2UI adapter
 │   ├── server/
 │   │   ├── index.ts             # Hono HTTP server
 │   │   ├── db.ts                # SQLite persistence (better-sqlite3)
@@ -43,9 +45,12 @@ forgeui/
 │   │   └── index.ts             # MCP connector (stdio transport)
 │   ├── types/
 │   │   └── index.ts             # TypeScript type definitions
+│   ├── __tests__/               # Test suite
 │   └── cli.ts                   # CLI tool entry point
 ├── examples/                    # Example manifests
-├── tests/                       # Test suite
+├── scripts/
+│   ├── check-size.mjs           # IIFE gzip size budget gate
+│   └── gen-validator.mjs        # Precompile Ajv standalone validator
 ├── build.mjs                    # esbuild build script
 ├── package.json
 └── tsconfig.json
@@ -69,8 +74,7 @@ npm run build -- --dev           # Dev mode (sourcemaps, no minify)
 3. Register with `customElements.define()`
 4. Export from `src/components/<category>/index.ts`
 5. Add to component catalog in `src/catalog/registry.ts`
-6. Add JSON Schema for props in `src/validation/schemas.ts`
-7. Add example usage to `examples/`
+6. Add example usage to `examples/`
 
 Example:
 
@@ -84,7 +88,7 @@ export class ForgeMyComponent extends ForgeElement {
   `;
 
   render() {
-    const label = this.getProp('label', 'Default');
+    const label = this.getProp('label') ?? 'Default';
     return html`<div class="my-component">${label}</div>`;
   }
 }
@@ -94,24 +98,45 @@ customElements.define('forge-my-component', ForgeMyComponent);
 
 ## Validation Pipeline
 
-Three layers, all must pass:
+Four layers, all must pass:
 
-1. **Schema** (Ajv strict mode) — structure, types, required fields
-2. **Security** — URL schemes, event handlers, XSS patterns
-3. **Semantic** — state paths resolve, catalog membership, no cycles
+1. **JSON Schema** (Ajv strict mode) — structure, types, required fields
+2. **URL allowlisting** — scheme allowlist, event handler rejection, XSS patterns
+3. **State path validation** — state paths resolve, no cycles
+4. **Component catalog enforcement** — type values match registered components
 
 When adding features that affect validation:
-- Update `src/validation/schemas.ts` for structural rules
+- Update `src/validation/manifest-schema.ts` for structural rules
 - Update `src/validation/index.ts` for semantic rules
+- Run `npm run gen:validator` after schema changes
 - Add tests covering both valid and invalid inputs
 
 ## Testing
 
 ```bash
-npm test                         # Run all tests
-node test-manifests.mjs          # Validate example manifests
-node bench.mjs                   # Performance benchmarks
+npm test                         # Run all tests (vitest)
+npm run test:watch               # Watch mode
+npm run test:coverage            # Coverage report
+npm run typecheck                # TypeScript type checking
+npm run ci:size                  # IIFE gzip size budget check
+npm run e2e                      # Playwright browser tests (Chromium, Firefox, WebKit)
 ```
+
+## Size budget
+
+Forge UI enforces a gzip size ceiling on `dist/forge.js` via CI. Current ceiling: 50,000 bytes (50 KB gzip). Run locally:
+
+    npm run ci:size
+
+Any PR that pushes past the ceiling fails the `Enforce IIFE gzip size budget` check in GitHub Actions. The ceiling is a ratchet — it drops as the bundle shrinks. To raise it intentionally (rare), edit `BUDGET_BYTES` in `scripts/check-size.mjs` and include the bump in the same PR.
+
+## Regenerating the validator
+
+The Ajv validator for `ForgeManifest` is precompiled at build time into `src/validation/manifest-validator.generated.ts`. `npm run build` regenerates it automatically via the `prebuild` script. To regenerate manually after editing `src/validation/manifest-schema.ts`:
+
+    npm run gen:validator
+
+The generated file is checked into git so CI doesn't need to regenerate on every run.
 
 ## Code Style
 

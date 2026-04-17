@@ -248,6 +248,8 @@ function buildFullPrompt(): string {
     '  }',
     '}',
     '',
+    'For sets of repetitive actions (one per day, one per item, etc.), define a single parameterized action and pass the distinguishing value at dispatch time rather than defining one action per item.',
+    '',
     'GUIDELINES:',
     '1. Always use design tokens — never raw CSS, hex colors, or pixel sizes.',
     '2. Keep manifests under ~100KB — if an app needs more, it outgrew Forge.',
@@ -269,7 +271,7 @@ function buildFullPrompt(): string {
  * Generate a JSON Schema for Forge manifest validation.
  * Useful for structured output generation by LLMs.
  */
-export function catalogToJsonSchema(): object {
+export function catalogToJsonSchema(): { type: string; required: string[]; properties: Record<string, unknown> } {
   return {
     type: 'object',
     required: ['manifest', 'id', 'elements'],

@@ -1,0 +1,1 @@
+These documents captured planning state at specific points during pre-1.0 development. They are retained for historical context and are not maintained. For current project state, see the root `README.md`, `CHANGELOG.md`, and `docs/architecture.md`.

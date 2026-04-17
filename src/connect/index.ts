@@ -1,5 +1,5 @@
 /**
- * @forge/connect — MCP Server
+ * @forgeui/connect — MCP Server
  *
  * Provides MCP tools for LLM agents to create, update, and query Forge apps.
  *
@@ -21,7 +21,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import { catalogPrompt, catalogToJsonSchema } from '../catalog/registry.js';
+import { catalogPrompt, catalogToJsonSchema } from '../catalog/prompt.js';
 import { validateManifest } from '../validation/index.js';
 import {
   initDatabase,
@@ -112,7 +112,17 @@ server.tool(
 
       let stored;
       if (usePatch) {
-        stored = patchApp(app_id, manifest as Partial<ForgeManifest>);
+        const result = patchApp(app_id, manifest as Partial<ForgeManifest>, (m) => {
+          const v = validateManifest(m);
+          return { valid: v.valid, errors: v.errors.map((e) => e.message) };
+        });
+        if (result.status === 'invalid') {
+          return {
+            content: [{ type: 'text', text: `Validation failed: ${result.errors.join(', ')}` }],
+            isError: true,
+          };
+        }
+        stored = result.status === 'ok' ? result.app : null;
       } else {
         const typed = manifest as unknown as ForgeManifest;
         typed.id = app_id;

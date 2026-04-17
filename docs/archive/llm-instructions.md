@@ -63,7 +63,7 @@ You can create interactive applications by generating Forge manifests — declar
 
 Never use raw colors (`#3B82F6`), pixel values (`16px`), or CSS properties. Always use tokens.
 
-## Components (37)
+## Components (39)
 
 ### Layout
 

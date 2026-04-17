@@ -15,15 +15,27 @@
     "./server": "./src/server/index.ts"
   },
   "scripts": {
+    "prebuild": "npm run gen:validator",
+    "gen:validator": "tsx scripts/gen-validator.mjs",
     "build": "node build.mjs",
     "build:artifact": "node build.mjs --mode=artifact",
     "build:server": "node build.mjs --mode=server",
     "build:connect": "node build.mjs --mode=connect",
     "dev": "node src/server/dev.ts",
     "serve": "node dist/forge-server.js",
-    "test": "node --test --import tsx tests/**/*.test.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "size": "node build.mjs && gzip -c dist/forge.js | wc -c"
+    "size": "node build.mjs && gzip -c dist/forge.js | wc -c",
+    "ci:size": "node scripts/check-size.mjs",
+    "validate": "tsx scripts/validate-examples.mjs",
+    "bench:server": "tsx scripts/bench-server.mjs",
+    "smoke:pack": "tsx scripts/pack-smoke.mjs",
+    "gauntlet": "tsx test/gauntlet/run.mts",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed",
+    "e2e:ui": "playwright test --ui"
   },
   "keywords": [
     "llm",
@@ -37,11 +49,18 @@
   ],
   "author": "Davor Skulj",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dvsklj/ForgeUI.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dvsklj/ForgeUI/issues"
+  },
+  "homepage": "https://github.com/dvsklj/ForgeUI#readme",
   "private": false,
   "dependencies": {
     "@hono/node-server": "^1.19.14",
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "ajv": "^8.17.0",
     "better-sqlite3": "^12.9.0",
     "hono": "^4.12.14",
     "lit": "^3.2.0",
@@ -49,9 +68,18 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/node": "^25.6.0",
+    "@types/supertest": "^7.2.0",
+    "@vitest/coverage-v8": "^4.1.4",
+    "ajv": "^8.17.0",
+    "autocannon": "^8.0.0",
     "esbuild": "^0.21.0",
+    "jsdom": "^29.0.2",
+    "serve": "^14.2.6",
+    "supertest": "^7.2.2",
     "tsx": "^4.7.0",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "vitest": "^4.1.4"
   }
 }

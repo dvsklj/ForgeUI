@@ -13,7 +13,7 @@ import { createForgeStore, executeAction } from '../state/index.js';
 import { validateManifest, ValidationResult } from '../validation/index.js';
 import { renderManifest, RenderContext } from '../renderer/index.js';
 import { tokenStyles, surfaceStyles } from '../tokens/index.js';
-import { catalogPrompt, catalogToJsonSchema } from '../catalog/registry.js';
+import { catalogPrompt, catalogToJsonSchema } from '../catalog/prompt.js';
 import { ingestPayload } from '../a2ui/index.js';
 import { createForgePersister, type ForgePersister, type PersisterStatus, type PersisterMode } from './persister.js';
 import { UndoRedoStack, type UndoRedoState } from './undo-redo.js';
@@ -93,7 +93,8 @@ export class ForgeApp extends LitElement {
       } catch (e) {
         this._validation = {
           valid: false,
-          errors: [{ path: '/', message: `Invalid JSON: ${(e as Error).message}`, severity: 'error' }],
+          errors: [{ path: '/', message: `Invalid JSON: ${(e as Error).message}`, severity: 'error' as const }],
+          warnings: [],
         };
         return;
       }
@@ -124,8 +125,13 @@ export class ForgeApp extends LitElement {
     // Set initial active view from root
     this._activeView = manifest.root;
 
-    // Setup persistence (async, non-blocking)
-    this._setupPersistence(manifest);
+    // Setup persistence — re-renders when IndexedDB load completes (or on failure)
+    this._setupPersistence(manifest)
+      .then(() => this.requestUpdate())
+      .catch((err) => {
+        console.warn('[forge] persister setup failed:', err);
+        this.requestUpdate();
+      });
 
     // Push initial state to undo stack
     this._undoStack.push(manifest);
@@ -136,6 +142,12 @@ export class ForgeApp extends LitElement {
       bubbles: true,
       composed: true,
     }));
+
+    // _initManifest() runs in both connectedCallback and updated(); in the
+    // latter case Lit has already completed its render pass before we set
+    // _parsedManifest/_store, so nothing would re-render without an explicit
+    // request. This makes `app.manifest = obj` after connection work reliably.
+    this.requestUpdate();
   }
 
   render() {
