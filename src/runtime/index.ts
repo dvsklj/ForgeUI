@@ -125,8 +125,13 @@ export class ForgeApp extends LitElement {
     // Set initial active view from root
     this._activeView = manifest.root;
 
-    // Setup persistence — fire-and-forget; re-renders when IndexedDB load completes
-    this._setupPersistence(manifest).then(() => this.requestUpdate());
+    // Setup persistence — re-renders when IndexedDB load completes (or on failure)
+    this._setupPersistence(manifest)
+      .then(() => this.requestUpdate())
+      .catch((err) => {
+        console.warn('[forge] persister setup failed:', err);
+        this.requestUpdate();
+      });
 
     // Push initial state to undo stack
     this._undoStack.push(manifest);
