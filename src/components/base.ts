@@ -12,6 +12,13 @@ import { resolveRef, setItemContext } from '../state/index.js';
 import { resetStyles } from '../tokens/index.js';
 
 export class ForgeElement extends LitElement {
+  // ─── Instance ID (stable per component instance) ───────────
+
+  /** Monotonic counter for generating unique instance IDs */
+  static _instanceCounter = 0;
+  /** Stable unique ID for this component instance — used for label linkage */
+  protected readonly _instanceId: string = `forge-${++(ForgeElement as any)._instanceCounter}`;
+
   // ─── Properties (set by renderer) ────────────────────────────
 
   /** Resolved component props from the manifest */

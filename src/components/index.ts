@@ -152,6 +152,9 @@ export class ForgeTabs extends ForgeElement {
     .panel { padding-top:var(--forge-space-md); display:flex; flex-direction:column; gap:var(--forge-space-md); }
     ::slotted(*) { display:none; }
     ::slotted([data-active]) { display:block; }
+    @media (prefers-reduced-motion: reduce) {
+      .tab { transition:none; }
+    }
   `; }
   _itemKey(item: any): string {
     if (typeof item === 'string') return item;
@@ -437,11 +440,12 @@ export class ForgeTextInput extends ForgeElement {
     const type = this.getString('inputType', 'text');
     const multiline = this.getBool('multiline');
     const val = this.getString('value', '');
+    const inputId = this._instanceId;
     return html`
-      ${label ? html`<label>${label}</label>` : nothing}
+      ${label ? html`<label for="${inputId}">${label}</label>` : nothing}
       ${multiline 
-        ? html`<textarea placeholder="${placeholder}" .value=${val} @input=${(e: any) => this.dispatchAction('change', { value: e.target.value })}></textarea>`
-        : html`<input type="${type}" placeholder="${placeholder}" .value=${val} @input=${(e: any) => this.dispatchAction('change', { value: e.target.value })}>`
+        ? html`<textarea id="${inputId}" placeholder="${placeholder}" .value=${val} @input=${(e: any) => this.dispatchAction('change', { value: e.target.value })}></textarea>`
+        : html`<input id="${inputId}" type="${type}" placeholder="${placeholder}" .value=${val} @input=${(e: any) => this.dispatchAction('change', { value: e.target.value })}>`
       }
       ${hint && !error ? html`<div class="hint">${hint}</div>` : nothing}
       ${error ? html`<div class="error">${error}</div>` : nothing}
@@ -465,9 +469,10 @@ export class ForgeNumberInput extends ForgeElement {
     const max = this.getProp('max') as number | undefined;
     const step = this.getProp('step') as number | undefined;
     const val = this.getProp('value') as number | undefined;
+    const inputId = this._instanceId;
     return html`
-      ${label ? html`<label>${label}</label>` : nothing}
-      <input type="number" min=${min} max=${max} step=${step} .value=${val ?? ''}
+      ${label ? html`<label for="${inputId}">${label}</label>` : nothing}
+      <input id="${inputId}" type="number" min=${min} max=${max} step=${step} .value=${val ?? ''}
         @input=${(e: any) => this.dispatchAction('change', { value: Number(e.target.value) })}>
     `;
   }
@@ -487,9 +492,10 @@ export class ForgeSelect extends ForgeElement {
     const label = this.getString('label', '');
     const options = (this.getProp('options') || []) as any[];
     const val = this.getString('value', '');
+    const inputId = this._instanceId;
     return html`
-      ${label ? html`<label>${label}</label>` : nothing}
-      <select .value=${val} @change=${(e: any) => this.dispatchAction('change', { value: e.target.value })}>
+      ${label ? html`<label for="${inputId}">${label}</label>` : nothing}
+      <select id="${inputId}" .value=${val} @change=${(e: any) => this.dispatchAction('change', { value: e.target.value })}>
         ${options.map((o: any) => html`<option value=${typeof o === 'string' ? o : o.value} ?selected=${(typeof o === 'string' ? o : o.value) === val}>
           ${typeof o === 'string' ? o : (o.label || o.value)}
         </option>`)}
@@ -532,9 +538,10 @@ export class ForgeCheckbox extends ForgeElement {
   render() {
     const label = this.getString('label', '');
     const checked = this.getBool('checked');
+    const inputId = this._instanceId;
     return html`
-      <input type="checkbox" ?checked=${checked} @change=${(e: any) => this.dispatchAction('change', { checked: e.target.checked })}>
-      ${label ? html`<label>${label}</label>` : nothing}
+      <input id="${inputId}" type="checkbox" ?checked=${checked} @change=${(e: any) => this.dispatchAction('change', { checked: e.target.checked })}>
+      ${label ? html`<label for="${inputId}">${label}</label>` : nothing}
     `;
   }
 }
@@ -544,21 +551,58 @@ export class ForgeToggle extends ForgeElement {
   static get styles() { return css`
     :host { display:flex; align-items:center; gap:var(--forge-space-sm); margin-bottom:var(--forge-space-xs); }
     .switch { position:relative; width:2.75rem; height:1.5rem; background:var(--forge-color-border-strong);
-      border-radius:var(--forge-radius-full); cursor:pointer; transition:background var(--forge-transition-fast); }
-    .switch[on] { background:var(--forge-color-primary); }
+      border-radius:var(--forge-radius-full); cursor:pointer; border:none; padding:0;
+      transition:background var(--forge-transition-fast); }
+    .switch[aria-checked="true"] { background:var(--forge-color-primary); }
     .switch::after { content:''; position:absolute; top:2px; left:2px; width:1.25rem; height:1.25rem;
-      background:white; border-radius:var(--forge-radius-full); transition:transform var(--forge-transition-fast); }
-    .switch[on]::after { transform:translateX(1.25rem); }
-    label { font-size:var(--forge-text-sm); }
+      background:var(--forge-color-surface); border-radius:var(--forge-radius-full); transition:transform var(--forge-transition-fast); }
+    .switch[aria-checked="true"]::after { transform:translateX(1.25rem); }
+    .switch:focus-visible { outline:2px solid var(--forge-color-primary); outline-offset:2px; }
+    .switch:disabled { opacity:0.5; cursor:not-allowed; }
+    .toggle-label { display:inline-flex; align-items:center; gap:var(--forge-space-sm); cursor:pointer; }
+    .toggle-text { font-size:var(--forge-text-sm); }
+    @media (prefers-reduced-motion: reduce) {
+      .switch, .switch::after { transition:none; }
+    }
   `; }
   render() {
-    const label = this.getString('label', '');
     const on = this.getBool('on');
+    const label = this.getString('label', '');
+    const disabled = this.getBool('disabled');
+    const inputId = this._instanceId;
     return html`
-      <div class="switch" ?on=${on} @click=${() => this.dispatchAction('change', { on: !on })}></div>
-      ${label ? html`<label>${label}</label>` : nothing}
+      <label for="${inputId}" class="toggle-label">
+        <button
+          id="${inputId}"
+          class="switch"
+          role="switch"
+          type="button"
+          aria-checked="${on ? 'true' : 'false'}"
+          ?disabled=${disabled}
+          @click="${this._toggle}"
+          @keydown="${this._onKeydown}"
+        ></button>
+        ${label ? html`<span class="toggle-text">${label}</span>` : nothing}
+      </label>
     `;
   }
+
+  private _toggle = () => {
+    if (this.getBool('disabled')) return;
+    const current = this.getBool('on');
+    this.dispatchEvent(new CustomEvent('forge-action', {
+      detail: { actionId: 'change', value: !current },
+      bubbles: true,
+      composed: true,
+    }));
+  };
+
+  private _onKeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+      e.preventDefault();
+      this._toggle();
+    }
+  };
 }
 customElements.define('forge-toggle', ForgeToggle);
 
@@ -654,6 +698,9 @@ export class ForgeButton extends ForgeElement {
     .sm { height:2rem; padding:0 var(--forge-space-sm); font-size:var(--forge-text-xs); }
     .lg { height:3rem; padding:0 var(--forge-space-lg); font-size:var(--forge-text-base); }
     button:disabled { opacity:0.5; cursor:not-allowed; }
+    @media (prefers-reduced-motion: reduce) {
+      button { transition:none; }
+    }
   `; }
   render() {
     const label = this.getString('label', 'Button');
@@ -826,6 +873,9 @@ export class ForgeChart extends ForgeElement {
     .legend-item { display:inline-flex; align-items:center; gap:var(--forge-space-2xs); }
     .swatch { display:inline-block; width:0.75rem; height:0.75rem; border-radius:2px; }
     .empty { padding:var(--forge-space-lg); text-align:center; color:var(--forge-color-text-tertiary); font-size:var(--forge-text-sm); }
+    @media (prefers-reduced-motion: reduce) {
+      .bar { transition:none; }
+    }
   `; }
 
   _palette = [
@@ -1070,7 +1120,7 @@ export class ForgeAlert extends ForgeElement {
     const variant = this.getString('variant', 'info');
     const title = this.getString('title', '');
     const message = this.getString('message', '');
-    return html`<div class="alert ${variant}">
+    return html`<div class="alert ${variant}" role="alert">
       ${title ? html`<strong>${title}</strong> ` : nothing}${message}<slot></slot>
     </div>`;
   }
@@ -1088,19 +1138,123 @@ export class ForgeDialog extends ForgeElement {
     .title { font-size:var(--forge-text-lg); font-weight:var(--forge-weight-semibold); margin-bottom:var(--forge-space-md); }
     .actions { display:flex; justify-content:flex-end; gap:var(--forge-space-xs); margin-top:var(--forge-space-lg); }
   `; }
+
+  private _priorFocus: Element | null = null;
+  private _keydownHandler = (e: KeyboardEvent) => this._onKeydown(e);
+
   render() {
     const title = this.getString('title', '');
     const open = this.getBool('open');
+    const titleId = `${this._instanceId}-title`;
     if (open) this.setAttribute('open', '');
     else this.removeAttribute('open');
+    if (!open) return nothing;
     return html`
-      <div class="backdrop" @click=${() => this.dispatchAction('close')}></div>
-      <div class="dialog">
-        ${title ? html`<div class="title">${title}</div>` : nothing}
+      <div class="backdrop" @click=${this._close}></div>
+      <div
+        class="dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="${title ? titleId : nothing}"
+        tabindex="-1"
+        @click=${(e: Event) => e.stopPropagation()}
+      >
+        ${title ? html`<h2 id="${titleId}" class="title">${title}</h2>` : nothing}
         <slot></slot>
       </div>
     `;
   }
+
+  updated(changed: Map<string, unknown>) {
+    super.updated?.(changed);
+    if (changed.has('props')) {
+      const nowOpen = this.getBool('open');
+      const prev = changed.get('props') as any;
+      const wasOpen = prev?.open ?? false;
+      if (nowOpen && !wasOpen) this._onOpen();
+      else if (!nowOpen && wasOpen) this._onClose();
+    }
+  }
+
+  private _onOpen() {
+    this._priorFocus = (document.activeElement instanceof HTMLElement) ? document.activeElement : null;
+    document.addEventListener('keydown', this._keydownHandler);
+    requestAnimationFrame(() => {
+      const dialogEl = this.shadowRoot?.querySelector('.dialog') as HTMLElement | null;
+      const firstFocusable = this._firstFocusableInDialog();
+      (firstFocusable ?? dialogEl)?.focus();
+    });
+  }
+
+  private _onClose() {
+    document.removeEventListener('keydown', this._keydownHandler);
+    if (this._priorFocus instanceof HTMLElement) this._priorFocus.focus();
+    this._priorFocus = null;
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback?.();
+    document.removeEventListener('keydown', this._keydownHandler);
+  }
+
+  private _onKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      this._close();
+      return;
+    }
+    if (e.key === 'Tab') {
+      this._trapFocus(e);
+    }
+  }
+
+  private _trapFocus(e: KeyboardEvent) {
+    const focusables = this._allFocusableInDialog();
+    if (focusables.length === 0) { e.preventDefault(); return; }
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = this.shadowRoot?.activeElement ?? document.activeElement;
+    if (e.shiftKey) {
+      if (active === first || !this._dialogContains(active)) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (active === last || !this._dialogContains(active)) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  }
+
+  private _firstFocusableInDialog(): HTMLElement | null {
+    return this._allFocusableInDialog()[0] ?? null;
+  }
+
+  private _allFocusableInDialog(): HTMLElement[] {
+    const dialog = this.shadowRoot?.querySelector('.dialog');
+    if (!dialog) return [];
+    const selector = 'button, [href], input:not([type="hidden"]), select, textarea, [tabindex]:not([tabindex="-1"])';
+    const direct = Array.from(dialog.querySelectorAll<HTMLElement>(selector));
+    const slot = dialog.querySelector('slot');
+    const slotted = (slot instanceof HTMLSlotElement)
+      ? slot.assignedElements({ flatten: true }).flatMap((el) => {
+          const nodes = [el, ...Array.from(el.querySelectorAll<HTMLElement>(selector))];
+          return nodes.filter((n): n is HTMLElement => n instanceof HTMLElement && n.matches(selector));
+        })
+      : [];
+    return [...direct, ...slotted].filter((el) => !(el as HTMLButtonElement).disabled);
+  }
+
+  private _dialogContains(node: Element | null): boolean {
+    if (!node) return false;
+    const dialog = this.shadowRoot?.querySelector('.dialog');
+    return dialog?.contains(node) ?? false;
+  }
+
+  private _close = () => {
+    this.dispatchAction('close');
+  };
 }
 customElements.define('forge-dialog', ForgeDialog);
 
@@ -1112,14 +1266,26 @@ export class ForgeProgress extends ForgeElement {
     .indeterminate .bar { width:30%; animation:indeterminate 1.5s ease infinite; }
     @keyframes indeterminate { 0%{transform:translateX(-100%)} 100%{transform:translateX(400%)} }
     .label { font-size:var(--forge-text-xs); color:var(--forge-color-text-secondary); margin-top:var(--forge-space-2xs); }
+    @media (prefers-reduced-motion: reduce) {
+      .bar { transition:none; animation:none; }
+    }
   `; }
   render() {
-    const value = this.getProp('value') as number | undefined;
-    const indeterminate = value === undefined;
-    const pct = typeof value === 'number' ? `${Math.min(100, Math.max(0, value))}%` : '0%';
+    const rawValue = this.getProp('value');
+    const max = this.getNumber('max', 100);
+    const indeterminate = rawValue === undefined || rawValue === null;
+    const value = indeterminate ? 0 : Math.max(0, Math.min(Number(rawValue), max));
+    const pct = indeterminate ? 0 : (value / max) * 100;
     return html`
-      <div class="progress ${indeterminate ? 'indeterminate' : ''}">
-        <div class="bar" style=${indeterminate ? '' : `width:${pct}`}></div>
+      <div
+        class="progress ${indeterminate ? 'indeterminate' : ''}"
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax="${max}"
+        aria-valuenow="${indeterminate ? nothing : value}"
+        aria-valuetext="${indeterminate ? 'Loading' : `${Math.round(pct)}%`}"
+      >
+        <div class="bar" style=${indeterminate ? '' : `width:${pct}%`}></div>
       </div>
     `;
   }
@@ -1212,7 +1378,7 @@ export class ForgeError extends ForgeElement {
   `; }
   render() {
     const msg = this.getString('msg', 'Unknown error');
-    return html`<div class="error">⚠ ${msg}</div>`;
+    return html`<div class="error" role="alert">⚠ ${msg}</div>`;
   }
 }
 customElements.define('forge-error', ForgeError);
