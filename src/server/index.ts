@@ -21,6 +21,7 @@ import { cors } from 'hono/cors';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { readFileSync } from 'fs';
+import { randomBytes } from 'node:crypto';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -183,13 +184,36 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
     const manifestJson = JSON.stringify(stored.manifest).replace(/</g, '\\u003c');
     const base = baseUrl || `${c.req.header('x-forwarded-proto') || 'http'}://${c.req.header('host')}`;
 
-    return c.html(renderAppPage(manifestJson, stored.title, base));
+    const nonce = randomBytes(16).toString('base64');
+    const csp = [
+      `default-src 'self'`,
+      `script-src 'self' 'nonce-${nonce}'`,
+      `style-src 'self' 'unsafe-inline'`,
+      `img-src * data: blob:`,
+      `connect-src 'self'`,
+      `object-src 'none'`,
+      `base-uri 'self'`,
+    ].join('; ');
+    c.header('Content-Security-Policy', csp);
+
+    return c.html(renderAppPage(manifestJson, stored.title, base, nonce));
   });
 
   // Landing page
   app.get('/', (c) => {
     const { apps, total } = listApps(20);
     const base = baseUrl || `${c.req.header('x-forwarded-proto') || 'http'}://${c.req.header('host')}`;
+
+    const csp = [
+      `default-src 'self'`,
+      `script-src 'self'`,
+      `style-src 'self' 'unsafe-inline'`,
+      `img-src * data: blob:`,
+      `connect-src 'self'`,
+      `object-src 'none'`,
+      `base-uri 'self'`,
+    ].join('; ');
+    c.header('Content-Security-Policy', csp);
 
     return c.html(renderLandingPage(apps, total, base));
   });
@@ -352,7 +376,7 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
 
 // ─── HTML Templates ──────────────────────────────────────────
 
-function renderAppPage(manifestJson: string, title: string, baseUrl: string): string {
+function renderAppPage(manifestJson: string, title: string, baseUrl: string, nonce: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -369,9 +393,25 @@ function renderAppPage(manifestJson: string, title: string, baseUrl: string): st
 <body>
   <script type="application/json" id="forge-manifest-data">${manifestJson}</script>
   <forge-app id="forge-app" surface="standalone"></forge-app>
-  <script>
-    const raw = document.getElementById('forge-manifest-data').textContent;
-    document.getElementById('forge-app').manifest = JSON.parse(raw);
+  <script nonce="${nonce}">
+    (function () {
+      try {
+        var raw = document.getElementById('forge-manifest-data').textContent;
+        var parsed = JSON.parse(raw);
+        document.getElementById('forge-app').manifest = parsed;
+      } catch (err) {
+        var app = document.getElementById('forge-app');
+        app.style.display = 'flex';
+        app.style.alignItems = 'center';
+        app.style.justifyContent = 'center';
+        app.style.minHeight = '100vh';
+        app.style.color = '#e0e0e0';
+        app.style.background = '#0a0a0a';
+        app.style.fontFamily = 'system-ui, sans-serif';
+        app.textContent = 'Manifest could not be loaded. Check the server logs.';
+        if (window.console) console.error('[forge] Manifest parse failed:', err);
+      }
+    })();
   </script>
   <script type="module" src="${baseUrl}/runtime/forge.js"></script>
 </body>
