@@ -12,3 +12,9 @@ tmp/
 test-results/
 playwright-report/
 test/gauntlet/outputs/
+
+# Local server database
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
