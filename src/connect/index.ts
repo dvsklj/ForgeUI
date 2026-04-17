@@ -112,7 +112,17 @@ server.tool(
 
       let stored;
       if (usePatch) {
-        stored = patchApp(app_id, manifest as Partial<ForgeManifest>);
+        const result = patchApp(app_id, manifest as Partial<ForgeManifest>, (m) => {
+          const v = validateManifest(m);
+          return { valid: v.valid, errors: v.errors.map((e) => e.message) };
+        });
+        if (result.status === 'invalid') {
+          return {
+            content: [{ type: 'text', text: `Validation failed: ${result.errors.join(', ')}` }],
+            isError: true,
+          };
+        }
+        stored = result.status === 'ok' ? result.app : null;
       } else {
         const typed = manifest as unknown as ForgeManifest;
         typed.id = app_id;

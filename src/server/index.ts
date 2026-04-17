@@ -64,8 +64,77 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
 
   const app = new Hono();
 
-  // CORS for API routes
-  app.use('/api/*', cors());
+  // ─── CORS allowlist ────────────────────────────────────────
+  const corsOriginsEnv = process.env.FORGE_CORS_ORIGINS?.trim();
+  const corsOrigins: string[] = corsOriginsEnv
+    ? corsOriginsEnv === '*'
+      ? ['*']
+      : corsOriginsEnv.split(',').map((s) => s.trim()).filter(Boolean)
+    : ['http://localhost', 'http://127.0.0.1'];
+
+  app.use('*', cors({
+    origin: (origin) => {
+      if (!origin) return null;
+      if (corsOrigins.includes('*')) return origin;
+      for (const allowed of corsOrigins) {
+        if (origin === allowed) return origin;
+        if (allowed === 'http://localhost' && /^http:\/\/localhost(:\d+)?$/.test(origin)) return origin;
+        if (allowed === 'http://127.0.0.1' && /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) return origin;
+      }
+      return null;
+    },
+    credentials: true,
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+  }));
+
+  // ─── Body size limit ───────────────────────────────────────
+  const maxBodyBytes = parseInt(process.env.FORGE_MAX_BODY_BYTES ?? '1048576', 10);
+
+  app.use('*', async (c, next) => {
+    const method = c.req.method;
+    if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return next();
+    const lenHeader = c.req.header('content-length');
+    if (lenHeader !== undefined) {
+      const len = parseInt(lenHeader, 10);
+      if (!Number.isFinite(len) || len < 0) {
+        return c.json({ error: 'Invalid Content-Length' }, 400);
+      }
+      if (len > maxBodyBytes) {
+        return c.json({ error: 'Request body too large', limit: maxBodyBytes }, 413);
+      }
+    }
+    return next();
+  });
+
+  // ─── Optional API token auth ───────────────────────────────
+  const apiToken = process.env.FORGE_API_TOKEN?.trim() || undefined;
+
+  if (apiToken) {
+    app.use('/api/*', async (c, next) => {
+      const method = c.req.method;
+      if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return next();
+      const auth = c.req.header('authorization') ?? '';
+      const expected = `Bearer ${apiToken}`;
+      if (auth.length !== expected.length) return c.json({ error: 'unauthorized' }, 401);
+      let diff = 0;
+      for (let i = 0; i < auth.length; i++) diff |= auth.charCodeAt(i) ^ expected.charCodeAt(i);
+      if (diff !== 0) return c.json({ error: 'unauthorized' }, 401);
+      return next();
+    });
+  }
+
+  if (!apiToken && process.env.NODE_ENV === 'production') {
+    console.warn('[forge-server] FORGE_API_TOKEN is not set; /api/apps/* writes are unauthenticated.');
+  }
+
+  // ─── Security response headers ─────────────────────────────
+  app.use('/api/*', async (c, next) => {
+    await next();
+    c.header('X-Content-Type-Options', 'nosniff');
+    c.header('X-Frame-Options', 'DENY');
+    c.header('Referrer-Policy', 'no-referrer');
+  });
 
   // ─── Static Files ──────────────────────────────────────────
 
@@ -134,8 +203,10 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
 
   // List apps
   app.get('/api/apps', (c) => {
-    const limit = parseInt(c.req.query('limit') || '50');
-    const offset = parseInt(c.req.query('offset') || '0');
+    const rawLimit = parseInt(c.req.query('limit') ?? '20', 10);
+    const rawOffset = parseInt(c.req.query('offset') ?? '0', 10);
+    const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 100) : 20;
+    const offset = Number.isFinite(rawOffset) && rawOffset >= 0 ? rawOffset : 0;
     const result = listApps(limit, offset);
     return c.json(result);
   });
@@ -222,21 +293,17 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
         return c.json({ error: 'Invalid patch', details: patchValidation.errors }, 400);
       }
 
-      const updated = patchApp(id, patch);
-      if (!updated) {
-        return c.json({ error: 'App not found' }, 404);
-      }
-
-      const validation = validateManifest(updated.manifest);
-      if (!validation.valid) {
-        return c.json({ error: 'Validation failed after patch', details: validation.errors }, 400);
+      const result = patchApp(id, patch, (m) => {
+        const v = validateManifest(m);
+        return { valid: v.valid, errors: v.errors.map((e) => e.message) };
+      });
+      if (result.status === 'not-found') return c.json({ error: 'App not found' }, 404);
+      if (result.status === 'invalid') {
+        return c.json({ error: 'Validation failed after patch', details: result.errors }, 400);
       }
 
       const base = baseUrl || `${c.req.header('x-forwarded-proto') || 'http'}://${c.req.header('host')}`;
-      return c.json({
-        ...updated,
-        url: `${base}/apps/${updated.id}`,
-      });
+      return c.json({ ...result.app, url: `${base}/apps/${result.app.id}` });
     } catch (err: any) {
       return c.json({ error: `Invalid patch: ${err.message}` }, 400);
     }
