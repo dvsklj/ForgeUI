@@ -280,9 +280,9 @@ describe('5. Adversarial manifest corpus over HTTP', () => {
   const veryLongChildren: string[] = Array.from({ length: 10_000 }, (_, i) => `child-${i}`);
 
   const corpus: { label: string; body: unknown }[] = [
-    // Prototype pollution
-    { label: '__proto__ pollution', body: { __proto__: { polluted: true }, manifest: '0.1.0', root: 'main', elements: { main: { type: 'Text' } } } },
-    { label: 'constructor pollution', body: { constructor: { prototype: { polluted: true } }, manifest: '0.1.0', root: 'main', elements: { main: { type: 'Text' } } } },
+    // Prototype pollution (must use JSON.parse so __proto__/constructor become own properties)
+    { label: '__proto__ pollution', body: JSON.parse('{"__proto__":{"polluted":true},"manifest":"0.1.0","root":"main","elements":{"main":{"type":"Text"}}}') },
+    { label: 'constructor pollution', body: JSON.parse('{"constructor":{"prototype":{"polluted":true}},"manifest":"0.1.0","root":"main","elements":{"main":{"type":"Text"}}}') },
 
     // Deeply nested JSON (depth 500)
     { label: 'deeply nested JSON', body: deeplyNested },
