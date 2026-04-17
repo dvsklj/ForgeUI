@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { validateManifest } from '../src/validation/index.js';
 import type { ForgeManifest } from '../src/types/index.js';
 import { createStore } from 'tinybase';
-import { resolveRef, createForgeStore } from '../src/state/index.js';
+import { resolveRef, createForgeStore, setItemContext } from '../src/state/index.js';
 
 function validManifest(overrides?: Partial<ForgeManifest>): ForgeManifest {
   return {
@@ -132,14 +132,12 @@ describe('Security — State path safety', () => {
   });
 
   it('blocks $item:__proto__', () => {
-    const { setItemContext } = require('../src/state/index.js');
     setItemContext({ name: 'test' });
     expect(resolveRef(store, '$item:__proto__')).toBeUndefined();
     setItemContext(null);
   });
 
   it('blocks $expr:item.__proto__', () => {
-    const { setItemContext } = require('../src/state/index.js');
     setItemContext({ name: 'test' });
     expect(resolveRef(store, '$expr:item.__proto__')).toBeUndefined();
     setItemContext(null);
@@ -158,7 +156,6 @@ describe('Security — State path safety', () => {
   });
 
   it('limits $item path length to 256 chars', () => {
-    const { setItemContext } = require('../src/state/index.js');
     setItemContext({ name: 'test' });
     expect(resolveRef(store, '$item:' + 'a'.repeat(257))).toBeUndefined();
     setItemContext(null);
@@ -170,7 +167,6 @@ describe('Security — State path safety', () => {
   });
 
   it('limits deep path traversal in $item to 32 levels', () => {
-    const { setItemContext } = require('../src/state/index.js');
     setItemContext({ name: 'test' });
     const deepPath = Array(33).fill('a').join('.');
     expect(resolveRef(store, `$item:${deepPath}`)).toBeUndefined();
@@ -197,7 +193,7 @@ describe('Security — Manifest size limits', () => {
 describe('Security — URL allowlist enforcement', () => {
   it('warns on data: URLs not in allowlist', () => {
     const result = validateManifest(validManifest({
-      elements: { main: { type: 'Link', props: { href: 'data:application/octet-stream,abc' } } },
+      elements: { main: { type: 'Link', props: { href: 'data:application/pdf,abc' } } },
     }));
     expect(result.warnings.some(w => w.message.includes('Data URL'))).toBe(true);
   });

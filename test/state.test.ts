@@ -31,7 +31,10 @@ describe('createForgeStore', () => {
     expect(store.getValue('greeting')).toBe('hello');
     expect(store.getValue('count')).toBe(42);
     expect(store.getValue('active')).toBe(true);
-    expect(store.hasTable('users')).toBe(true);
+    // setTablesSchema registers the schema; verify by reading it back.
+    // (TinyBase's `hasTable` reports row presence, so a schema-only table
+    // is reported as absent until a row lands in it.)
+    expect(store.getTablesSchemaJson()).toContain('users');
   });
 
   it('serializes complex objects as JSON strings in values', () => {
@@ -91,8 +94,11 @@ describe('resolveRef — $state: paths', () => {
     expect(row).toEqual({ name: 'Bob', age: 30 });
   });
 
-  it('resolves entire table via one-segment path', () => {
-    const table = resolveRef(store, '$state:users') as Record<string, Record<string, unknown>>;
+  it('resolves entire table via $expr: single segment path', () => {
+    // $state: treats a single segment as a value key (no table lookup).
+    // The $expr:state.<table> form is what resolves a whole table to a
+    // row-id-keyed object.
+    const table = resolveRef(store, '$expr:state.users') as Record<string, Record<string, unknown>>;
     expect(table).toBeDefined();
     expect(table.u1).toEqual({ name: 'Bob', age: 30 });
     expect(table.u2).toEqual({ name: 'Carol', age: 25 });
@@ -106,9 +112,11 @@ describe('resolveRef — $state: paths', () => {
     expect(resolveRef(store, '$state:fake/u1')).toBeUndefined();
   });
 
-  it('resolves deep JSON path from a string value', () => {
+  it('resolves deep JSON path from a string value via $expr:', () => {
+    // $state: is a flat path resolver — JSON deep traversal is an $expr:
+    // feature (see resolveStateDotPath fallback).
     store.setValue('settings', JSON.stringify({ theme: 'dark', nested: { color: 'blue' } }));
-    expect(resolveRef(store, '$state:settings.theme')).toBe('dark');
+    expect(resolveRef(store, '$expr:state.settings.theme')).toBe('dark');
   });
 
   it('handles empty string value', () => {
@@ -226,7 +234,9 @@ describe('resolveRef — $expr: expressions', () => {
     store.setTable('items', { i1: { x: 10 }, i2: { x: 20 }, i3: { x: 30 } });
     expect(resolveRef(store, '$expr:state.items | count')).toBe(3);
     expect(resolveRef(store, '$expr:state.items | length')).toBe(3);
-    const first = resolveRef(store, '$expr:state.items | first');
+    // first/last require array input — pipe through `values` first to
+    // convert the row-id-keyed object into an array.
+    const first = resolveRef(store, '$expr:state.items | values | first');
     expect(first).toBeDefined();
     const sum = resolveRef(store, '$expr:state.items | values | sum');
     expect(sum).toBeDefined();

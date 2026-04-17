@@ -158,7 +158,9 @@ describe('Database — merge patch', () => {
     } as any);
 
     const result = patchApp('invalid-patch', { root: null } as any, (m) => ({
-      valid: !m.root, // reject if root is null/undefined
+      // JSON-merge-patch deletes a key when its value is null, so after the
+      // merge `m.root` is undefined — reject it.
+      valid: Boolean(m.root),
       errors: m.root ? [] : ['root is required'],
     }));
 

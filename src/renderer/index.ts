@@ -132,7 +132,7 @@ function resolveProps(props: Record<string, unknown>, ctx: RenderContext): Recor
   return resolved;
 }
 
-function evaluateVisibility(condition: any, ctx: RenderContext): boolean {
+export function evaluateVisibility(condition: any, ctx: RenderContext): boolean {
   if (!condition || typeof condition !== 'object') return true;
   const when = condition.$when ?? condition;
   if (!when || typeof when !== 'object') return true;

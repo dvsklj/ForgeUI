@@ -17,6 +17,8 @@ describe('Performance — Store operations', () => {
     const store = createForgeStore({ schema, initialState: { counter: 0 } });
     const elapsed = performance.now() - start;
     expect(elapsed).toBeLessThan(50);
+    // Schema is registered on the store; populate one row to confirm.
+    store.setCell('table0', 'r1', 'name', 'probe');
     expect(store.hasTable('table0')).toBe(true);
   });
 

@@ -153,10 +153,11 @@ describe('Server API — App pages', () => {
     const { app } = createForgeServer({ baseUrl: 'http://localhost' });
     const res = await app.request('/apps/page-app');
     expect(res.status).toBe(200);
+    // CSP is delivered as a response header, not embedded in the HTML body.
+    expect(res.headers.get('Content-Security-Policy')).toBeTruthy();
     const html = await res.text();
     expect(html).toContain('My Page');
     expect(html).toContain('forge-app');
-    expect(html).toContain('Content-Security-Policy');
   });
 
   it('GET /apps/:id returns 404 for unknown app', async () => {
