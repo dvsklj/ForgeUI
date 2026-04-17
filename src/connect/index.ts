@@ -21,7 +21,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import { catalogPrompt, catalogToJsonSchema } from '../catalog/registry.js';
+import { catalogPrompt, catalogToJsonSchema } from '../catalog/prompt.js';
 import { validateManifest } from '../validation/index.js';
 import {
   initDatabase,

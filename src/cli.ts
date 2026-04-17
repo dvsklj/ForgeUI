@@ -213,7 +213,7 @@ async function cmdValidate() {
 
 async function cmdCatalog() {
   const tier = (getFlag('tier') as any) || 'full';
-  const { catalogPrompt, catalogToJsonSchema } = await import('./catalog/registry.js');
+  const { catalogPrompt, catalogToJsonSchema } = await import('./catalog/prompt.js');
 
   if (getFlagBool('json')) {
     const schema = catalogToJsonSchema();

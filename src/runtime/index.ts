@@ -13,7 +13,7 @@ import { createForgeStore, executeAction } from '../state/index.js';
 import { validateManifest, ValidationResult } from '../validation/index.js';
 import { renderManifest, RenderContext } from '../renderer/index.js';
 import { tokenStyles, surfaceStyles } from '../tokens/index.js';
-import { catalogPrompt, catalogToJsonSchema } from '../catalog/registry.js';
+import { catalogPrompt, catalogToJsonSchema } from '../catalog/prompt.js';
 import { ingestPayload } from '../a2ui/index.js';
 import { createForgePersister, type ForgePersister, type PersisterStatus, type PersisterMode } from './persister.js';
 import { UndoRedoStack, type UndoRedoState } from './undo-redo.js';
