@@ -50,6 +50,12 @@ Out of scope:
 - Issues that require the attacker to already have write access to a trusted manifest (we assume manifest authors are trusted; the attack surface is *rendering* untrusted manifests, not authoring them)
 - Denial-of-service via resource exhaustion in self-hosted `@forgeui/server` deployments (operators should rate-limit at their edge)
 
+## Known limitations
+
+Per-component prop validation runs client-side (Zod, at render time), not on the server. The manifest-level JSON Schema leaves `element.props` open because prop shapes vary per component type — a Text element has different valid props than a Table element, and enumerating all permutations in a single JSON Schema is impractical.
+
+Ring 2 operators deploying `@forgeui/server` as a multi-tenant service should treat manifest writes as trusted input at render time, not at store time. The server validates the manifest envelope (structure, element types, required fields, URL safety, injection patterns) but not component-specific prop contents. A malformed props object renders as an error state in the browser, not a crash, but it will persist in the database until overwritten by a valid manifest.
+
 ## Known hardening work
 
 See `SECURITY-REVIEW.md` for a current internal audit. Public vulnerability advisories live under GitHub Security → Advisories.
