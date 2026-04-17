@@ -427,8 +427,8 @@ Table rows with `rowAction` get `@click` handlers but are `<tr>` elements — no
 
 | # | Component | Check | Issue |
 |---|-----------|-------|-------|
-| 28 | Table | #5 | No `<caption>` element for table accessible name |
-| 29 | Chart | #9 | Palette entries 6–10 use hardcoded hex instead of tokens |
+| 28 | Table | #5 | No `<caption>` element for table accessible name | **Resolved 2026-04-17** — optional `caption` prop renders `<caption>` as first child of `<table>` |
+| 29 | Chart | #9 | Palette entries 6–10 use hardcoded hex instead of tokens | **Resolved 2026-04-17** — `--forge-color-chart-6` through `-10` tokens defined; palette uses `var(--forge-color-chart-*)` |
 | 30 | Toggle | #9 | Knob uses `background:white` instead of a token |
 | 31 | Tabs | #6 | Tabpanel missing `aria-labelledby` (covered in P1 #16 but worth noting separately) |
 

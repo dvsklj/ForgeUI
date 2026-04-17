@@ -98,6 +98,13 @@ export const tokenStyles = css`
       --forge-input-height: 2.5rem; /* 40px */
       --forge-button-height: 2.5rem;
       --forge-touch-target: 2.75rem; /* 44px — Apple HIG minimum */
+
+      /* ─── Chart palette (6–10) ─── */
+      --forge-color-chart-6: #8b5cf6;
+      --forge-color-chart-7: #ec4899;
+      --forge-color-chart-8: #14b8a6;
+      --forge-color-chart-9: #f97316;
+      --forge-color-chart-10: #6b7280;
     }
 
     /* ─── Dark mode ─── */
@@ -129,6 +136,13 @@ export const tokenStyles = css`
       
       --forge-color-border: #374151;
       --forge-color-border-strong: #4b5563;
+
+      /* ─── Chart palette (6–10, dark) ─── */
+      --forge-color-chart-6: #a78bfa;
+      --forge-color-chart-7: #f472b6;
+      --forge-color-chart-8: #2dd4bf;
+      --forge-color-chart-9: #fb923c;
+      --forge-color-chart-10: #9ca3af;
     }
 
     /* Auto-detect system preference when no explicit scheme set */
@@ -160,6 +174,13 @@ export const tokenStyles = css`
         
         --forge-color-border: #374151;
         --forge-color-border-strong: #4b5563;
+
+        /* ─── Chart palette (6–10, dark) ─── */
+        --forge-color-chart-6: #a78bfa;
+        --forge-color-chart-7: #f472b6;
+        --forge-color-chart-8: #2dd4bf;
+        --forge-color-chart-9: #fb923c;
+        --forge-color-chart-10: #9ca3af;
       }
     }
   }

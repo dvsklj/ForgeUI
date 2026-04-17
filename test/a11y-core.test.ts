@@ -223,3 +223,66 @@ describe('Core a11y — Alert role by variant (P1)', () => {
     expect(el.shadowRoot!.querySelector('[role="alert"]')).not.toBeNull();
   });
 });
+
+describe('Core a11y — Table caption (P2 #28)', () => {
+  it('renders <caption> as first child when caption prop is set', async () => {
+    const el = await mount('forge-table', {
+      data: [{ name: 'A' }],
+      columns: ['name'],
+      caption: 'User list',
+    });
+    const table = el.shadowRoot!.querySelector('table');
+    expect(table).not.toBeNull();
+    const firstChild = table!.firstElementChild;
+    expect(firstChild).not.toBeNull();
+    expect(firstChild!.tagName.toLowerCase()).toBe('caption');
+    expect(firstChild!.textContent).toBe('User list');
+  });
+
+  it('renders no <caption> when caption prop is absent', async () => {
+    const el = await mount('forge-table', {
+      data: [{ name: 'A' }],
+      columns: ['name'],
+    });
+    const caption = el.shadowRoot!.querySelector('caption');
+    expect(caption).toBeNull();
+  });
+
+  it('text-escapes caption content', async () => {
+    const el = await mount('forge-table', {
+      data: [{ name: 'A' }],
+      columns: ['name'],
+      caption: '<script>alert(1)</script>',
+    });
+    const caption = el.shadowRoot!.querySelector('caption');
+    expect(caption).not.toBeNull();
+    expect(caption!.textContent).toBe('<script>alert(1)</script>');
+    expect(caption!.querySelector('script')).toBeNull();
+  });
+});
+
+describe('Core a11y — Chart palette tokens (P2 #29)', () => {
+  it('chart with 10 data points renders 10 distinct fill values', async () => {
+    const data = Array.from({ length: 10 }, (_, i) => ({ label: `S${i + 1}`, value: (i + 1) * 10 }));
+    const el = await mount('forge-chart', { chartType: 'pie', data });
+    const slices = el.shadowRoot!.querySelectorAll('.slice');
+    expect(slices.length).toBe(10);
+    const uniqueFills = new Set(Array.from(slices).map(b => b.getAttribute('fill')));
+    expect(uniqueFills.size).toBe(10);
+  });
+
+  it('no hex literals remain in the Chart component source', () => {
+    const ChartCtor = customElements.get('forge-chart') as any;
+    expect(ChartCtor).toBeDefined();
+    const styles = ChartCtor.styles ?? ChartCtor.elementStyles ?? [];
+    const cssText = Array.isArray(styles)
+      ? styles.map((s: any) => s.cssText ?? String(s)).join('\n')
+      : (styles.cssText ?? String(styles));
+    expect(cssText).not.toMatch(/#[0-9a-f]{6}/i);
+
+    // Also check _palette array for hex
+    const palette = ChartCtor.prototype?._palette ?? [];
+    const paletteStr = JSON.stringify(palette);
+    expect(paletteStr).not.toMatch(/#[0-9a-f]{6}/i);
+  });
+});

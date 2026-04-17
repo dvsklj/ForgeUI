@@ -311,6 +311,7 @@ export const TableSchema = z.object({
     sortable: z.boolean().default(false),
   })).min(1),
   rows: z.union([StatePath, z.array(z.record(z.unknown()))]).default([]),
+  caption: z.string().max(200).optional(),
   stripe: z.boolean().default(true),
   border: z.boolean().default(false),
   compact: z.boolean().default(false),

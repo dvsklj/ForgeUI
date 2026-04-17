@@ -792,6 +792,7 @@ export class ForgeTable extends ForgeElement {
     .align-center { text-align:center; }
     .col-right th, .col-right td { text-align:right; }
     .col-center th, .col-center td { text-align:center; }
+    caption { text-align:start; font-size:var(--forge-text-sm); caption-side:top; padding-bottom:var(--forge-space-sm); color:var(--forge-color-text-secondary); }
     .row-action { cursor:pointer; }
     .row-action:hover td { background:var(--forge-color-surface-hover); }
     .row-action:focus-visible { outline:2px solid var(--forge-color-primary); outline-offset:-2px; }
@@ -839,10 +840,12 @@ export class ForgeTable extends ForgeElement {
     const columns = (this.getProp('columns') || []) as any[];
     const emptyMsg = this.getString('emptyMessage', 'No data yet');
     const rowAction = this.getString('rowAction', '');
+    const caption = this.getString('caption', '');
     const cols = columns.length > 0 ? columns : (data.length > 0 ? Object.keys(data[0]) : []);
     if (cols.length === 0) return html`<div class="empty">${emptyMsg}</div>`;
     return html`
       <table>
+        ${caption ? html`<caption>${caption}</caption>` : nothing}
         <thead><tr>${cols.map((c: any) => {
           const label = typeof c === 'string' ? c : (c.label || c.key);
           const align = typeof c === 'object' ? c.align : undefined;
@@ -924,7 +927,11 @@ export class ForgeChart extends ForgeElement {
     'var(--forge-color-warning)',
     'var(--forge-color-error)',
     'var(--forge-color-info)',
-    '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6b7280',
+    'var(--forge-color-chart-6)',
+    'var(--forge-color-chart-7)',
+    'var(--forge-color-chart-8)',
+    'var(--forge-color-chart-9)',
+    'var(--forge-color-chart-10)',
   ];
 
   _niceMax(v: number): number {
