@@ -13,10 +13,9 @@ Forge UI is at version 0.1.x. Until 1.0, only the latest minor release receives 
 
 **Do not open a public issue for security reports.**
 
-Use one of these private channels:
+Use GitHub's private reporting flow:
 
-1. **Preferred — GitHub Private Vulnerability Reporting:** <https://github.com/dvsklj/ForgeUI/security/advisories/new>
-2. **Email:** davor.skulj@gmail.com with subject line `[forgeui-security]`
+- **GitHub Private Vulnerability Reporting:** <https://github.com/dvsklj/ForgeUI/security/advisories/new>
 
 Include:
 - A description of the vulnerability and its impact
@@ -56,6 +55,6 @@ Per-component prop validation runs client-side (Zod, at render time), not on the
 
 Ring 2 operators deploying `@forgeui/server` as a multi-tenant service should treat manifest writes as trusted input at render time, not at store time. The server validates the manifest envelope (structure, element types, required fields, URL safety, injection patterns) but not component-specific prop contents. A malformed props object renders as an error state in the browser, not a crash, but it will persist in the database until overwritten by a valid manifest.
 
-## Known hardening work
+## Public advisories
 
-See `SECURITY-REVIEW.md` for a current internal audit. Public vulnerability advisories live under GitHub Security → Advisories.
+Disclosed vulnerabilities live under GitHub Security → Advisories on this repository.

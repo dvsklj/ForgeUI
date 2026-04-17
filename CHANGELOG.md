@@ -61,7 +61,6 @@ Initial public release.
 - ADR 0001: Ring 2 interfaces land in OSS first.
 - Dead code removed: `src/validation/migration.ts`, `src/catalog/schema-utils.ts`, `src/catalog/schemas/index.ts`.
 - Stale `ajv` dependency removed from `@forgeui/catalog`.
-- Planning docs archived to `docs/archive/` with a status-note README.
 - `.gitignore` tightened.
 - `README.md` rewritten for pre-release audience.
 

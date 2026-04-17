@@ -3,9 +3,8 @@
 **A framework for LLM-generated interactive applications**
 *Revised April 2026 — MIT licensed*
 
-This document is the living architecture spec. For current build state and test
-results see [STATUS.md](../STATUS.md). For decisions and their history see
-[docs/adr/](./adr/).
+This document is the living architecture spec. For decisions and their history see
+[docs/adr/](./adr/). For release notes see [`../CHANGELOG.md`](../CHANGELOG.md).
 
 ---
 
@@ -554,7 +553,7 @@ payloads. This flips the loop from LLM-polls-app to app-pushes-LLM.
 
 ## 10. Bundle budget and tree-shaking
 
-### Current state (see STATUS.md for live numbers)
+### Current state
 
 | Bundle                | Raw    | Gzip    | Use case                      |
 |-----------------------|--------|---------|-------------------------------|
@@ -616,9 +615,8 @@ Both under-counted reality. The numbers below are honest.
 ### Phase 1 — MVP (shipped)
 
 Core runtime, Ring 2 server, MCP connector, 39 components, validation
-pipeline, design tokens, benchmarks, A2UI ingest. See STATUS.md for
-current test results. Remaining cleanup: chart z-index bug, open CORS,
-auth middleware, body size limits.
+pipeline, design tokens, benchmarks, A2UI ingest. Remaining cleanup: chart
+z-index bug, open CORS, auth middleware, body size limits.
 
 ### Phase 2 — sandbox, encryption, a11y depth (next)
 

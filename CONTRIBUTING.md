@@ -1,14 +1,29 @@
 # Contributing to Forge UI
 
-## Development Setup
+Thanks for your interest in Forge UI. This guide covers what you need to hack on the project itself — if you're looking to *use* Forge to render apps, start with the [README](README.md) and the [Getting Started guide](docs/getting-started.md) instead.
+
+## Where to start
+
+- **Found a bug?** Open an issue with a minimal manifest that reproduces it.
+- **Have an idea?** Open an issue first to sanity-check the direction before writing code.
+- **Want to add a component?** See the [Adding a Component](#adding-a-component) section below.
+- **Security issue?** Please report privately via [GitHub Private Vulnerability Reporting](https://github.com/dvsklj/ForgeUI/security/advisories/new) — don't open a public issue.
+
+All participation is under the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Development setup
+
+Requires Node.js 20 or newer.
 
 ```bash
-git clone <repo-url> && cd forgeui
+git clone https://github.com/dvsklj/ForgeUI.git && cd ForgeUI
 npm install
 npm run build        # Build all packages
 npm test             # Run test suite
 npm run validate     # Validate example manifests
 ```
+
+Once built, open [`demos/index.html`](demos/index.html) via any static server (`npx serve .`) to see a live runtime.
 
 ## Project Structure
 
