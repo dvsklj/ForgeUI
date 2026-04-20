@@ -113,6 +113,52 @@ export function getItemContext(): Record<string, unknown> | null {
   return currentItemContext;
 }
 
+// ─── Safe Arithmetic Evaluation ────────────────────────────────────────────────
+
+/** Safely evaluate an arithmetic/string expression by resolving state refs first. */
+function evaluateArithmetic(store: Store, expr: string): unknown {
+  // Find all state.path references (e.g. state.count, state.data.tasks.length)
+  const stateRefRe = /\bstate\.([a-zA-Z_][a-zA-Z0-9_.]*)\b/g;
+  let replaced = expr;
+  const seen = new Set<string>();
+  let m: RegExpExecArray | null;
+
+  // Collect unique refs
+  while ((m = stateRefRe.exec(expr)) !== null) {
+    seen.add(m[1]);
+  }
+
+  // Replace each ref with its resolved value
+  for (const path of Array.from(seen)) {
+    const val = resolveStateDotPath(store, path);
+    const placeholder = `state.${path}`;
+    let serialized: string;
+    if (typeof val === 'string') {
+      serialized = JSON.stringify(val);
+    } else if (typeof val === 'number') {
+      serialized = String(val);
+    } else if (typeof val === 'boolean') {
+      serialized = String(val);
+    } else if (val === null || val === undefined) {
+      serialized = 'null';
+    } else if (Array.isArray(val)) {
+      serialized = JSON.stringify(val);
+    } else {
+      serialized = JSON.stringify(val);
+    }
+    replaced = replaced.split(placeholder).join(serialized);
+  }
+
+  // Evaluate the sanitized expression
+  try {
+    // eslint-disable-next-line no-new-func
+    const fn = new Function(`"use strict"; return (${replaced});`);
+    return fn();
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Evaluate an $expr: expression against the store.
  * Supported patterns:
@@ -139,6 +185,12 @@ function evaluateExpression(store: Store, expr: string): unknown {
   if (trimmed === 'false') return false;
   if (trimmed === 'null') return null;
   if (/^-?\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed);
+
+  // Arithmetic / string / comparison expressions
+  const hasOperators = /[+\-*/%]/.test(trimmed) || /===?|!==?|>=?|<=?|&&|||/.test(trimmed);
+  if (hasOperators && !trimmed.includes('|')) {
+    return evaluateArithmetic(store, trimmed);
+  }
 
   // Pipe operator: `path | filter [arg]`
   if (trimmed.includes('|')) {

@@ -836,11 +836,14 @@ export class ForgeTable extends ForgeUIElement {
     return String(raw);
   }
   render() {
-    const data = (this.getProp('data') || []) as any[];
+    const data = this.getProp('data');
     const columns = (this.getProp('columns') || []) as any[];
     const emptyMsg = this.getString('emptyMessage', 'No data yet');
     const rowAction = this.getString('rowAction', '');
     const caption = this.getString('caption', '');
+    if (!Array.isArray(data)) {
+      return html`<div class="empty">${emptyMsg}</div>`;
+    }
     const cols = columns.length > 0 ? columns : (data.length > 0 ? Object.keys(data[0]) : []);
     if (cols.length === 0) return html`<div class="empty">${emptyMsg}</div>`;
     return html`
@@ -887,9 +890,9 @@ export class ForgeList extends ForgeUIElement {
     .empty { padding:var(--forgeui-space-lg); text-align:center; color:var(--forgeui-color-text-tertiary); font-size:var(--forgeui-text-sm); }
   `; }
   render() {
-    const data = (this.getProp('data') || []) as any[];
+    const data = this.getProp('data');
     const emptyMsg = this.getString('emptyMessage', 'No items');
-    if (data.length === 0) return html`<div class="empty">${emptyMsg}</div>`;
+    if (!Array.isArray(data) || data.length === 0) return html`<div class="empty">${emptyMsg}</div>`;
     return html`<div class="list">${data.map((item: any, i: number) => html`
       <div class="item" data-index=${i}><slot name="item" .item=${item} .index=${i}>${JSON.stringify(item)}</slot></div>
     `)}</div>`;

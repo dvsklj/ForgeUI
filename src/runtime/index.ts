@@ -110,7 +110,7 @@ export class ForgeUIApp extends LitElement {
     this._validation = result;
 
     if (!result.valid) {
-      console.error('[Forge] Manifest validation failed:', result.errors);
+      console.error('[ForgeUI] Manifest validation failed:', JSON.stringify(result.errors, null, 2));
       // Still try to render — show errors inline
     }
 
@@ -237,14 +237,26 @@ export class ForgeUIApp extends LitElement {
 
     switch (action.type) {
       case 'mutateState': {
-        const key = action.key?.replace('{{id}}', String(payload?.id || ''));
-        executeAction(this._store, {
-          type: action.type,
-          path: action.path,
-          operation: action.operation,
-          key,
-          value: action.value ?? payload,
-        });
+        // Handle shorthand "set": { key: value } format
+        if (action.set && typeof action.set === 'object') {
+          for (const [key, val] of Object.entries(action.set as Record<string, unknown>)) {
+            executeAction(this._store, {
+              type: action.type,
+              path: key,
+              operation: 'set',
+              value: val,
+            });
+          }
+        } else {
+          const key = action.key?.replace('{{id}}', String(payload?.id || ''));
+          executeAction(this._store, {
+            type: action.type,
+            path: action.path,
+            operation: action.operation,
+            key,
+            value: action.value ?? payload,
+          });
+        }
         this.requestUpdate();
         break;
       }

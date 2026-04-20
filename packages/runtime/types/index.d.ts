@@ -133,6 +133,8 @@ export interface ForgeUIAction {
     key?: string;
     /** Value to set (supports state references) */
     value?: unknown;
+    /** Shorthand set: { key: value } for multiple state mutations */
+    set?: Record<string, unknown>;
     /** Navigation target (element ID) */
     target?: string;
     /** URL for external navigation */
