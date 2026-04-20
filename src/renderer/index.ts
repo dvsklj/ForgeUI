@@ -1,6 +1,6 @@
 /**
  * Forge Renderer
- * 
+ *
  * Takes a validated manifest and renders it as Lit HTML.
  * Uses a static dispatch map instead of dynamic tag names (Lit limitation).
  */
@@ -8,7 +8,7 @@
 import { html, TemplateResult } from 'lit';
 import type { ForgeManifest } from '../types/index.js';
 import { Store } from 'tinybase';
-import { resolveRef } from '../state/index.js';
+import { evaluateExpr, evaluateComputed, resolveStatePath, setItemContext } from '../state/index.js';
 
 export interface RenderContext {
   manifest: ForgeManifest;
@@ -27,13 +27,24 @@ export function renderElement(elementId: string, ctx: RenderContext): TemplateRe
   if (!element) return html``;
   if (element.visible && !evaluateVisibility(element.visible, ctx)) return html``;
 
-  const resolvedProps = resolveProps(element.props || {}, ctx);
-  const children = (element.children || []).map(id => renderElement(id, ctx));
+  const resolvedProps = resolveProps(element.props || {}, ctx, ctx.itemContext);
   const type = element.type;
 
-  // Static dispatch — each type calls the right template literal
+  // Tabs: wrap each child in a div with data-tab attribute for CSS show/hide
+  if (type === 'Tabs') {
+    const tabIds: string[] = (element.children || []) as string[];
+    const wrappedChildren = children.map((child, i) => {
+      const tabId = tabIds[i] ?? String(i);
+      return html`<div class="tab-panel" data-tab-id="${tabId}">${child}</div>`;
+    });
+    return html`<forge-tabs .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}>${wrappedChildren}</forge-tabs>`;
+  }
+
+  const children = (element.children || []).map(id => renderElement(id, ctx));
+
+  // Static dispatch — each type calls the right Lit component
   switch (type) {
-    case 'Stack':    return html`<forge-stack .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction} .itemContext=${ctx.itemContext || null}>${children}</forge-stack>`;
+    case 'Stack':    return html`<forge-stack .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}>${children}</forge-stack>`;
     case 'Grid':     return html`<forge-grid .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}>${children}</forge-grid>`;
     case 'Card':     return html`<forge-card .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}>${children}</forge-card>`;
     case 'Container':return html`<forge-container .props=${resolvedProps} .store=${ctx.store}>${children}</forge-container>`;
@@ -70,21 +81,133 @@ export function renderElement(elementId: string, ctx: RenderContext): TemplateRe
     case 'Breadcrumb':return html`<forge-breadcrumb .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forge-breadcrumb>`;
     case 'Stepper':  return html`<forge-stepper .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}>${children}</forge-stepper>`;
     case 'Drawing':  return html`<forge-drawing .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forge-drawing>`;
-    default:         return html`<forge-error .props=${({ msg: `Unknown: ${type}` })} .store=${ctx.store}></forge-error>`;
+    default:         return html`<forge-error .props=${{ msg: `Unknown: ${type}` }} .store=${ctx.store}></forge-error>`;
   }
 }
 
-function resolveProps(props: Record<string, unknown>, ctx: RenderContext): Record<string, unknown> {
+/**
+ * Resolve element props, handling:
+ * - $state:path → TinyBase reactive value
+ * - $expr: → piped expression
+ * - $computed: → computed expression
+ * - $item:field → repeater item context
+ * - {{$state:path}} / {{$item:field}} / {{$computed:...}} → template strings
+ */
+function resolveProps(
+  props: Record<string, unknown>,
+  ctx: RenderContext,
+  itemCtx?: Record<string, unknown>
+): Record<string, unknown> {
   const resolved: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(props)) {
-    resolved[key] = resolveRef(ctx.store, value);
+    resolved[key] = resolvePropValue(value, ctx.store, itemCtx);
   }
   return resolved;
 }
 
+function resolvePropValue(
+  value: unknown,
+  store: Store,
+  itemCtx?: Record<string, unknown>
+): unknown {
+  if (value === null || value === undefined) return value;
+
+  // Object — recurse (but not action objects or $expr objects)
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    const obj = value as Record<string, unknown>;
+    // $expr objects: { "$expr": "state.count + 1" }
+    if ('$expr' in obj) {
+      return evaluateExpr(store, obj['$expr'] as string);
+    }
+    // Action objects: don't resolve state refs inside them
+    if (obj['$action']) return value;
+    // Visibility objects: resolve the $when clause
+    if ('$when' in obj) {
+      return value; // visibility handled separately
+    }
+    const result: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(obj)) {
+      result[k] = resolvePropValue(v, store, itemCtx);
+    }
+    return result;
+  }
+
+  // Array — recurse
+  if (Array.isArray(value)) {
+    return value.map(item => resolvePropValue(item, store, itemCtx));
+  }
+
+  // String — check for $state:, $expr:, $computed:, $item:, {{...}}
+  if (typeof value === 'string') {
+    // Direct $state: reference
+    if (value.startsWith('$state:')) {
+      return resolveStatePath(store, value.slice(7));
+    }
+    // $expr: piped expression
+    if (value.startsWith('$expr:')) {
+      return evaluateExpr(store, value.slice(6));
+    }
+    // $computed: expression
+    if (value.startsWith('$computed:')) {
+      return evaluateComputed(store, value.slice(9));
+    }
+    // $item: repeater field
+    if (value.startsWith('$item:') && itemCtx) {
+      const field = value.slice(6);
+      return field.includes('.')
+        ? getNestedPath(itemCtx, field)
+        : itemCtx[field];
+    }
+
+    // {{...}} template in string — resolve
+    if (value.includes('{{')) {
+      return resolveTemplateString(value, store, itemCtx);
+    }
+  }
+
+  return value;
+}
+
+/** Resolve {{...}} templates in a string value. */
+function resolveTemplateString(
+  template: string,
+  store: Store,
+  itemCtx?: Record<string, unknown>
+): string {
+  return template.replace(/\{\{([^}]+)\}\}/g, (match, inner) => {
+    const it = inner.trim();
+    if (it.startsWith('$state:')) {
+      const val = resolveStatePath(store, it.slice(7));
+      return val !== undefined ? String(val) : '';
+    }
+    if (it.startsWith('$item:') && itemCtx) {
+      const field = it.slice(6);
+      const val = field.includes('.')
+        ? getNestedPath(itemCtx, field)
+        : itemCtx[field];
+      return val !== undefined ? String(val) : '';
+    }
+    if (it.startsWith('$computed:')) {
+      const val = evaluateComputed(store, it.slice(9));
+      return val !== undefined ? String(val) : '';
+    }
+    return it;
+  });
+}
+
+function getNestedPath(obj: unknown, path: string): unknown {
+  const parts = path.split('.');
+  let cur = obj;
+  for (const p of parts) {
+    if (cur === null || cur === undefined || typeof cur !== 'object') return undefined;
+    cur = (cur as Record<string, unknown>)[p];
+  }
+  return cur;
+}
+
 function evaluateVisibility(condition: any, ctx: RenderContext): boolean {
   const { path, eq, neq, gt, gte, lt, lte, in: inList, exists } = condition.$when;
-  const actual = resolveRef(ctx.store, `$state:${path}`);
+  const actual = path ? resolveStatePath(ctx.store, path) : undefined;
   if (exists !== undefined) return exists ? actual !== undefined : actual === undefined;
   if (eq !== undefined) return actual === eq;
   if (neq !== undefined) return actual !== neq;

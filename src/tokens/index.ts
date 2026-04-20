@@ -206,6 +206,17 @@ export const surfaceStyles = css`
       --forge-radius-md: 0;
     }
   }
+
+  /* Mobile: reduce spacing globally on small viewports */
+  @media (max-width: 480px) {
+    :host {
+      --forge-space-lg: 1rem;
+      --forge-space-xl: 1.5rem;
+      --forge-space-2xl: 2rem;
+      --forge-text-base: 0.9375rem;
+    }
+  }
+
 `;
 
 /** Shared reset styles for component shadow roots */

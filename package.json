@@ -1,6 +1,6 @@
 {
   "name": "forgeui",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Dynamic web app platform for LLM-generated apps — from manifest to working app in milliseconds",
   "type": "module",
   "main": "dist/forge.js",

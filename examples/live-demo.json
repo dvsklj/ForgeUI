@@ -1,0 +1,168 @@
+{
+  "manifest": "0.1.0",
+  "id": "live-demo",
+  "meta": { "title": "Live Demo", "description": "Interactive demo to test all working components" },
+  "state": {
+    "data": {
+      "tasks": {
+        "t1": { "id": "t1", "name": "Design API", "status": "done", "priority": "high" },
+        "t2": { "id": "t2", "name": "Build runtime", "status": "done", "priority": "high" },
+        "t3": { "id": "t3", "name": "Write docs", "status": "in_progress", "priority": "medium" },
+        "t4": { "id": "t4", "name": "Add auth", "status": "todo", "priority": "high" },
+        "t5": { "id": "t5", "name": "Performance tests", "status": "todo", "priority": "low" }
+      }
+    }
+  },
+  "elements": {
+    "root": {
+      "type": "Stack",
+      "props": { "gap": "24", "padding": "24" },
+      "children": ["header", "metrics-row", "main-grid"]
+    },
+    "header": {
+      "type": "Card",
+      "props": { "title": "Forge UI Live Demo", "subtitle": "Testing all component interactions" },
+      "children": ["header-badges", "alert-1"]
+    },
+    "header-badges": {
+      "type": "Stack",
+      "props": { "direction": "horizontal", "gap": "8" },
+      "children": ["b1", "b2", "b3"]
+    },
+    "b1": { "type": "Badge", "props": { "text": "5 Tasks", "variant": "info" } },
+    "b2": { "type": "Badge", "props": { "text": "2 Done", "variant": "success" } },
+    "b3": { "type": "Badge", "props": { "text": "2 Todo", "variant": "warning" } },
+    "alert-1": { "type": "Alert", "props": { "message": "Click the buttons below to test interactions. Charts render in Phase 2.", "variant": "info", "title": "Testing Mode" } },
+    "metrics-row": {
+      "type": "Grid",
+      "props": { "columns": 4 },
+      "children": ["m1", "m2", "m3", "m4"]
+    },
+    "m1": { "type": "Metric", "props": { "label": "Total", "value": "5", "subtitle": "tasks" } },
+    "m2": { "type": "Metric", "props": { "label": "Done", "value": "2", "trend": 100 } },
+    "m3": { "type": "Metric", "props": { "label": "In Progress", "value": "1", "trend": 0 } },
+    "m4": { "type": "Metric", "props": { "label": "Todo", "value": "2", "trend": -20 } },
+    "main-grid": {
+      "type": "Grid",
+      "props": { "columns": 2 },
+      "children": ["left-col", "right-col"]
+    },
+    "left-col": {
+      "type": "Stack",
+      "props": { "gap": "16" },
+      "children": ["table-card", "form-card"]
+    },
+    "right-col": {
+      "type": "Stack",
+      "props": { "gap": "16" },
+      "children": ["controls-card", "progress-card", "tabs-card"]
+    },
+    "table-card": {
+      "type": "Card",
+      "props": { "title": "Tasks" },
+      "children": ["task-table"]
+    },
+    "task-table": {
+      "type": "Table",
+      "props": {
+        "data": { "$expr": "state.data.tasks | values" },
+        "columns": [
+          { "key": "name", "label": "Task", "type": "text" },
+          { "key": "priority", "label": "Priority", "type": "badge", "badgeMap": { "high": "error", "medium": "warning", "low": "info" } },
+          { "key": "status", "label": "Status", "type": "badge", "badgeMap": { "done": "success", "in_progress": "warning", "todo": "info" } }
+        ],
+        "selectable": true
+      }
+    },
+    "form-card": {
+      "type": "Card",
+      "props": { "title": "Add Task" },
+      "children": ["form-fields", "form-actions"]
+    },
+    "form-fields": {
+      "type": "Grid",
+      "props": { "columns": 2 },
+      "children": ["input-name", "select-priority"]
+    },
+    "input-name": {
+      "type": "TextInput",
+      "props": { "label": "Task Name", "placeholder": "What needs to be done?", "required": true }
+    },
+    "select-priority": {
+      "type": "Select",
+      "props": {
+        "label": "Priority",
+        "options": [
+          { "value": "high", "label": "High" },
+          { "value": "medium", "label": "Medium" },
+          { "value": "low", "label": "Low" }
+        ]
+      }
+    },
+    "form-actions": {
+      "type": "ButtonGroup",
+      "props": {},
+      "children": ["btn-add", "btn-clear"]
+    },
+    "btn-add": {
+      "type": "Button",
+      "props": { "label": "Add Task", "variant": "primary" }
+    },
+    "btn-clear": {
+      "type": "Button",
+      "props": { "label": "Clear", "variant": "ghost" }
+    },
+    "controls-card": {
+      "type": "Card",
+      "props": { "title": "Settings" },
+      "children": ["toggle-1", "toggle-2", "slider-1", "spacer-ctrl", "btn-save"]
+    },
+    "toggle-1": { "type": "Toggle", "props": { "label": "Show completed", "value": true, "description": "Include finished tasks in the list" } },
+    "toggle-2": { "type": "Toggle", "props": { "label": "Email alerts", "value": false, "description": "Send daily summary" } },
+    "slider-1": { "type": "Slider", "props": { "label": "Font Size", "min": 10, "max": 24, "value": 14, "showValue": true, "unit": "px" } },
+    "spacer-ctrl": { "type": "Spacer", "props": { "height": "8" } },
+    "btn-save": { "type": "Button", "props": { "label": "Save Settings", "variant": "secondary" } },
+    "progress-card": {
+      "type": "Card",
+      "props": { "title": "Sprint Progress" },
+      "children": ["pb1", "pb2", "pb3"]
+    },
+    "pb1": { "type": "Progress", "props": { "value": 40, "max": 100, "label": "Overall", "showValue": true } },
+    "pb2": { "type": "Progress", "props": { "value": 100, "max": 100, "label": "High Priority", "showValue": true } },
+    "pb3": { "type": "Progress", "props": { "value": 50, "max": 100, "label": "Low Priority", "showValue": true } },
+    "tabs-card": {
+      "type": "Card",
+      "props": { "title": "Details" },
+      "children": ["details-tabs", "tab-general", "tab-notes"]
+    },
+    "details-tabs": {
+      "type": "Tabs",
+      "props": {
+        "tabs": [
+          { "id": "general", "label": "General" },
+          { "id": "notes", "label": "Notes" }
+        ],
+        "activeTab": "general"
+      }
+    },
+    "tab-general": {
+      "type": "Container",
+      "props": { "slot": "general", "padding": "16" },
+      "children": ["gen-text"]
+    },
+    "gen-text": {
+      "type": "Text",
+      "props": { "content": "Sprint 47 — focused on runtime stability and testing. Target: ship v0.1 by end of week.", "variant": "body" }
+    },
+    "tab-notes": {
+      "type": "Container",
+      "props": { "slot": "notes", "padding": "16" },
+      "children": ["notes-text"]
+    },
+    "notes-text": {
+      "type": "Text",
+      "props": { "content": "TODO: Fix the List component to render TinyBase data. Implement {{$state:...}} template resolution in action values.", "variant": "muted" }
+    }
+  },
+  "root": "root"
+}

@@ -54,9 +54,17 @@ export class ForgeElement extends LitElement {
   /** Get a prop value, resolving any references */
   protected getProp(key: string): unknown {
     const value = this.props?.[key];
-    if (typeof value === 'string' && (value.startsWith('$state:') || value.startsWith('$computed:') || value.startsWith('$item:'))) {
+
+    // Handle $expr objects: { "$expr": "state.data.tasks | values" }
+    if (typeof value === 'object' && value !== null && !Array.isArray(value) && ('$expr' in (value as Record<string, unknown>))) {
       return this.resolve(value);
     }
+
+    // Handle string references: "$state:...", "$computed:...", "$item:..."
+    if (typeof value === 'string' && (value.startsWith('$state:') || value.startsWith('$computed:') || value.startsWith('$item:') || value.startsWith('$expr:'))) {
+      return this.resolve(value);
+    }
+
     return value;
   }
 

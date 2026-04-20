@@ -50,24 +50,24 @@
     },
     "kpi-row": {
       "type": "Grid",
-      "props": { "columns": 4 },
+      "props": { "columns": 2, "gap": "sm" },
       "children": ["kpi-revenue", "kpi-users", "kpi-conversion", "kpi-churn"]
     },
     "kpi-revenue": {
       "type": "Metric",
-      "props": { "label": "Total Revenue", "value": "$299K", "trend": "up", "subtitle": "+12% vs last period" }
+      "props": { "label": "Total Revenue", "value": "$299K", "trend": 12, "subtitle": "+12% vs last period" }
     },
     "kpi-users": {
       "type": "Metric",
-      "props": { "label": "Active Users", "value": "128K", "trend": "up", "subtitle": "+8.2% vs last period" }
+      "props": { "label": "Active Users", "value": "128K", "trend": 12, "subtitle": "+8.2% vs last period" }
     },
     "kpi-conversion": {
       "type": "Metric",
-      "props": { "label": "Conversion Rate", "value": "3.42%", "trend": "up", "subtitle": "+0.3% vs last period" }
+      "props": { "label": "Conversion Rate", "value": "3.42%", "trend": 12, "subtitle": "+0.3% vs last period" }
     },
     "kpi-churn": {
       "type": "Metric",
-      "props": { "label": "Churn Rate", "value": "1.8%", "trend": "down", "subtitle": "-0.2% vs last period" }
+      "props": { "label": "Churn Rate", "value": "1.8%", "trend": -5, "subtitle": "-0.2% vs last period" }
     },
     "charts-row": {
       "type": "Grid",

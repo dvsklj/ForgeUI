@@ -9,7 +9,7 @@
 import { LitElement, html } from 'lit';
 import { Store } from 'tinybase';
 import type { ForgeManifest, SurfaceMode } from '../types/index.js';
-import { createForgeStore, executeAction } from '../state/index.js';
+import { createForgeStore, executeAction, resolveTemplate, resolveValue, snapshotState, restoreSnapshot } from '../state/index.js';
 import { validateManifest, ValidationResult } from '../validation/index.js';
 import { renderManifest, RenderContext } from '../renderer/index.js';
 import { tokenStyles, surfaceStyles } from '../tokens/index.js';
@@ -53,7 +53,40 @@ export class ForgeApp extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this._readInlineManifest();
+    // Also handle case where manifest was set as a string HTML attribute
+    // (LitElement reflects attributes to properties but doesn't parse JSON)
+    if (!this.manifest && this.hasAttribute('manifest')) {
+      const attr = this.getAttribute('manifest');
+      if (attr) {
+        try {
+          this.manifest = JSON.parse(attr);
+        } catch (e) {
+          console.error('[Forge] Failed to parse manifest attribute:', e);
+        }
+      }
+    }
     this._initManifest();
+  }
+
+  /**
+   * attributeChangedCallback fires when HTML attributes change.
+   * We use it to handle manifest changes after initial load.
+   */
+  attributeChangedCallback(name: string, old: string | null, value: string | null) {
+    super.attributeChangedCallback(name, old, value);
+    if (name === 'manifest' && old !== value && value !== null) {
+      // Attribute was updated — parse and re-init
+      try {
+        const parsed = JSON.parse(value);
+        this.manifest = parsed;
+        this._initManifest();
+      } catch (e) {
+        console.error('[Forge] Failed to parse manifest attribute:', e);
+      }
+    }
+    if (name === 'src' && old !== value) {
+      this._initManifest();
+    }
   }
 
   async disconnectedCallback(): Promise<void> {
@@ -86,10 +119,12 @@ export class ForgeApp extends LitElement {
   private _initManifest() {
     let manifest = this.manifest;
 
-    // Parse from string if provided
-    if (!manifest && this.src) {
+    // Parse from string if provided (fallback for edge cases)
+    if (!manifest) return;
+    if (typeof manifest === 'string') {
       try {
-        manifest = JSON.parse(this.src);
+        manifest = JSON.parse(manifest);
+        this.manifest = manifest;
       } catch (e) {
         this._validation = {
           valid: false,
@@ -99,8 +134,6 @@ export class ForgeApp extends LitElement {
       }
     }
 
-    if (!manifest) return;
-
     // Auto-detect A2UI payloads and convert to Forge manifest
     manifest = ingestPayload(manifest);
 
@@ -109,7 +142,7 @@ export class ForgeApp extends LitElement {
     this._validation = result;
 
     if (!result.valid) {
-      console.error('[Forge] Manifest validation failed:', result.errors);
+      console.error('[Forge] Manifest validation failed:', JSON.stringify(result.errors, null, 2));
       // Still try to render — show errors inline
     }
 
@@ -225,31 +258,67 @@ export class ForgeApp extends LitElement {
 
     switch (action.type) {
       case 'mutateState': {
-        const key = action.key?.replace('{{id}}', String(payload?.id || ''));
-        executeAction(this._store, {
-          type: action.type,
-          path: action.path,
-          operation: action.operation,
-          key,
-          value: action.value ?? payload,
-        });
+        // Snapshot before mutation (for undo)
+        const before = snapshotState(this._store);
+
+        // Handle shorthand "set": { key: value } format
+        if (action.set && typeof action.set === 'object') {
+          for (const [key, val] of Object.entries(action.set as Record<string, unknown>)) {
+            const resolvedValue = resolveValue(this._store, val, payload as Record<string, unknown>);
+            executeAction(this._store, {
+              type: action.type,
+              path: key,
+              operation: 'set',
+              value: resolvedValue,
+            });
+          }
+        } else {
+          // Resolve templates in path, key, and value
+          const resolvedPath = action.path
+            ? resolveTemplate(this._store, action.path, payload as Record<string, unknown>)
+            : undefined;
+
+          const resolvedKey = action.key
+            ? resolveTemplate(this._store, action.key, payload as Record<string, unknown>)
+            : undefined;
+
+          // Resolve templates recursively in action value
+          const resolvedValue = action.value !== undefined
+            ? resolveValue(this._store, action.value, payload as Record<string, unknown>)
+            : (payload !== undefined
+              ? resolveValue(this._store, payload, undefined)
+              : undefined);
+
+          executeAction(this._store, {
+            type: action.type,
+            path: resolvedPath,
+            operation: action.operation,
+            key: resolvedKey,
+            value: resolvedValue,
+          });
+        }
+
+        // Push to undo stack after mutation
+        const after = snapshotState(this._store);
+        this._undoStack.push(after);
+
         this.requestUpdate();
         break;
       }
-      
+
       case 'navigate': {
         if (action.target) {
-          this._activeView = action.target;
+          this._activeView = resolveTemplate(this._store, action.target, payload as Record<string, unknown>);
           this.requestUpdate();
         }
         break;
       }
-      
+
       case 'callApi': {
         console.warn('[Forge] callApi requires Forge Server (Ring 2+)');
         break;
       }
-      
+
       default: {
         this.dispatchEvent(new CustomEvent('forge-action', {
           detail: { action: actionId, payload, definition: action },
@@ -283,21 +352,23 @@ export class ForgeApp extends LitElement {
     this._undoStack.push(manifest);
   }
 
-  /** Undo the last manifest change. Returns the restored manifest, or null. */
-  undo(): ForgeManifest | null {
+  /** Undo the last state mutation. Returns the restored state, or null. */
+  undo(): Record<string, unknown> | null {
+    if (!this._store) return null;
     const prev = this._undoStack.undo();
     if (prev) {
-      this.manifest = prev;
+      restoreSnapshot(this._store, prev);
       this.requestUpdate();
     }
     return prev;
   }
 
-  /** Redo an undone manifest change. Returns the restored manifest, or null. */
-  redo(): ForgeManifest | null {
+  /** Redo an undone state mutation. Returns the restored state, or null. */
+  redo(): Record<string, unknown> | null {
+    if (!this._store) return null;
     const next = this._undoStack.redo();
     if (next) {
-      this.manifest = next;
+      restoreSnapshot(this._store, next);
       this.requestUpdate();
     }
     return next;

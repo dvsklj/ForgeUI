@@ -34,7 +34,7 @@
   "elements": {
     "root": {
       "type": "Stack",
-      "props": { "gap": "16", "padding": "24" },
+      "props": { "gap": "16", "padding": "16" },
       "children": ["header", "summary-row", "meal-table", "add-form"]
     },
     "header": {
@@ -57,12 +57,12 @@
     },
     "summary-row": {
       "type": "Grid",
-      "props": { "columns": 4 },
+      "props": { "columns": 2, "gap": "sm" },
       "children": ["m-cal", "m-prot", "m-carb", "m-fat"]
     },
     "m-cal": {
       "type": "Metric",
-      "props": { "label": "Calories", "value": "1,350", "trend": "up", "unit": "kcal" }
+      "props": { "label": "Calories", "value": "1,350", "trend": 12, "unit": "kcal" }
     },
     "m-prot": {
       "type": "Metric",
@@ -103,7 +103,7 @@
     },
     "form-fields": {
       "type": "Grid",
-      "props": { "columns": 2 },
+      "props": { "columns": 1 },
       "children": ["input-name", "input-cal", "input-prot", "select-type"]
     },
     "input-name": {

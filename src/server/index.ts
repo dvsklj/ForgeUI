@@ -20,7 +20,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
-import { readFileSync } from 'fs';
+import { readFileSync, statSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -69,15 +69,43 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
   // ─── Static Files ──────────────────────────────────────────
 
   // Serve the Forge runtime bundle
-  const runtimePath = join(__dirname, 'forge.js');
-  const standalonePath = join(__dirname, 'forge-standalone.js');
+  // Search multiple possible locations (built dist, packages, or alongside source)
+  const possibleRuntimePaths = [
+    join(__dirname, 'forge.js'),
+    join(__dirname, '..', '..', 'dist', 'forge.js'),
+    join(__dirname, '..', '..', 'packages', 'runtime', 'forge.js'),
+    join(process.cwd(), 'dist', 'forge.js'),
+    join(process.cwd(), 'packages', 'runtime', 'forge.js'),
+  ];
+  const possibleStandalonePaths = [
+    join(__dirname, 'forge-standalone.js'),
+    join(__dirname, '..', '..', 'dist', 'forge-standalone.js'),
+    join(__dirname, '..', '..', 'packages', 'runtime', 'forge-standalone.js'),
+    join(process.cwd(), 'dist', 'forge-standalone.js'),
+    join(process.cwd(), 'packages', 'runtime', 'forge-standalone.js'),
+  ];
+
+  function findExisting(paths: string[]): string | undefined {
+    for (const p of paths) {
+      try {
+        if (statSync(p).isFile()) return p;
+      } catch { /* ignore */ }
+    }
+    return undefined;
+  }
+
+  const runtimePath = findExisting(possibleRuntimePaths) || possibleRuntimePaths[0];
+  const standalonePath = findExisting(possibleStandalonePaths) || possibleStandalonePaths[0];
 
   app.get('/runtime/forge.js', (c) => {
     try {
       const js = readFileSync(runtimePath, 'utf8');
+      const stat = statSync(runtimePath);
+      const bust = Math.floor(stat.mtimeMs / 1000);
       return c.text(js, 200, {
         'Content-Type': 'application/javascript',
-        'Cache-Control': 'public, max-age=3600',
+        'Cache-Control': 'public, max-age=0, must-revalidate',
+        'ETag': `"${bust}"`,
       });
     } catch {
       return c.text('Runtime not found', 404);
@@ -109,8 +137,9 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
 
     const manifestJson = JSON.stringify(stored.manifest).replace(/</g, '\\u003c').replace(/"/g, '&quot;');
     const base = baseUrl || `${c.req.header('x-forwarded-proto') || 'http'}://${c.req.header('host')}`;
+    const bust = Math.floor(statSync(runtimePath).mtimeMs / 1000);
 
-    return c.html(renderAppPage(manifestJson, stored.title, base));
+    return c.html(renderAppPage(manifestJson, stored.title, base, bust));
   });
 
   // Landing page
@@ -261,23 +290,38 @@ export function createForgeServer(options: ForgeServerOptions = {}) {
 
 // ─── HTML Templates ──────────────────────────────────────────
 
-function renderAppPage(manifestJson: string, title: string, baseUrl: string): string {
+function renderAppPage(manifestJson: string, title: string, baseUrl: string, bust = ''): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>${escapeHtml(title)} — Forge</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; font-family: system-ui, -apple-system, sans-serif; }
-    body { display: flex; flex-direction: column; }
-    forge-app { flex: 1; display: block; }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { height: 100%; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      min-height: 100%;
+      min-height: 100dvh;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: #f9fafb;
+      display: flex;
+      flex-direction: column;
+      color: #1f2937;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    forge-app {
+      flex: 1;
+      display: block;
+      background: #f9fafb;
+    }
   </style>
 </head>
 <body>
   <forge-app manifest="${manifestJson}" surface="standalone"></forge-app>
-  <script type="module" src="${baseUrl}/runtime/forge.js"></script>
+  <script type="module" src="${baseUrl}/runtime/forge.js?v=${bust}"></script>
 </body>
 </html>`;
 }
