@@ -139,7 +139,7 @@ npm run e2e                      # Playwright browser tests (Chromium, Firefox, 
 
 ## Size budget
 
-Forge UI enforces a gzip size ceiling on `dist/forge.js` via CI. Current ceiling: 50,000 bytes (50 KB gzip). Run locally:
+Forge UI enforces a gzip size ceiling on `dist/forgeui.js` via CI. Current ceiling: 50,000 bytes (50 KB gzip). Run locally:
 
     npm run ci:size
 

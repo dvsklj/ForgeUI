@@ -69,7 +69,7 @@ function buildMinimalPrompt(): string {
     '    "msg": { "type": "Text", "props": { "content": "Welcome to Forge!", "variant": "heading2" } },',
     '    "btn": { "type": "Button", "props": { "label": "Click Me", "action": "greet" } }',
     '  },',
-    '  "actions": { "greet": { "type": "setState", "path": "greeting", "value": "Hello!" } }',
+    '  "actions": { "greet": { "type": "mutateState", "path": "greeting", "operation": "set", "value": "Hello!" } }',
     '}',
   ].join('\n');
 }
@@ -146,9 +146,7 @@ function buildDefaultPrompt(): string {
     'Template element uses $item:field bindings for each row.',
     '',
     'ACTIONS:',
-    '  mutateState — append/update/delete rows in a table. Path is the table name.',
-    '  setState — set a state value.',
-    '  submitForm — collect form inputs and trigger an action.',
+    '  mutateState — modify state: set a value, or append/update/delete rows in a table.',
     '  navigate — switch views.',
     '',
     'SCHEMA (optional, for persistent data):',
@@ -244,7 +242,7 @@ function buildFullPrompt(): string {
     '    "toggle-habit": { "type": "mutateState", "path": "habits", "operation": "update", "key": "{{id}}", "data": { "done_today": "{{!done_today}}" } },',
     '    "add-habit": { "type": "mutateState", "path": "habits", "operation": "append", "data": { "name": "$form:habit-name", "icon": "$form:habit-icon", "streak": 0, "done_today": false } },',
     '    "delete-habit": { "type": "mutateState", "path": "habits", "operation": "delete", "key": "{{id}}" },',
-    '    "show-add-form": { "type": "setState", "path": "view/active", "value": "Add New" }',
+    '    "show-add-form": { "type": "mutateState", "path": "view/active", "operation": "set", "value": "Add New" }',
     '  }',
     '}',
     '',
@@ -348,10 +346,11 @@ export function catalogToJsonSchema(): { type: string; required: string[]; prope
         additionalProperties: {
           type: 'object',
           properties: {
-            type: { type: 'string', enum: ['mutateState', 'setState', 'navigate', 'submitForm'] },
+            type: { type: 'string', enum: ['mutateState', 'navigate', 'openDialog', 'closeDialog', 'callApi', 'toast', 'custom'] },
             path: { type: 'string' },
             value: {},
-            operation: { type: 'string', enum: ['append', 'update', 'delete'] },
+            operation: { type: 'string', enum: ['set', 'append', 'update', 'delete', 'increment', 'decrement', 'toggle'] },
+            set: { type: 'object', description: 'Shorthand for multiple set mutations: { key: value }' },
             data: { type: 'object' },
             key: { type: 'string' },
             formId: { type: 'string' },

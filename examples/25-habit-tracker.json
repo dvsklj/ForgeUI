@@ -33,7 +33,7 @@
       "props": { "direction": "horizontal", "gap": "16", "align": "center" },
       "children": ["h1-progress", "h1-done"]
     },
-    "h1-progress": { "type": "ProgressBar", "props": { "value": 100, "max": 100 } },
+    "h1-progress": { "type": "Progress", "props": { "value": 100, "max": 100 } },
     "h1-done": { "type": "Checkbox", "props": { "label": "Done", "checked": true } },
 
     "h2-card": {
@@ -46,7 +46,7 @@
       "props": { "direction": "horizontal", "gap": "16", "align": "center" },
       "children": ["h2-progress", "h2-done"]
     },
-    "h2-progress": { "type": "ProgressBar", "props": { "value": 100, "max": 100 } },
+    "h2-progress": { "type": "Progress", "props": { "value": 100, "max": 100 } },
     "h2-done": { "type": "Checkbox", "props": { "label": "Done", "checked": true } },
 
     "h3-card": {
@@ -59,7 +59,7 @@
       "props": { "direction": "horizontal", "gap": "16", "align": "center" },
       "children": ["h3-progress", "h3-done"]
     },
-    "h3-progress": { "type": "ProgressBar", "props": { "value": 0, "max": 100 } },
+    "h3-progress": { "type": "Progress", "props": { "value": 0, "max": 100 } },
     "h3-done": { "type": "Checkbox", "props": { "label": "Done", "checked": false } }
   }
 }
