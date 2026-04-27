@@ -187,7 +187,7 @@ function evaluateExpression(store: Store, expr: string): unknown {
   if (/^-?\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed);
 
   // Arithmetic / string / comparison expressions
-  const hasOperators = /[+\-*/%]/.test(trimmed) || /===?|!==?|>=?|<=?|&&|||/.test(trimmed);
+  const hasOperators = /[+\-*/%]/.test(trimmed) || /===?|!==?|>=?|<=?|&&|\|\|/.test(trimmed);
   if (hasOperators && !trimmed.includes('|')) {
     return evaluateArithmetic(store, trimmed);
   }
