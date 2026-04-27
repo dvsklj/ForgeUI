@@ -47,7 +47,7 @@
     },
 
     "new-issue-modal": {
-      "type": "Modal",
+      "type": "Dialog",
       "props": { "title": "Create New Issue", "open": { "$expr": "state.modal_open" } },
       "children": ["modal-form"]
     },
