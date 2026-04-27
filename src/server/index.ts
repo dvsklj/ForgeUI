@@ -192,28 +192,26 @@ export function createForgeUIServer(options: ForgeServerOptions = {}) {
   const runtimePath = resolveRuntime('forgeui.js');
   const standalonePath = resolveRuntime('forgeui-standalone.js');
 
+  // Cache runtime files at startup to avoid readFileSync on every request
+  let runtimeCache: string | null = null;
+  let standaloneCache: string | null = null;
+  try { runtimeCache = readFileSync(runtimePath, 'utf8'); } catch { /* will 404 */ }
+  try { standaloneCache = readFileSync(standalonePath, 'utf8'); } catch { /* will 404 */ }
+
   app.get('/runtime/forgeui.js', (c) => {
-    try {
-      const js = readFileSync(runtimePath, 'utf8');
-      return c.text(js, 200, {
-        'Content-Type': 'application/javascript',
-        'Cache-Control': 'public, max-age=3600',
-      });
-    } catch {
-      return c.text('Runtime not found', 404);
-    }
+    if (!runtimeCache) return c.text('Runtime not found', 404);
+    return c.text(runtimeCache, 200, {
+      'Content-Type': 'application/javascript',
+      'Cache-Control': 'public, max-age=3600',
+    });
   });
 
   app.get('/runtime/forgeui-standalone.js', (c) => {
-    try {
-      const js = readFileSync(standalonePath, 'utf8');
-      return c.text(js, 200, {
-        'Content-Type': 'application/javascript',
-        'Cache-Control': 'public, max-age=3600',
-      });
-    } catch {
-      return c.text('Standalone runtime not found', 404);
-    }
+    if (!standaloneCache) return c.text('Standalone runtime not found', 404);
+    return c.text(standaloneCache, 200, {
+      'Content-Type': 'application/javascript',
+      'Cache-Control': 'public, max-age=3600',
+    });
   });
 
   // ─── App Pages (Shareable URLs) ────────────────────────────
