@@ -6,6 +6,11 @@
     "description": "Collect and review customer feedback"
   },
   "state": {
+    "form/name": "",
+    "form/email": "",
+    "form/message": "",
+    "form/rating": 3,
+    "form/category": "product",
     "data": {
       "feedback": {
         "fb-1": { "id": "fb-1", "name": "Anna M.", "rating": 5, "category": "product", "message": "Absolutely love the new dashboard redesign!", "date": "2025-04-13", "sentiment": "positive" },
@@ -46,7 +51,7 @@
     "feedback-form-card": {
       "type": "Card",
       "props": { "title": "Submit Feedback" },
-      "children": ["form-fields", "form-actions"]
+      "children": ["form-fields", "form-actions", "submit-status"]
     },
     "form-fields": {
       "type": "Stack",
@@ -60,24 +65,25 @@
     },
     "input-name": {
       "type": "TextInput",
-      "props": { "label": "Your Name", "placeholder": "e.g. Jane Doe", "required": true }
+      "props": { "label": "Your Name", "placeholder": "e.g. Jane Doe", "bind": "$state:form/name", "required": true }
     },
     "input-email": {
       "type": "TextInput",
-      "props": { "label": "Email", "placeholder": "jane@example.com", "type": "email" }
+      "props": { "label": "Email", "placeholder": "jane@example.com", "type": "email", "bind": "$state:form/email" }
     },
     "input-message": {
       "type": "TextInput",
-      "props": { "label": "Your Feedback", "placeholder": "Tell us what you think...", "multiline": true, "required": true }
+      "props": { "label": "Your Feedback", "placeholder": "Tell us what you think...", "multiline": true, "bind": "$state:form/message", "required": true }
     },
     "slider-rating": {
       "type": "Slider",
-      "props": { "label": "Rating", "min": 1, "max": 5, "step": 1, "value": 3, "showValue": true }
+      "props": { "label": "Rating", "min": 1, "max": 5, "step": 1, "bind": "$state:form/rating", "showValue": true }
     },
     "select-category": {
       "type": "Select",
       "props": {
         "label": "Category",
+        "bind": "$state:form/category",
         "options": [
           { "value": "product", "label": "Product" },
           { "value": "support", "label": "Support" },
@@ -94,11 +100,16 @@
     },
     "btn-submit": {
       "type": "Button",
-      "props": { "label": "Submit Feedback", "variant": "primary", "disabled": true }
+      "props": { "label": "Submit Feedback", "variant": "primary", "action": "submit-feedback" }
     },
     "btn-cancel": {
       "type": "Button",
       "props": { "label": "Cancel", "variant": "ghost" }
+    },
+    "submit-status": {
+      "type": "Alert",
+      "props": { "message": "$state:form/status", "variant": "success", "title": "Draft saved" },
+      "visible": { "$when": { "path": "form/status", "exists": true } }
     },
     "feedback-list": {
       "type": "Card",
@@ -116,6 +127,14 @@
           { "key": "message", "label": "Message", "type": "text" },
           { "key": "date", "label": "Date", "type": "text" }
         ]
+      }
+    }
+  },
+  "actions": {
+    "submit-feedback": {
+      "type": "mutateState",
+      "set": {
+        "form/status": "Feedback draft captured locally. Rating, category, and fields are now bound through Forge state."
       }
     }
   },

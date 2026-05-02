@@ -47,9 +47,6 @@ export declare class ForgeTabs extends ForgeUIElement {
         props: {
             type: ObjectConstructor;
         };
-        _active: {
-            state: boolean;
-        };
     };
     _active: string;
     constructor();

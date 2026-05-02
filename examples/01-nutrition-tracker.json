@@ -23,6 +23,10 @@
     }
   },
   "state": {
+    "meal/name": "",
+    "meal/calories": 420,
+    "meal/protein": 28,
+    "meal/type": "lunch",
     "data": {
       "meals": {
         "meal-1": { "id": "meal-1", "name": "Oatmeal with Berries", "calories": 350, "protein": 12, "carbs": 55, "fat": 8, "mealType": "breakfast", "date": "2025-04-14" },
@@ -99,7 +103,7 @@
     "add-form": {
       "type": "Card",
       "props": { "title": "Add Meal" },
-      "children": ["form-fields", "form-actions"]
+      "children": ["form-fields", "meal-status", "form-actions"]
     },
     "form-fields": {
       "type": "Grid",
@@ -108,20 +112,21 @@
     },
     "input-name": {
       "type": "TextInput",
-      "props": { "label": "Meal Name", "placeholder": "e.g. Chicken Salad", "required": true }
+      "props": { "label": "Meal Name", "placeholder": "e.g. Chicken Salad", "required": true, "bind": "$state:meal/name" }
     },
     "input-cal": {
       "type": "NumberInput",
-      "props": { "label": "Calories", "min": 0, "max": 5000 }
+      "props": { "label": "Calories", "min": 0, "max": 5000, "bind": "$state:meal/calories" }
     },
     "input-prot": {
       "type": "NumberInput",
-      "props": { "label": "Protein (g)", "min": 0, "max": 300 }
+      "props": { "label": "Protein (g)", "min": 0, "max": 300, "bind": "$state:meal/protein" }
     },
     "select-type": {
       "type": "Select",
       "props": {
         "label": "Meal Type",
+        "bind": "$state:meal/type",
         "options": [
           { "value": "breakfast", "label": "Breakfast" },
           { "value": "lunch", "label": "Lunch" },
@@ -130,6 +135,11 @@
         ]
       }
     },
+    "meal-status": {
+      "type": "Alert",
+      "visible": { "$when": { "path": "meal/status", "exists": true } },
+      "props": { "variant": "success", "title": "Meal staged", "message": "{{$state:meal/status}}" }
+    },
     "form-actions": {
       "type": "ButtonGroup",
       "props": {},
@@ -137,11 +147,19 @@
     },
     "btn-add": {
       "type": "Button",
-      "props": { "label": "Add Meal", "variant": "primary", "disabled": true }
+      "props": { "label": "Add Meal", "variant": "primary", "action": "stage-meal" }
     },
     "btn-clear": {
       "type": "Button",
       "props": { "label": "Clear", "variant": "ghost" }
+    }
+  },
+  "actions": {
+    "stage-meal": {
+      "type": "mutateState",
+      "set": {
+        "meal/status": "Meal staged locally: {{$state:meal/name}} at {{$state:meal/calories}} calories."
+      }
     }
   },
   "root": "root"

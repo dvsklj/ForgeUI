@@ -127,7 +127,7 @@ function renderRepeater(element: any, ctx: RenderContext): TemplateResult {
 function resolveProps(props: Record<string, unknown>, ctx: RenderContext): Record<string, unknown> {
   const resolved: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(props)) {
-    resolved[key] = resolveRef(ctx.store, value);
+    resolved[key] = key === 'bind' ? value : resolveRef(ctx.store, value);
   }
   return resolved;
 }

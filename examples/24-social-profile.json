@@ -49,7 +49,7 @@
     "tabs": {
       "type": "Tabs",
       "props": {
-        "tabs": [
+        "items": [
           { "label": "Posts", "id": "posts" },
           { "label": "Media", "id": "media" },
           { "label": "Likes", "id": "likes" }

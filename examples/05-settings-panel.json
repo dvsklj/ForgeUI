@@ -6,6 +6,17 @@
     "description": "Manage application configuration and preferences"
   },
   "state": {
+    "settings/tab": "general",
+    "settings/dark": true,
+    "settings/language": "en",
+    "settings/timezone": "Europe/Zurich",
+    "settings/fontSize": 14,
+    "settings/autoSave": true,
+    "settings/push": true,
+    "settings/emailDigest": true,
+    "settings/slackAlerts": false,
+    "settings/twoFactor": false,
+    "settings/sessionTimeout": true,
     "data": {
       "preferences": {
         "theme": "dark",
@@ -49,13 +60,13 @@
     "tabs-settings": {
       "type": "Tabs",
       "props": {
-        "tabs": [
+        "items": [
           { "label": "General", "id": "general" },
           { "label": "Notifications", "id": "notifications" },
           { "label": "Security", "id": "security" },
           { "label": "Integrations", "id": "integrations" }
         ],
-        "activeTab": "general"
+        "bind": "$state:settings/tab"
       },
       "children": ["tab-general", "tab-notifications", "tab-security", "tab-integrations"]
     },
@@ -71,7 +82,7 @@
     },
     "theme-toggle": {
       "type": "Toggle",
-      "props": { "label": "Dark Mode", "value": true, "description": "Use dark theme for the application" }
+      "props": { "label": "Dark Mode", "bind": "$state:settings/dark", "description": "Use dark theme for the application" }
     },
     "select-lang": {
       "type": "Select",
@@ -83,7 +94,7 @@
           { "value": "fr", "label": "Français" },
           { "value": "it", "label": "Italiano" }
         ],
-        "value": "en"
+        "bind": "$state:settings/language"
       }
     },
     "select-tz": {
@@ -96,16 +107,16 @@
           { "value": "America/New_York", "label": "America/New_York (EST)" },
           { "value": "Asia/Tokyo", "label": "Asia/Tokyo (JST)" }
         ],
-        "value": "Europe/Zurich"
+        "bind": "$state:settings/timezone"
       }
     },
     "slider-font": {
       "type": "Slider",
-      "props": { "label": "Font Size", "min": 10, "max": 24, "value": 14, "showValue": true, "unit": "px" }
+      "props": { "label": "Font Size", "min": 10, "max": 24, "bind": "$state:settings/fontSize", "showValue": true, "unit": "px" }
     },
     "toggle-autosave": {
       "type": "Toggle",
-      "props": { "label": "Auto-Save", "value": true, "description": "Automatically save changes" }
+      "props": { "label": "Auto-Save", "bind": "$state:settings/autoSave", "description": "Automatically save changes" }
     },
     "tab-notifications": {
       "type": "Container",
@@ -119,15 +130,15 @@
     },
     "notif-toggle": {
       "type": "Toggle",
-      "props": { "label": "Push Notifications", "value": true, "description": "Receive browser notifications" }
+      "props": { "label": "Push Notifications", "bind": "$state:settings/push", "description": "Receive browser notifications" }
     },
     "notif-email": {
       "type": "Checkbox",
-      "props": { "label": "Email Digest (Daily)", "checked": true }
+      "props": { "label": "Email Digest (Daily)", "bind": "$state:settings/emailDigest" }
     },
     "notif-slack": {
       "type": "Checkbox",
-      "props": { "label": "Slack Integration Alerts", "checked": false }
+      "props": { "label": "Slack Integration Alerts", "bind": "$state:settings/slackAlerts" }
     },
     "tab-security": {
       "type": "Container",
@@ -145,11 +156,11 @@
     },
     "toggle-2fa": {
       "type": "Toggle",
-      "props": { "label": "Two-Factor Authentication", "value": false, "description": "Add an extra layer of security" }
+      "props": { "label": "Two-Factor Authentication", "bind": "$state:settings/twoFactor", "description": "Add an extra layer of security" }
     },
     "toggle-sessions": {
       "type": "Toggle",
-      "props": { "label": "Session Timeout (30 min)", "value": true, "description": "Auto-logout after inactivity" }
+      "props": { "label": "Session Timeout (30 min)", "bind": "$state:settings/sessionTimeout", "description": "Auto-logout after inactivity" }
     },
     "tab-integrations": {
       "type": "Container",
