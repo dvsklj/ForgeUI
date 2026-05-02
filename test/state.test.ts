@@ -257,6 +257,19 @@ describe('resolveRef — $expr: expressions', () => {
     expect(resolveRef(store, '$expr:null')).toBeNull();
   });
 
+  it('evaluates arithmetic, comparison, and string expressions without dynamic code', () => {
+    expect(resolveRef(store, '$expr:state.count + 1')).toBe(6);
+    expect(resolveRef(store, '$expr:(state.count + 1) * 2')).toBe(12);
+    expect(resolveRef(store, '$expr:state.count >= 5 && state.active')).toBe(true);
+    expect(resolveRef(store, '$expr:state.name + "!"')).toBe('World!');
+  });
+
+  it('rejects dynamic-code-shaped expressions', () => {
+    expect(resolveRef(store, '$expr:eval("alert(1)")')).toBeUndefined();
+    expect(resolveRef(store, '$expr:Function("return this")()')).toBeUndefined();
+    expect(resolveRef(store, '$expr:state.count.constructor')).toBeUndefined();
+  });
+
   it('handles empty expression', () => {
     expect(resolveRef(store, '$expr:')).toBeUndefined();
     expect(resolveRef(store, '$expr: ')).toBeUndefined();

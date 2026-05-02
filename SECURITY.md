@@ -42,7 +42,7 @@ In scope for security reports:
 - `src/server/` — HTTP API, SQLite persistence, middleware (CORS, auth, body limits)
 - `src/connect/` — MCP stdio server (untrusted JSON-RPC input)
 - `src/state/` — state path resolution, expression evaluation
-- The published IIFE artifact at `dist/forge.js`
+- The published IIFE artifact at `dist/forgeui.js`
 
 Out of scope:
 - Vulnerabilities in dependencies with upstream fixes — please report to the dependency first and send us the CVE link

@@ -115,48 +115,110 @@ export function getItemContext(): Record<string, unknown> | null {
 
 // ─── Safe Arithmetic Evaluation ────────────────────────────────────────────────
 
-/** Safely evaluate an arithmetic/string expression by resolving state refs first. */
+type ExprToken =
+  | { type: 'number'; value: number }
+  | { type: 'string'; value: string }
+  | { type: 'literal'; value: boolean | null }
+  | { type: 'state'; path: string }
+  | { type: 'op'; value: string }
+  | { type: 'paren'; value: '(' | ')' };
+
+/** Safely evaluate a small expression grammar without eval/Function. */
 function evaluateArithmetic(store: Store, expr: string): unknown {
-  // Find all state.path references (e.g. state.count, state.data.tasks.length)
-  const stateRefRe = /\bstate\.([a-zA-Z_][a-zA-Z0-9_.]*)\b/g;
-  let replaced = expr;
-  const seen = new Set<string>();
-  let m: RegExpExecArray | null;
+  const tokens = tokenizeExpression(expr);
+  if (!tokens) return undefined;
 
-  // Collect unique refs
-  while ((m = stateRefRe.exec(expr)) !== null) {
-    seen.add(m[1]);
-  }
+  let i = 0;
+  const bad = {};
+  const peek = () => tokens[i];
 
-  // Replace each ref with its resolved value
-  for (const path of Array.from(seen)) {
-    const val = resolveStateDotPath(store, path);
-    const placeholder = `state.${path}`;
-    let serialized: string;
-    if (typeof val === 'string') {
-      serialized = JSON.stringify(val);
-    } else if (typeof val === 'number') {
-      serialized = String(val);
-    } else if (typeof val === 'boolean') {
-      serialized = String(val);
-    } else if (val === null || val === undefined) {
-      serialized = 'null';
-    } else if (Array.isArray(val)) {
-      serialized = JSON.stringify(val);
-    } else {
-      serialized = JSON.stringify(val);
+  const primary = (): unknown | typeof bad => {
+    const token = tokens[i++];
+    if (!token) return bad;
+    if (token.type === 'number' || token.type === 'string' || token.type === 'literal') return token.value;
+    if (token.type === 'state') return resolveStateDotPath(store, token.path);
+    if (token.type === 'paren' && token.value === '(') {
+      const value = parseExpression(1);
+      const next = tokens[i++];
+      return next?.type === 'paren' && next.value === ')' ? value : bad;
     }
-    replaced = replaced.split(placeholder).join(serialized);
+    return bad;
+  };
+
+  const unary = (): unknown | typeof bad => {
+    const token = peek();
+    if (token?.type === 'op' && token.value === '-') {
+      i++;
+      const value = unary();
+      if (value === bad) return bad;
+      return typeof value === 'number' ? -value : bad;
+    }
+    return primary();
+  };
+
+  function parseExpression(minPrecedence: number): unknown | typeof bad {
+    let left = unary();
+    while (left !== bad) {
+      const token = peek();
+      if (token?.type !== 'op') break;
+      const precedence = OP_PRECEDENCE[token.value];
+      if (!precedence || precedence < minPrecedence) break;
+      i++;
+      left = applyBinary(token.value, left, parseExpression(precedence + 1), bad);
+    }
+    return left;
   }
 
-  // Evaluate the sanitized expression
-  try {
-    // eslint-disable-next-line no-new-func
-    const fn = new Function(`"use strict"; return (${replaced});`);
-    return fn();
-  } catch {
-    return undefined;
+  const result = parseExpression(1);
+  return result !== bad && i === tokens.length ? result : undefined;
+}
+
+const OP_PRECEDENCE: Record<string, number> = {
+  '&&': 2, '>': 4, '<': 4, '>=': 4, '<=': 4,
+  '+': 5, '-': 5, '*': 6, '/': 6,
+};
+
+function applyBinary(op: string, left: unknown, right: unknown, bad: object): unknown | object {
+  if (right === bad) return bad;
+  if (op === '&&') return !!left && !!right;
+  if (op === '+') {
+    if (typeof left === 'number' && typeof right === 'number') return left + right;
+    if (typeof left !== 'object' && typeof right !== 'object') return String(left) + String(right);
+    return bad;
   }
+  if (typeof left !== 'number' || typeof right !== 'number') return bad;
+  if (op === '/' && right === 0) return bad;
+  switch (op) {
+    case '-': return (left as number) - (right as number);
+    case '*': return (left as number) * (right as number);
+    case '/': return (left as number) / (right as number);
+    case '>': return left > right;
+    case '<': return left < right;
+    case '>=': return left >= right;
+    case '<=': return left <= right;
+    default: return bad;
+  }
+}
+
+function tokenizeExpression(expr: string): ExprToken[] | undefined {
+  if (expr.length > 1024) return undefined;
+  const tokens: ExprToken[] = [];
+  const re = /\s*(>=|<=|&&|[()+\-*/><]|"(?:\\.|[^"\\])*"|\d+(?:\.\d+)?|[a-zA-Z_][a-zA-Z0-9_.]*)/gy;
+  let m: RegExpExecArray | null;
+  let end = 0;
+  while ((m = re.exec(expr))) {
+    const raw = m[1];
+    end = re.lastIndex;
+    if ('()'.includes(raw)) tokens.push({ type: 'paren', value: raw as '(' | ')' });
+    else if (OP_PRECEDENCE[raw]) tokens.push({ type: 'op', value: raw });
+    else if (raw[0] === '"') tokens.push({ type: 'string', value: JSON.parse(raw) });
+    else if (/^\d/.test(raw)) tokens.push({ type: 'number', value: Number(raw) });
+    else if (raw === 'true' || raw === 'false') tokens.push({ type: 'literal', value: raw === 'true' });
+    else if (raw === 'null') tokens.push({ type: 'literal', value: null });
+    else if (raw.startsWith('state.') && isSafe(raw.slice(6))) tokens.push({ type: 'state', path: raw.slice(6) });
+    else return undefined;
+  }
+  return end === expr.length ? tokens : undefined;
 }
 
 /**
@@ -187,7 +249,7 @@ function evaluateExpression(store: Store, expr: string): unknown {
   if (/^-?\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed);
 
   // Arithmetic / string / comparison expressions
-  const hasOperators = /[+\-*/%]/.test(trimmed) || /===?|!==?|>=?|<=?|&&|||/.test(trimmed);
+  const hasOperators = /(?:[+\-*/%]|===?|!==?|>=?|<=?|\&\&|\|\|)/.test(trimmed);
   if (hasOperators && !trimmed.includes('|')) {
     return evaluateArithmetic(store, trimmed);
   }
@@ -265,9 +327,18 @@ function getDeepPath(obj: unknown, path: string): unknown {
 }
 
 function resolveStateDotPath(store: Store, path: string): unknown {
+  if (!isSafe(path)) return undefined;
+
   // Try value first (for simple flat keys like "state.name")
   const direct = store.getValue(path);
-  if (direct !== undefined) return direct;
+  if (direct !== undefined) {
+    if (typeof direct === 'string') {
+      try {
+        return JSON.parse(direct);
+      } catch { /* plain string value */ }
+    }
+    return direct;
+  }
 
   const parts = path.split('.');
   // [table, row, col]

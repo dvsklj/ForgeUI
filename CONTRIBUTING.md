@@ -75,7 +75,7 @@ forgeui/
 
 ```bash
 npm run build                    # All bundles
-npm run build -- --mode=artifact # forge.js only (IIFE, all inline)
+npm run build -- --mode=artifact # forgeui.js only (IIFE, all inline)
 npm run build -- --mode=server   # forgeui-server.js only
 npm run build -- --mode=cli      # forge.mjs only
 npm run build -- --mode=connect  # forgeui-connect.mjs only
@@ -139,7 +139,7 @@ npm run e2e                      # Playwright browser tests (Chromium, Firefox, 
 
 ## Size budget
 
-Forge UI enforces a gzip size ceiling on `dist/forge.js` via CI. Current ceiling: 50,000 bytes (50 KB gzip). Run locally:
+Forge UI enforces a gzip size ceiling on `dist/forgeui.js` via CI. Current ceiling: 50,000 bytes (50 KB gzip). Run locally:
 
     npm run ci:size
 
