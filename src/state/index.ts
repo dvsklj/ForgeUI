@@ -115,110 +115,32 @@ export function getItemContext(): Record<string, unknown> | null {
 
 // ─── Safe Arithmetic Evaluation ────────────────────────────────────────────────
 
-type ExprToken =
-  | { type: 'number'; value: number }
-  | { type: 'string'; value: string }
-  | { type: 'literal'; value: boolean | null }
-  | { type: 'state'; path: string }
-  | { type: 'op'; value: string }
-  | { type: 'paren'; value: '(' | ')' };
-
-/** Safely evaluate a small expression grammar without eval/Function. */
+/** Safely evaluate a constrained numeric expression without eval/Function. */
 function evaluateArithmetic(store: Store, expr: string): unknown {
-  const tokens = tokenizeExpression(expr);
-  if (!tokens) return undefined;
-
-  let i = 0;
-  const bad = {};
-  const peek = () => tokens[i];
-
-  const primary = (): unknown | typeof bad => {
-    const token = tokens[i++];
-    if (!token) return bad;
-    if (token.type === 'number' || token.type === 'string' || token.type === 'literal') return token.value;
-    if (token.type === 'state') return resolveStateDotPath(store, token.path);
-    if (token.type === 'paren' && token.value === '(') {
-      const value = parseExpression(1);
-      const next = tokens[i++];
-      return next?.type === 'paren' && next.value === ')' ? value : bad;
-    }
-    return bad;
-  };
-
-  const unary = (): unknown | typeof bad => {
-    const token = peek();
-    if (token?.type === 'op' && token.value === '-') {
-      i++;
-      const value = unary();
-      if (value === bad) return bad;
-      return typeof value === 'number' ? -value : bad;
-    }
-    return primary();
-  };
-
-  function parseExpression(minPrecedence: number): unknown | typeof bad {
-    let left = unary();
-    while (left !== bad) {
-      const token = peek();
-      if (token?.type !== 'op') break;
-      const precedence = OP_PRECEDENCE[token.value];
-      if (!precedence || precedence < minPrecedence) break;
-      i++;
-      left = applyBinary(token.value, left, parseExpression(precedence + 1), bad);
-    }
-    return left;
-  }
-
-  const result = parseExpression(1);
-  return result !== bad && i === tokens.length ? result : undefined;
-}
-
-const OP_PRECEDENCE: Record<string, number> = {
-  '&&': 2, '>': 4, '<': 4, '>=': 4, '<=': 4,
-  '+': 5, '-': 5, '*': 6, '/': 6,
-};
-
-function applyBinary(op: string, left: unknown, right: unknown, bad: object): unknown | object {
-  if (right === bad) return bad;
-  if (op === '&&') return !!left && !!right;
-  if (op === '+') {
-    if (typeof left === 'number' && typeof right === 'number') return left + right;
-    if (typeof left !== 'object' && typeof right !== 'object') return String(left) + String(right);
-    return bad;
-  }
-  if (typeof left !== 'number' || typeof right !== 'number') return bad;
-  if (op === '/' && right === 0) return bad;
-  switch (op) {
-    case '-': return (left as number) - (right as number);
-    case '*': return (left as number) * (right as number);
-    case '/': return (left as number) / (right as number);
+  if (expr.length > 1024) return undefined;
+  const atom = '(state\\.[a-zA-Z_][a-zA-Z0-9_.]*|-?\\d+(?:\\.\\d+)?)';
+  const match = expr.trim().match(new RegExp(`^${atom}\\s*(>=|<=|[+\\-*/><])\\s*${atom}$`));
+  if (!match) return undefined;
+  const left = readExprAtom(store, match[1]);
+  const right = readExprAtom(store, match[3]);
+  if (typeof left !== 'number' || typeof right !== 'number') return undefined;
+  switch (match[2]) {
+    case '+': return left + right;
+    case '-': return left - right;
+    case '*': return left * right;
+    case '/': return right === 0 ? undefined : left / right;
     case '>': return left > right;
     case '<': return left < right;
     case '>=': return left >= right;
     case '<=': return left <= right;
-    default: return bad;
   }
 }
 
-function tokenizeExpression(expr: string): ExprToken[] | undefined {
-  if (expr.length > 1024) return undefined;
-  const tokens: ExprToken[] = [];
-  const re = /\s*(>=|<=|&&|[()+\-*/><]|"(?:\\.|[^"\\])*"|\d+(?:\.\d+)?|[a-zA-Z_][a-zA-Z0-9_.]*)/gy;
-  let m: RegExpExecArray | null;
-  let end = 0;
-  while ((m = re.exec(expr))) {
-    const raw = m[1];
-    end = re.lastIndex;
-    if ('()'.includes(raw)) tokens.push({ type: 'paren', value: raw as '(' | ')' });
-    else if (OP_PRECEDENCE[raw]) tokens.push({ type: 'op', value: raw });
-    else if (raw[0] === '"') tokens.push({ type: 'string', value: JSON.parse(raw) });
-    else if (/^\d/.test(raw)) tokens.push({ type: 'number', value: Number(raw) });
-    else if (raw === 'true' || raw === 'false') tokens.push({ type: 'literal', value: raw === 'true' });
-    else if (raw === 'null') tokens.push({ type: 'literal', value: null });
-    else if (raw.startsWith('state.') && isSafe(raw.slice(6))) tokens.push({ type: 'state', path: raw.slice(6) });
-    else return undefined;
-  }
-  return end === expr.length ? tokens : undefined;
+function readExprAtom(store: Store, raw: string): unknown {
+  if (/^-?\d/.test(raw)) return Number(raw);
+  if (!raw.startsWith('state.')) return undefined;
+  const path = raw.slice(6);
+  return isSafe(path) ? resolveStateDotPath(store, path) : undefined;
 }
 
 /**
