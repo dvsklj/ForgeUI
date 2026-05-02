@@ -4,6 +4,9 @@
  * CSS custom properties for theming. Components consume semantic tokens,
  * never raw values. Surface modes adjust token values.
  *
+ * Palette: deep teal primary, warm neutrals, high-contrast text,
+ * colorblind-safe chart series, no default blue/purple/cyan.
+ *
  * Cascade layers: @layer tokens, base, components, surfaces
  */
 /** Design token CSS (injected into ForgeUIApp shadow root) */
