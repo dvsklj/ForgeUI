@@ -28,12 +28,12 @@
   "elements": {
     "root": {
       "type": "Stack",
-      "props": { "gap": "20", "padding": "24" },
+      "props": { "gap": "lg", "padding": "lg" },
       "children": ["top-bar", "kpi-row", "charts-row", "activity-section"]
     },
     "top-bar": {
       "type": "Stack",
-      "props": { "direction": "horizontal", "gap": "12" },
+      "props": { "direction": "horizontal", "gap": "sm" },
       "children": ["title", "badge-live", "date-range"]
     },
     "title": {
@@ -86,7 +86,7 @@
         "data": { "$expr": "state.data.revenue" },
         "xKey": "month",
         "yKey": "value",
-        "color": "#6366f1",
+        "color": "var(--forgeui-color-primary)",
         "yFormat": "$"
       }
     },
@@ -102,7 +102,7 @@
         "data": { "$expr": "state.data.visitors" },
         "xKey": "month",
         "yKey": "value",
-        "color": "#10b981"
+        "color": "var(--forgeui-color-success)"
       }
     },
     "activity-section": {

@@ -115,48 +115,32 @@ export function getItemContext(): Record<string, unknown> | null {
 
 // ─── Safe Arithmetic Evaluation ────────────────────────────────────────────────
 
-/** Safely evaluate an arithmetic/string expression by resolving state refs first. */
+/** Safely evaluate a constrained numeric expression without eval/Function. */
 function evaluateArithmetic(store: Store, expr: string): unknown {
-  // Find all state.path references (e.g. state.count, state.data.tasks.length)
-  const stateRefRe = /\bstate\.([a-zA-Z_][a-zA-Z0-9_.]*)\b/g;
-  let replaced = expr;
-  const seen = new Set<string>();
-  let m: RegExpExecArray | null;
-
-  // Collect unique refs
-  while ((m = stateRefRe.exec(expr)) !== null) {
-    seen.add(m[1]);
+  if (expr.length > 1024) return undefined;
+  const atom = '(state\\.[a-zA-Z_][a-zA-Z0-9_.]*|-?\\d+(?:\\.\\d+)?)';
+  const match = expr.trim().match(new RegExp(`^${atom}\\s*(>=|<=|[+\\-*/><])\\s*${atom}$`));
+  if (!match) return undefined;
+  const left = readExprAtom(store, match[1]);
+  const right = readExprAtom(store, match[3]);
+  if (typeof left !== 'number' || typeof right !== 'number') return undefined;
+  switch (match[2]) {
+    case '+': return left + right;
+    case '-': return left - right;
+    case '*': return left * right;
+    case '/': return right === 0 ? undefined : left / right;
+    case '>': return left > right;
+    case '<': return left < right;
+    case '>=': return left >= right;
+    case '<=': return left <= right;
   }
+}
 
-  // Replace each ref with its resolved value
-  for (const path of Array.from(seen)) {
-    const val = resolveStateDotPath(store, path);
-    const placeholder = `state.${path}`;
-    let serialized: string;
-    if (typeof val === 'string') {
-      serialized = JSON.stringify(val);
-    } else if (typeof val === 'number') {
-      serialized = String(val);
-    } else if (typeof val === 'boolean') {
-      serialized = String(val);
-    } else if (val === null || val === undefined) {
-      serialized = 'null';
-    } else if (Array.isArray(val)) {
-      serialized = JSON.stringify(val);
-    } else {
-      serialized = JSON.stringify(val);
-    }
-    replaced = replaced.split(placeholder).join(serialized);
-  }
-
-  // Evaluate the sanitized expression
-  try {
-    // eslint-disable-next-line no-new-func
-    const fn = new Function(`"use strict"; return (${replaced});`);
-    return fn();
-  } catch {
-    return undefined;
-  }
+function readExprAtom(store: Store, raw: string): unknown {
+  if (/^-?\d/.test(raw)) return Number(raw);
+  if (!raw.startsWith('state.')) return undefined;
+  const path = raw.slice(6);
+  return isSafe(path) ? resolveStateDotPath(store, path) : undefined;
 }
 
 /**
@@ -187,7 +171,7 @@ function evaluateExpression(store: Store, expr: string): unknown {
   if (/^-?\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed);
 
   // Arithmetic / string / comparison expressions
-  const hasOperators = /[+\-*/%]/.test(trimmed) || /===?|!==?|>=?|<=?|&&|||/.test(trimmed);
+  const hasOperators = /(?:[+\-*/%]|===?|!==?|>=?|<=?|\&\&|\|\|)/.test(trimmed);
   if (hasOperators && !trimmed.includes('|')) {
     return evaluateArithmetic(store, trimmed);
   }
@@ -265,9 +249,18 @@ function getDeepPath(obj: unknown, path: string): unknown {
 }
 
 function resolveStateDotPath(store: Store, path: string): unknown {
+  if (!isSafe(path)) return undefined;
+
   // Try value first (for simple flat keys like "state.name")
   const direct = store.getValue(path);
-  if (direct !== undefined) return direct;
+  if (direct !== undefined) {
+    if (typeof direct === 'string') {
+      try {
+        return JSON.parse(direct);
+      } catch { /* plain string value */ }
+    }
+    return direct;
+  }
 
   const parts = path.split('.');
   // [table, row, col]

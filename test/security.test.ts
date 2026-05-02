@@ -147,6 +147,12 @@ describe('Security — State path safety', () => {
     expect(resolveRef(store, '$expr:' + 'x'.repeat(1025))).toBeUndefined();
   });
 
+  it('does not execute eval, Function, or global object expressions', () => {
+    expect(resolveRef(store, '$expr:eval("alert(1)")')).toBeUndefined();
+    expect(resolveRef(store, '$expr:Function("return this")()')).toBeUndefined();
+    expect(resolveRef(store, '$expr:globalThis.process')).toBeUndefined();
+  });
+
   it('limits $computed expression length to 1024 chars', () => {
     expect(resolveRef(store, '$computed:' + 'x'.repeat(1025))).toBeUndefined();
   });

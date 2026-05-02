@@ -21,7 +21,7 @@
   "elements": {
     "root": {
       "type": "Stack",
-      "props": { "gap": "16", "padding": "24" },
+      "props": { "gap": "md", "padding": "24" },
       "children": ["header", "alert-saved", "tabs-settings"]
     },
     "header": {
@@ -31,7 +31,7 @@
     },
     "header-meta": {
       "type": "Stack",
-      "props": { "direction": "horizontal", "gap": "8" },
+      "props": { "direction": "horizontal", "gap": "xs" },
       "children": ["badge-version", "badge-env"]
     },
     "badge-version": {
@@ -61,12 +61,12 @@
     },
     "tab-general": {
       "type": "Container",
-      "props": { "slot": "general", "padding": "16" },
+      "props": { "slot": "general", "padding": "md" },
       "children": ["general-fields"]
     },
     "general-fields": {
       "type": "Stack",
-      "props": { "gap": "16" },
+      "props": { "gap": "md" },
       "children": ["theme-toggle", "select-lang", "select-tz", "slider-font", "toggle-autosave"]
     },
     "theme-toggle": {
@@ -109,12 +109,12 @@
     },
     "tab-notifications": {
       "type": "Container",
-      "props": { "slot": "notifications", "padding": "16" },
+      "props": { "slot": "notifications", "padding": "md" },
       "children": ["notif-fields"]
     },
     "notif-fields": {
       "type": "Stack",
-      "props": { "gap": "16" },
+      "props": { "gap": "md" },
       "children": ["notif-toggle", "notif-email", "notif-slack"]
     },
     "notif-toggle": {
@@ -131,12 +131,12 @@
     },
     "tab-security": {
       "type": "Container",
-      "props": { "slot": "security", "padding": "16" },
+      "props": { "slot": "security", "padding": "md" },
       "children": ["security-content"]
     },
     "security-content": {
       "type": "Stack",
-      "props": { "gap": "16" },
+      "props": { "gap": "md" },
       "children": ["alert-security", "toggle-2fa", "toggle-sessions"]
     },
     "alert-security": {
@@ -153,12 +153,12 @@
     },
     "tab-integrations": {
       "type": "Container",
-      "props": { "slot": "integrations", "padding": "16" },
+      "props": { "slot": "integrations", "padding": "md" },
       "children": ["integrations-content"]
     },
     "integrations-content": {
       "type": "Stack",
-      "props": { "gap": "16" },
+      "props": { "gap": "md" },
       "children": ["int-table", "btn-add-integration"]
     },
     "int-table": {

@@ -8,7 +8,7 @@
   "elements": {
     "root": {
       "type": "Stack",
-      "props": { "gap": "20", "padding": "24" },
+      "props": { "gap": "lg", "padding": "lg" },
       "children": ["header", "stepper-card", "wizard-content"]
     },
     "header": {
@@ -18,7 +18,7 @@
     },
     "header-badges": {
       "type": "Stack",
-      "props": { "direction": "horizontal", "gap": "8" },
+      "props": { "direction": "horizontal", "gap": "xs" },
       "children": ["badge-new", "badge-time"]
     },
     "badge-new": {
@@ -53,7 +53,7 @@
     },
     "step1-fields": {
       "type": "Stack",
-      "props": { "gap": "12" },
+      "props": { "gap": "sm" },
       "children": ["name-row", "input-bio", "avatar-section"]
     },
     "name-row": {
@@ -75,7 +75,7 @@
     },
     "avatar-section": {
       "type": "Stack",
-      "props": { "direction": "horizontal", "gap": "12", "align": "center" },
+      "props": { "direction": "horizontal", "gap": "sm", "align": "center" },
       "children": ["avatar-preview", "btn-upload"]
     },
     "avatar-preview": {
@@ -88,7 +88,7 @@
     },
     "step-actions": {
       "type": "Stack",
-      "props": { "direction": "horizontal", "gap": "8", "justify": "end" },
+      "props": { "direction": "horizontal", "gap": "xs", "justify": "end" },
       "children": ["btn-back", "btn-next"]
     },
     "btn-back": {

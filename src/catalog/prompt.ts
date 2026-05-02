@@ -54,12 +54,13 @@ function buildMinimalPrompt(): string {
     '  $form:fieldId        — value from input component',
     '',
     'DESIGN TOKENS:',
-    '  Spacing: xs, sm, md, lg, xl',
+    '  Spacing: none, 3xs, 2xs, xs, sm, md, lg, xl, 2xl',
     '  Colors: primary, secondary, success, warning, error, muted, default',
     '  Sizes: sm, md, lg',
     '  Radius: none, sm, md, lg, full',
     '',
     'Never use raw CSS values, hex colors, or pixel sizes. Always use tokens.',
+    'Responsive rules: Grid(columns>=2) auto-collapses on mobile. Stack wrap:true for horizontal button rows.',
     '',
     'EXAMPLE:',
     '{',
@@ -133,9 +134,9 @@ function buildDefaultPrompt(): string {
     '  Stepper(steps: [{label, description?}], activeStep: $state:path, variant: "horizontal"|"vertical")',
     '',
     'DRAWING:',
-    '  Drawing(width, height, shapes: Shape[], viewBox?)',
-    '  Shape types: rect, circle, ellipse, line, text, arrow, path, icon, badge',
-    '  Shapes use design tokens for fill/stroke. Never raw SVG.',
+    '  Drawing(width, height, background?, shapes: Shape[])',
+    '  Shape types: rect, circle, ellipse, line, text, path',
+    '  For custom icons: use a 24x24 box, 1-4 simple shapes, currentColor, 2px strokes, and no raw SVG markup.',
     '',
     'CONDITIONAL RENDERING:',
     '{ "type": "Alert", "props": { ... }, "visible": { "$when": { "path": "state/path", "gt": 0 } } }',
@@ -163,6 +164,8 @@ function buildDefaultPrompt(): string {
     '6. State paths use "/" separators: "view/active", "goals/calories".',
     '7. Actions are declarative — never write JavaScript.',
     '8. Keep manifests under 100KB.',
+    '9. Write mobile-safe layouts: Grid for metric cards, short labels, wrap:true for button rows.',
+    '10. Prefer token gap/padding values (sm, md, lg) over raw numbers.'
   ].join('\n');
 }
 
@@ -264,6 +267,8 @@ function buildFullPrompt(): string {
     '11. Data access is opt-in — set dataAccess.enabled: false (or omit) unless user wants LLM to read data.',
     '12. Prefer query over read — use forgeui_query_app_data for aggregates instead of forgeui_read_app_data.',
     '13. Never modify user data directly — read to reason, then update the manifest, not the records.',
+    '14. Write mobile-safe layouts: Grid for metric cards, short labels, wrap:true for horizontal button rows.',
+    '15. Prefer token gap/padding values (sm, md, lg) over raw numbers.'
   ].join('\n');
 }
 

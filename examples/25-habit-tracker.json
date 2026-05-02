@@ -6,12 +6,12 @@
   "elements": {
     "shell": {
       "type": "Stack",
-      "props": { "gap": "24", "padding": "24" },
+      "props": { "gap": "lg", "padding": "lg" },
       "children": ["header-grid", "habit-list"]
     },
     "header-grid": {
       "type": "Grid",
-      "props": { "columns": 2, "gap": "16" },
+      "props": { "columns": 2, "gap": "md" },
       "children": ["title", "streak"]
     },
     "title": { "type": "Text", "props": { "content": "Daily Habits", "variant": "heading1" } },
@@ -19,7 +19,7 @@
 
     "habit-list": {
       "type": "Stack",
-      "props": { "gap": "16" },
+      "props": { "gap": "md" },
       "children": ["h1-card", "h2-card", "h3-card"]
     },
     
@@ -30,10 +30,10 @@
     },
     "h1-stack": {
       "type": "Stack",
-      "props": { "direction": "horizontal", "gap": "16", "align": "center" },
+      "props": { "direction": "horizontal", "gap": "md", "align": "center" },
       "children": ["h1-progress", "h1-done"]
     },
-    "h1-progress": { "type": "ProgressBar", "props": { "value": 100, "max": 100 } },
+    "h1-progress": { "type": "Progress", "props": { "label": "Today", "value": 100, "max": 100, "showValue": true } },
     "h1-done": { "type": "Checkbox", "props": { "label": "Done", "checked": true } },
 
     "h2-card": {
@@ -43,10 +43,10 @@
     },
     "h2-stack": {
       "type": "Stack",
-      "props": { "direction": "horizontal", "gap": "16", "align": "center" },
+      "props": { "direction": "horizontal", "gap": "md", "align": "center" },
       "children": ["h2-progress", "h2-done"]
     },
-    "h2-progress": { "type": "ProgressBar", "props": { "value": 100, "max": 100 } },
+    "h2-progress": { "type": "Progress", "props": { "label": "Today", "value": 100, "max": 100, "showValue": true } },
     "h2-done": { "type": "Checkbox", "props": { "label": "Done", "checked": true } },
 
     "h3-card": {
@@ -56,10 +56,10 @@
     },
     "h3-stack": {
       "type": "Stack",
-      "props": { "direction": "horizontal", "gap": "16", "align": "center" },
+      "props": { "direction": "horizontal", "gap": "md", "align": "center" },
       "children": ["h3-progress", "h3-done"]
     },
-    "h3-progress": { "type": "ProgressBar", "props": { "value": 0, "max": 100 } },
+    "h3-progress": { "type": "Progress", "props": { "label": "Today", "value": 0, "max": 100, "showValue": true } },
     "h3-done": { "type": "Checkbox", "props": { "label": "Done", "checked": false } }
   }
 }

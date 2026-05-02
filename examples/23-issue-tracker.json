@@ -14,12 +14,12 @@
   "elements": {
     "shell": {
       "type": "Stack",
-      "props": { "gap": "24", "padding": "24", "align": "stretch" },
+      "props": { "gap": "lg", "padding": "lg", "align": "stretch" },
       "children": ["header-actions", "table-card", "new-issue-modal"]
     },
     "header-actions": {
       "type": "Stack",
-      "props": { "direction": "horizontal", "gap": "16", "align": "center" },
+      "props": { "direction": "horizontal", "gap": "md", "align": "center" },
       "children": ["page-title", "spacer", "new-btn"]
     },
     "page-title": { "type": "Text", "props": { "content": "Backlog", "variant": "heading1" } },
@@ -28,7 +28,7 @@
 
     "table-card": {
       "type": "Card",
-      "props": {},
+      "props": { "title": "Sprint queue", "subtitle": "Prioritized issues with current ownership." },
       "children": ["issue-table"]
     },
     "issue-table": {
@@ -47,20 +47,20 @@
     },
 
     "new-issue-modal": {
-      "type": "Modal",
+      "type": "Dialog",
       "props": { "title": "Create New Issue", "open": { "$expr": "state.modal_open" } },
       "children": ["modal-form"]
     },
     "modal-form": {
       "type": "Stack",
-      "props": { "gap": "16" },
+      "props": { "gap": "md" },
       "children": ["m-title", "m-desc", "m-actions"]
     },
     "m-title": { "type": "TextInput", "props": { "label": "Title", "required": true } },
     "m-desc": { "type": "TextInput", "props": { "label": "Description" } },
     "m-actions": {
       "type": "Stack",
-      "props": { "direction": "horizontal", "gap": "8" },
+      "props": { "direction": "horizontal", "gap": "xs" },
       "children": ["btn-cancel", "btn-create"]
     },
     "btn-cancel": { "type": "Button", "props": { "label": "Cancel", "variant": "ghost" } },

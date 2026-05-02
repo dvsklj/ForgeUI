@@ -203,7 +203,7 @@ Add a form to create new todos:
       ],
       "xKey": "name",
       "yKey": "value",
-      "color": "#6366f1"
+      "color": "var(--forgeui-color-primary)"
     }
   }
 }
