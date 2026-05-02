@@ -15,8 +15,8 @@ Vertical or horizontal layout container.
   "type": "Stack",
   "props": {
     "direction": "vertical",
-    "gap": "16",
-    "padding": "24",
+    "gap": "md",
+    "padding": "lg",
     "align": "stretch",
     "wrap": false
   },
@@ -39,7 +39,7 @@ CSS Grid container.
 ```json
 {
   "type": "Grid",
-  "props": { "columns": 3, "gap": "16" },
+  "props": { "columns": 3, "gap": "md" },
   "children": ["a", "b", "c"]
 }
 ```
@@ -73,7 +73,7 @@ Slot container for use inside Tabs and Modals.
 ```json
 {
   "type": "Container",
-  "props": { "slot": "tab-1", "padding": "16" },
+  "props": { "slot": "tab-1", "padding": "md" },
   "children": ["content"]
 }
 ```
@@ -112,7 +112,7 @@ Horizontal separator line.
 Empty space element.
 
 ```json
-{ "type": "Spacer", "props": { "height": "24" } }
+{ "type": "Spacer", "props": { "height": "lg" } }
 ```
 
 | Prop | Type | Default | Description |
@@ -170,7 +170,7 @@ Data visualization using recharts.
     "data": { "$expr": "state.data.revenue" },
     "xKey": "month",
     "yKey": "value",
-    "color": "#6366f1",
+    "color": "var(--forgeui-color-primary)",
     "yFormat": "$"
   }
 }
@@ -182,7 +182,7 @@ Data visualization using recharts.
 | `data` | array or expr | `[]` | Data points |
 | `xKey` | string | — | X-axis property name |
 | `yKey` | string | — | Y-axis property name |
-| `color` | string | `"#6366f1"` | Primary chart color |
+| `color` | string | `"var(--forgeui-color-primary)"` | Primary chart color |
 | `yFormat` | string | — | Y-axis prefix (e.g. `"$"`, `"%"`) |
 | `height` | number | `300` | Chart height in px |
 
@@ -237,12 +237,12 @@ Status/color label.
 | `text` | string | — | Badge text |
 | `variant` | string | `"info"` | `"success"`, `"warning"`, `"error"`, `"info"` |
 
-### ProgressBar
+### Progress
 
 Progress indicator.
 
 ```json
-{ "type": "ProgressBar", "props": { "value": 75, "max": 100, "label": "Loading", "showValue": true } }
+{ "type": "Progress", "props": { "value": 75, "max": 100, "label": "Loading", "showValue": true } }
 ```
 
 | Prop | Type | Default | Description |
@@ -399,13 +399,13 @@ Tabbed container.
 
 Child containers must use `"slot"` prop matching the tab ID.
 
-### Modal
+### Dialog
 
 Dialog overlay.
 
 ```json
 {
-  "type": "Modal",
+  "type": "Dialog",
   "props": { "title": "Confirm", "open": false },
   "children": ["modal-content"]
 }
@@ -441,16 +441,53 @@ Error boundary / fallback display for invalid manifests or failed renders.
 
 ### Drawing
 
-Canvas-based drawing surface.
+SVG drawing surface for small diagrams and custom icons. LLMs should generate `shapes` data, not raw SVG markup. See the [LLM SVG icon guide](llm-svg-icon-guide.md) for icon-specific constraints.
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `width` | number | `400` | Canvas width in px |
-| `height` | number | `300` | Canvas height in px |
-| `tool` | string | `"pen"` | Drawing tool (`"pen"`, `"eraser"`) |
-| `color` | string | `"#000"` | Stroke color |
+| `width` | number | `400` | SVG width in px |
+| `height` | number | `300` | SVG height in px |
+| `background` | string | `"transparent"` | SVG background color |
+| `shapes` | array | `[]` | Shape records: `rect`, `circle`, `ellipse`, `line`, `text`, or `path` |
+
+```json
+{
+  "type": "Drawing",
+  "props": {
+    "width": 24,
+    "height": 24,
+    "shapes": [
+      { "type": "circle", "cx": 12, "cy": 12, "r": 9, "stroke": "currentColor", "strokeWidth": 2 },
+      { "type": "path", "d": "M8 12l3 3 5-6", "stroke": "currentColor", "strokeWidth": 2 }
+    ]
+  }
+}
+```
 
 ---
+
+## Design Tokens
+
+Always use design tokens instead of raw CSS values. This ensures consistency, accessibility, and resilience across themes.
+
+| Token Category | Values |
+|---|---|
+| **Spacing** | `none`, `3xs` (2px), `2xs` (4px), `xs` (8px), `sm` (12px), `md` (16px), `lg` (24px), `xl` (32px), `2xl` (48px) |
+| **Colors** | `primary`, `success`, `warning`, `error`, `info`, `secondary`, `muted` |
+| **Sizes** | `sm`, `md`, `lg` |
+| **Radius** | `none`, `sm` (4px), `md` (8px), `lg` (12px), `full` |
+
+**Bad practice:** `"gap": "16"`, `"padding": "24"`, `"color": "#ff0000"`
+**Good practice:** `"gap": "md"`, `"padding": "lg"`, `"colorScheme": "error"`
+
+## Responsive Guidelines
+
+Forge components adapt automatically, but manifests should be written with mobile in mind:
+
+- Use `Grid` for KPI cards; it collapses to 1 column on narrow screens.
+- Keep `Metric` labels short so they wrap gracefully.
+- Use `Stack` with `wrap` for horizontal button rows.
+- Avoid fixed widths; let containers fill available space.
 
 ## Expressions
 

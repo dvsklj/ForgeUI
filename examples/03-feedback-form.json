@@ -18,7 +18,7 @@
   "elements": {
     "root": {
       "type": "Stack",
-      "props": { "gap": "16", "padding": "24" },
+      "props": { "gap": "md", "padding": "lg" },
       "children": ["header", "alert-info", "feedback-form-card", "feedback-list"]
     },
     "header": {
@@ -28,7 +28,7 @@
     },
     "header-badges": {
       "type": "Stack",
-      "props": { "direction": "horizontal", "gap": "8" },
+      "props": { "direction": "horizontal", "gap": "xs" },
       "children": ["badge-open", "badge-reviews"]
     },
     "badge-open": {
@@ -50,7 +50,7 @@
     },
     "form-fields": {
       "type": "Stack",
-      "props": { "gap": "12" },
+      "props": { "gap": "sm" },
       "children": ["name-row", "input-message", "slider-rating", "select-category"]
     },
     "name-row": {

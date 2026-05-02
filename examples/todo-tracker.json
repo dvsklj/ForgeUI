@@ -21,8 +21,8 @@
   "elements": {
     "shell": {
       "type": "Stack",
-      "props": { "spacing": "md", "padding": "md" },
-      "children": ["header", "add-form", "todo-list"]
+      "props": { "gap": "lg", "padding": "lg" },
+      "children": ["header", "add-card", "todo-list"]
     },
     "header": {
       "type": "Card",
@@ -35,11 +35,16 @@
     },
     "subtitle": {
       "type": "Text",
-      "props": { "content": "Track your tasks", "variant": "subheading", "colorScheme": "secondary" }
+      "props": { "content": "A small workspace for capturing the next useful thing.", "variant": "muted" }
+    },
+    "add-card": {
+      "type": "Card",
+      "props": { "title": "Quick add", "subtitle": "Keep it short and actionable." },
+      "children": ["add-form"]
     },
     "add-form": {
       "type": "Stack",
-      "props": { "direction": "row", "spacing": "sm", "align": "end" },
+      "props": { "direction": "column", "gap": "xs", "align": "stretch" },
       "children": ["title-input", "add-btn"]
     },
     "title-input": {
@@ -52,7 +57,7 @@
     },
     "todo-list": {
       "type": "List",
-      "props": { "dataPath": "todos", "emptyMessage": "No todos yet — add one above!" }
+      "props": { "dataPath": "todos", "emptyMessage": "No tasks yet. Add one above to start the list." }
     }
   },
   "actions": {

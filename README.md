@@ -36,7 +36,7 @@ Drop one script tag, assign a manifest, done.
         elements: {
           root: {
             type: "Stack",
-            props: { gap: "16", padding: "24" },
+            props: { gap: "md", padding: "lg" },
             children: ["title", "btn"]
           },
           title: { type: "Text", props: { content: "Hello from Forge", variant: "heading1" } },
@@ -71,7 +71,7 @@ A manifest is flat, ID-indexed JSON. Elements reference each other by ID in a `c
   "root": "root",
   "state": { "count": 0 },
   "elements": {
-    "root": { "type": "Stack", "children": ["label", "plus"], "props": { "gap": "12" } },
+    "root": { "type": "Stack", "children": ["label", "plus"], "props": { "gap": "sm" } },
     "label": { "type": "Text", "props": { "content": { "$expr": "state.count" } } },
     "plus":  { "type": "Button", "props": { "label": "+1", "action": "inc" } }
   },
@@ -190,6 +190,7 @@ See [`SECURITY.md`](SECURITY.md) for the reporting process and [`docs/architectu
 
 - [**Getting started**](docs/getting-started.md) — step-by-step tutorial, build a small app end to end
 - [**Component catalog**](docs/components.md) — every component, every prop, every variant
+- [**LLM SVG icon guide**](docs/llm-svg-icon-guide.md) — rules for generating clean icon drawings with Forge shapes
 - [**API reference**](docs/api-reference.md) — runtime exports, server REST API, MCP tools, manifest schema
 - [**Architecture**](docs/architecture.md) — the persistence spectrum, validation pipeline, expression engine
 - [**Deployment**](docs/deployment.md) — Docker, systemd, Cloudflare Workers, nginx

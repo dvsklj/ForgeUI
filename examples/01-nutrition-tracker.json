@@ -34,7 +34,7 @@
   "elements": {
     "root": {
       "type": "Stack",
-      "props": { "gap": "16", "padding": "24" },
+      "props": { "gap": "md", "padding": "lg" },
       "children": ["header", "summary-row", "meal-table", "add-form"]
     },
     "header": {
@@ -44,7 +44,7 @@
     },
     "badges": {
       "type": "Stack",
-      "props": { "direction": "horizontal", "gap": "8" },
+      "props": { "direction": "horizontal", "gap": "xs" },
       "children": ["badge-healthy", "badge-tracker"]
     },
     "badge-healthy": {
