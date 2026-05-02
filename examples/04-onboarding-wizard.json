@@ -5,6 +5,12 @@
     "title": "Onboarding Wizard",
     "description": "Multi-step user onboarding flow"
   },
+  "state": {
+    "wizard/step": 0,
+    "profile/first": "",
+    "profile/last": "",
+    "profile/bio": ""
+  },
   "elements": {
     "root": {
       "type": "Stack",
@@ -37,19 +43,19 @@
     "stepper": {
       "type": "Stepper",
       "props": {
+        "bind": "$state:wizard/step",
         "steps": [
           { "label": "Profile", "description": "Basic info" },
           { "label": "Preferences", "description": "Customize your experience" },
           { "label": "Team", "description": "Invite colleagues" },
           { "label": "Review", "description": "Confirm and finish" }
-        ],
-        "activeStep": 0
+        ]
       }
     },
     "wizard-content": {
       "type": "Card",
       "props": { "title": "Step 1: Your Profile" },
-      "children": ["step1-fields", "step-actions"]
+      "children": ["step1-fields", "wizard-status", "step-actions"]
     },
     "step1-fields": {
       "type": "Stack",
@@ -63,15 +69,15 @@
     },
     "input-first": {
       "type": "TextInput",
-      "props": { "label": "First Name", "placeholder": "Jane", "required": true }
+      "props": { "label": "First Name", "placeholder": "Jane", "required": true, "bind": "$state:profile/first" }
     },
     "input-last": {
       "type": "TextInput",
-      "props": { "label": "Last Name", "placeholder": "Doe", "required": true }
+      "props": { "label": "Last Name", "placeholder": "Doe", "required": true, "bind": "$state:profile/last" }
     },
     "input-bio": {
       "type": "TextInput",
-      "props": { "label": "Short Bio", "placeholder": "Tell us about yourself...", "multiline": true }
+      "props": { "label": "Short Bio", "placeholder": "Tell us about yourself...", "multiline": true, "bind": "$state:profile/bio" }
     },
     "avatar-section": {
       "type": "Stack",
@@ -86,6 +92,11 @@
       "type": "Button",
       "props": { "label": "Upload Photo", "variant": "secondary" }
     },
+    "wizard-status": {
+      "type": "Alert",
+      "visible": { "$when": { "path": "wizard/status", "exists": true } },
+      "props": { "variant": "success", "title": "Progress saved", "message": "{{$state:wizard/status}}" }
+    },
     "step-actions": {
       "type": "Stack",
       "props": { "direction": "horizontal", "gap": "xs", "justify": "end" },
@@ -93,11 +104,27 @@
     },
     "btn-back": {
       "type": "Button",
-      "props": { "label": "Back", "variant": "ghost", "disabled": true }
+      "props": { "label": "Back", "variant": "ghost", "action": "wizard-back" }
     },
     "btn-next": {
       "type": "Button",
-      "props": { "label": "Next Step", "variant": "primary", "disabled": true }
+      "props": { "label": "Next Step", "variant": "primary", "action": "wizard-next" }
+    }
+  },
+  "actions": {
+    "wizard-next": {
+      "type": "mutateState",
+      "set": {
+        "wizard/step": 1,
+        "wizard/status": "Profile captured. The stepper and fields are bound through Forge state."
+      }
+    },
+    "wizard-back": {
+      "type": "mutateState",
+      "set": {
+        "wizard/step": 0,
+        "wizard/status": "Returned to profile details."
+      }
     }
   },
   "root": "root"

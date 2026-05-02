@@ -101,15 +101,28 @@ export class ForgeUIElement extends LitElement {
     return typeof val === 'boolean' ? val : fallback;
   }
 
+  /** Get the current value from a two-way bind prop, falling back to a normal prop. */
+  protected getBoundProp(key: string, fallback?: unknown): unknown {
+    const bind = typeof this.props?.bind === 'string' ? this.props.bind : '';
+    if (bind) {
+      const value = this.resolve(bind);
+      if (value !== undefined) return value;
+    }
+    const value = this.getProp(key);
+    return value === undefined ? fallback : value;
+  }
+
   // ─── Action helpers ──────────────────────────────────────────
 
   /** Dispatch a forgeui-action event */
   protected dispatchAction(actionId: string, payload?: Record<string, unknown>) {
+    const bind = typeof this.props?.bind === 'string' ? this.props.bind : '';
+    const detailPayload = bind ? { ...(payload || {}), bind } : payload;
     if (this.onAction) {
-      this.onAction(actionId, payload);
+      this.onAction(actionId, detailPayload);
     }
     this.dispatchEvent(new CustomEvent('forgeui-action', {
-      detail: { action: actionId, payload },
+      detail: { action: actionId, payload: detailPayload },
       bubbles: true,
       composed: true,
     }));

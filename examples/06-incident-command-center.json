@@ -1,0 +1,222 @@
+{
+  "manifest": "0.1.0",
+  "id": "incident-command-center",
+  "meta": {
+    "title": "Incident Command Center",
+    "description": "Coordinate an active reliability incident"
+  },
+  "state": {
+    "ops/view": "overview",
+    "ops/severity": 3,
+    "ops/channel": "database",
+    "ops/warRoom": true,
+    "data": {
+      "services": [
+        { "name": "API Gateway", "status": "degraded", "owner": "Platform", "eta": "18 min" },
+        { "name": "Database", "status": "investigating", "owner": "Storage", "eta": "32 min" },
+        { "name": "Billing Jobs", "status": "healthy", "owner": "Revenue", "eta": "clear" }
+      ],
+      "timeline": [
+        { "label": "10:02", "value": 8 },
+        { "label": "10:08", "value": 18 },
+        { "label": "10:14", "value": 31 },
+        { "label": "10:20", "value": 24 },
+        { "label": "10:26", "value": 15 }
+      ]
+    }
+  },
+  "elements": {
+    "root": {
+      "type": "Stack",
+      "props": { "gap": "md", "padding": "lg" },
+      "children": ["crumbs", "header", "status-alert", "control-grid", "tabs", "overview-panel", "runbook-panel"]
+    },
+    "crumbs": {
+      "type": "Breadcrumb",
+      "props": { "items": ["Reliability", "Incidents", "SEV-2026-0502"] }
+    },
+    "header": {
+      "type": "Card",
+      "props": { "title": "Incident Command Center", "subtitle": "Live triage surface for a database latency incident" },
+      "children": ["header-badges"]
+    },
+    "header-badges": {
+      "type": "Stack",
+      "props": { "direction": "horizontal", "gap": "xs" },
+      "children": ["badge-live", "badge-owner"]
+    },
+    "badge-live": {
+      "type": "Badge",
+      "props": { "text": "Active incident", "variant": "error" }
+    },
+    "badge-owner": {
+      "type": "Badge",
+      "props": { "text": "Storage team", "variant": "info" }
+    },
+    "status-alert": {
+      "type": "Alert",
+      "props": { "message": "$state:ops/status", "variant": "success", "title": "Update posted" },
+      "visible": { "$when": { "path": "ops/status", "exists": true } }
+    },
+    "control-grid": {
+      "type": "Grid",
+      "props": { "columns": 3 },
+      "children": ["severity-card", "channel-card", "warroom-card"]
+    },
+    "severity-card": {
+      "type": "Card",
+      "props": { "title": "Severity" },
+      "children": ["severity-slider"]
+    },
+    "severity-slider": {
+      "type": "Slider",
+      "props": { "label": "SEV level", "min": 1, "max": 5, "step": 1, "bind": "$state:ops/severity", "showValue": true }
+    },
+    "channel-card": {
+      "type": "Card",
+      "props": { "title": "Primary System" },
+      "children": ["channel-select"]
+    },
+    "channel-select": {
+      "type": "Select",
+      "props": {
+        "label": "Update channel",
+        "bind": "$state:ops/channel",
+        "options": [
+          { "value": "database", "label": "Database" },
+          { "value": "api", "label": "API Gateway" },
+          { "value": "billing", "label": "Billing Jobs" },
+          { "value": "executive", "label": "Executive Briefing" }
+        ]
+      }
+    },
+    "warroom-card": {
+      "type": "Card",
+      "props": { "title": "War Room" },
+      "children": ["warroom-toggle", "ack-btn"]
+    },
+    "warroom-toggle": {
+      "type": "Toggle",
+      "props": { "label": "Keep bridge open", "bind": "$state:ops/warRoom" }
+    },
+    "ack-btn": {
+      "type": "Button",
+      "props": { "label": "Post Update", "variant": "primary", "action": "post-update" }
+    },
+    "tabs": {
+      "type": "Tabs",
+      "props": {
+        "items": [
+          { "id": "overview", "label": "Overview" },
+          { "id": "runbook", "label": "Runbook" }
+        ],
+        "bind": "$state:ops/view"
+      },
+      "children": ["tab-overview", "tab-runbook"]
+    },
+    "overview-panel": {
+      "type": "Container",
+      "props": { "padding": "none" },
+      "children": ["overview-grid"],
+      "visible": { "$when": { "path": "ops/view", "eq": "overview" } }
+    },
+    "tab-overview": {
+      "type": "Spacer",
+      "props": { "size": "0" }
+    },
+    "overview-grid": {
+      "type": "Grid",
+      "props": { "columns": 2 },
+      "children": ["topology-card", "timeline-card"]
+    },
+    "topology-card": {
+      "type": "Card",
+      "props": { "title": "Dependency Map" },
+      "children": ["topology"]
+    },
+    "topology": {
+      "type": "Drawing",
+      "props": {
+        "width": 520,
+        "height": 260,
+        "shapes": [
+          { "type": "line", "x1": 120, "y1": 80, "x2": 260, "y2": 130, "stroke": "var(--forgeui-color-border-strong)", "strokeWidth": 3 },
+          { "type": "line", "x1": 260, "y1": 130, "x2": 410, "y2": 80, "stroke": "var(--forgeui-color-border-strong)", "strokeWidth": 3 },
+          { "type": "rect", "x": 50, "y": 45, "width": 140, "height": 70, "rx": 8, "fill": "var(--forgeui-color-primary-subtle)", "stroke": "var(--forgeui-color-primary)", "strokeWidth": 2 },
+          { "type": "rect", "x": 205, "y": 95, "width": 120, "height": 70, "rx": 8, "fill": "var(--forgeui-color-warning-subtle)", "stroke": "var(--forgeui-color-warning)", "strokeWidth": 2 },
+          { "type": "rect", "x": 350, "y": 45, "width": 120, "height": 70, "rx": 8, "fill": "var(--forgeui-color-error-subtle)", "stroke": "var(--forgeui-color-error)", "strokeWidth": 2 },
+          { "type": "text", "x": 120, "y": 86, "content": "API", "textAnchor": "middle", "fontSize": 16, "fontWeight": 700 },
+          { "type": "text", "x": 265, "y": 137, "content": "DB", "textAnchor": "middle", "fontSize": 16, "fontWeight": 700 },
+          { "type": "text", "x": 410, "y": 86, "content": "Jobs", "textAnchor": "middle", "fontSize": 16, "fontWeight": 700 }
+        ]
+      }
+    },
+    "timeline-card": {
+      "type": "Card",
+      "props": { "title": "Latency Spike" },
+      "children": ["incident-chart", "service-table"]
+    },
+    "incident-chart": {
+      "type": "Chart",
+      "props": { "chartType": "area", "data": { "$expr": "state.data.timeline | values" }, "xKey": "label", "yKey": "value" }
+    },
+    "service-table": {
+      "type": "Table",
+      "props": {
+        "data": { "$expr": "state.data.services | values" },
+        "columns": [
+          { "key": "name", "label": "Service", "type": "text" },
+          { "key": "status", "label": "Status", "type": "badge", "badgeMap": { "healthy": "success", "degraded": "warning", "investigating": "error" } },
+          { "key": "owner", "label": "Owner", "type": "text" },
+          { "key": "eta", "label": "ETA", "type": "text" }
+        ]
+      }
+    },
+    "runbook-panel": {
+      "type": "Container",
+      "props": { "padding": "none" },
+      "children": ["runbook-card"],
+      "visible": { "$when": { "path": "ops/view", "eq": "runbook" } }
+    },
+    "tab-runbook": {
+      "type": "Spacer",
+      "props": { "size": "0" }
+    },
+    "runbook-card": {
+      "type": "Card",
+      "props": { "title": "Runbook" },
+      "children": ["runbook-1", "runbook-2", "empty-handoff"]
+    },
+    "runbook-1": {
+      "type": "Accordion",
+      "props": { "title": "1. Confirm blast radius" },
+      "children": ["runbook-1-text"]
+    },
+    "runbook-1-text": {
+      "type": "Text",
+      "props": { "content": "Check API latency, queue depth, and database connection saturation before changing severity.", "variant": "body" }
+    },
+    "runbook-2": {
+      "type": "Accordion",
+      "props": { "title": "2. Communicate every 15 minutes" },
+      "children": ["runbook-2-text"]
+    },
+    "runbook-2-text": {
+      "type": "Text",
+      "props": { "content": "Post concise customer-facing updates and link the active mitigation owner.", "variant": "body" }
+    },
+    "empty-handoff": {
+      "type": "EmptyState",
+      "props": { "title": "No handoff notes yet", "description": "The next incident commander can add notes after the first mitigation lands." }
+    }
+  },
+  "actions": {
+    "post-update": {
+      "type": "mutateState",
+      "set": {
+        "ops/status": "Update posted for SEV {{$state:ops/severity}} on {{$state:ops/channel}}. War room state is bound and ready."
+      }
+    }
+  },
+  "root": "root"
+}

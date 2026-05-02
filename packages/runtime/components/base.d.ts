@@ -38,6 +38,8 @@ export declare class ForgeUIElement extends LitElement {
     protected getNumber(key: string, fallback?: number): number;
     /** Get a prop as a boolean */
     protected getBool(key: string, fallback?: boolean): boolean;
+    /** Get the current value from a two-way bind prop, falling back to a normal prop. */
+    protected getBoundProp(key: string, fallback?: unknown): unknown;
     /** Dispatch a forgeui-action event */
     protected dispatchAction(actionId: string, payload?: Record<string, unknown>): void;
     /** Handle a button/action click by looking up the action prop */

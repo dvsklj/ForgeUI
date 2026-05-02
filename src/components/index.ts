@@ -140,7 +140,6 @@ customElements.define('forgeui-container', ForgeContainer);
 export class ForgeTabs extends ForgeUIElement {
   static get properties() { return {
     props: { type: Object },
-    _active: { state: true },
   }; }
   declare _active: string;
   constructor() { super(); this._active = ''; }
@@ -175,7 +174,8 @@ export class ForgeTabs extends ForgeUIElement {
     // Light-DOM slot filtering: mark only the active child as visible
     const kids = Array.from(this.children).filter(c => !(c instanceof HTMLScriptElement)) as HTMLElement[];
     kids.forEach((kid, i) => {
-      const isActive = String(i) === this._active || kid.id === this._active || kid.getAttribute('slot') === this._active;
+      const childSlot = ((kid as any).props || {}).slot ?? kid.getAttribute('slot');
+      const isActive = String(i) === this._active || childSlot === this._active;
       if (isActive) kid.setAttribute('data-active', '');
       else kid.removeAttribute('data-active');
     });
@@ -184,14 +184,16 @@ export class ForgeTabs extends ForgeUIElement {
     const newKey = this._itemKey(arr[newIndex]) || String(newIndex);
     this._active = newKey;
     this.requestUpdate();
-    this.dispatchAction('tab-change', { active: newKey });
+    this.dispatchAction('tab-change', { active: newKey, value: newKey });
     this.updateComplete.then(() => {
       this.shadowRoot?.querySelector<HTMLButtonElement>(`#${this._instanceId}-tab-${newIndex}`)?.focus();
     });
   }
   render() {
-    const items: unknown = this.getProp('items') || [];
+    const items: unknown = this.getProp('items') || this.getProp('tabs') || [];
     const arr = Array.isArray(items) ? items : [];
+    const bound = this.getBoundProp('activeTab', this.getProp('value'));
+    if (bound !== undefined && String(bound) !== this._active) this._active = String(bound);
     if (!this._active && arr.length > 0) this._active = this._itemKey(arr[0]) || '0';
     const activeIndex = arr.findIndex((item: any, i: number) => (this._itemKey(item) || String(i)) === this._active);
     const handleKeydown = (e: KeyboardEvent, i: number) => {
@@ -212,7 +214,7 @@ export class ForgeTabs extends ForgeUIElement {
             id="${this._instanceId}-tab-${i}"
             aria-controls="${this._instanceId}-panel"
             tabindex="${active ? 0 : -1}"
-            @click=${() => { this._active = key; this.requestUpdate(); this.dispatchAction('tab-change', { active: key }); }}
+            @click=${() => { this._active = key; this.requestUpdate(); this.dispatchAction('tab-change', { active: key, value: key }); }}
             @keydown=${(e: KeyboardEvent) => handleKeydown(e, i)}>${label}</button>
         `;
       })}</div>
@@ -478,7 +480,7 @@ export class ForgeTextInput extends ForgeUIElement {
     const error = this.getString('error', '');
     const type = this.getString('inputType', '') || this.getString('type', 'text');
     const multiline = this.getBool('multiline');
-    const val = this.getString('value', '');
+    const val = String(this.getBoundProp('value', '') ?? '');
     const inputId = this._instanceId;
     return html`
       ${label ? html`<label for="${inputId}">${label}</label>` : nothing}
@@ -507,7 +509,7 @@ export class ForgeNumberInput extends ForgeUIElement {
     const min = this.getProp('min') as number | undefined;
     const max = this.getProp('max') as number | undefined;
     const step = this.getProp('step') as number | undefined;
-    const val = this.getProp('value') as number | undefined;
+    const val = this.getBoundProp('value') as number | undefined;
     const inputId = this._instanceId;
     return html`
       ${label ? html`<label for="${inputId}">${label}</label>` : nothing}
@@ -530,7 +532,7 @@ export class ForgeSelect extends ForgeUIElement {
   render() {
     const label = this.getString('label', '');
     const options = (this.getProp('options') || []) as any[];
-    const val = this.getString('value', '');
+    const val = String(this.getBoundProp('value', '') ?? '');
     const inputId = this._instanceId;
     return html`
       ${label ? html`<label for="${inputId}">${label}</label>` : nothing}
@@ -578,7 +580,7 @@ export class ForgeCheckbox extends ForgeUIElement {
   `; }
   render() {
     const label = this.getString('label', '');
-    const checked = this.getBool('checked');
+    const checked = !!this.getBoundProp('checked', this.getProp('value') ?? false);
     const inputId = this._instanceId;
     return html`
       <input id="${inputId}" type="checkbox" ?checked=${checked} @change=${(e: any) => this.dispatchAction('change', { checked: e.target.checked })}>
@@ -607,7 +609,7 @@ export class ForgeToggle extends ForgeUIElement {
     }
   `; }
   render() {
-    const on = this.getBool('on');
+    const on = !!this.getBoundProp('on', this.getProp('value') ?? false);
     const label = this.getString('label', '');
     const disabled = this.getBool('disabled');
     const inputId = this._instanceId;
@@ -630,12 +632,8 @@ export class ForgeToggle extends ForgeUIElement {
 
   private _toggle = () => {
     if (this.getBool('disabled')) return;
-    const current = this.getBool('on');
-    this.dispatchEvent(new CustomEvent('forgeui-action', {
-      detail: { actionId: 'change', value: !current },
-      bubbles: true,
-      composed: true,
-    }));
+    const current = !!this.getBoundProp('on', this.getProp('value') ?? false);
+    this.dispatchAction('change', { value: !current, checked: !current });
   };
 
   private _onKeydown = (e: KeyboardEvent) => {
@@ -679,7 +677,9 @@ export class ForgeSlider extends ForgeUIElement {
     const min = this.getNumber('min', 0);
     const max = this.getNumber('max', 100);
     const step = this.getNumber('step', 1);
-    const val = this.getNumber('value', min);
+    const rawVal = this.getBoundProp('value', min);
+    let val = Number(rawVal);
+    if (!Number.isFinite(val)) val = min;
     return html`
       ${label ? html`<label>${label}</label>` : nothing}
       <input type="range" min=${min} max=${max} step=${step} .value=${val}
@@ -909,7 +909,11 @@ export class ForgeList extends ForgeUIElement {
     .empty { padding:var(--forgeui-space-lg); text-align:center; color:var(--forgeui-color-text-tertiary); font-size:var(--forgeui-text-sm); overflow-wrap:break-word; }
   `; }
   render() {
-    const data = this.getProp('data');
+    let data = this.getProp('data');
+    const dataPath = this.getString('dataPath', '');
+    if (!('data' in (this.props || {})) && dataPath && this.store?.hasTable(dataPath)) {
+      data = Object.values(this.store.getTable(dataPath));
+    }
     const emptyMsg = this.getString('emptyMessage', 'No items');
     if (!Array.isArray(data) || data.length === 0) return html`<div class="empty">${emptyMsg}</div>`;
     return html`<div class="list">${data.map((item: any, i: number) => html`
@@ -1443,7 +1447,8 @@ export class ForgeStepper extends ForgeUIElement {
   `; }
   render() {
     const steps = (this.getProp('steps') || []) as any[];
-    const active = this.getNumber('active', 0);
+    const activeValue = this.getBoundProp('active', this.getProp('activeStep') ?? 0);
+    const active = Number(activeValue) || 0;
     return html`${steps.map((step: any, i: number) => {
       const label = typeof step === 'string' ? step : (step.label || step.title || `Step ${i + 1}`);
       const isActive = i === active;

@@ -377,7 +377,7 @@ function replaceTemplates(input: string, store: Store): string {
       }
       if(!d){
         const inner=input.slice(s,j-2);
-        if(inner.length<=256){const v=evaluateExpression(store,inner.trim());out+=v==null?'':String(v)}
+        if(inner.length<=256){const ref=inner.trim();const v=ref.startsWith('$')?resolveRef(store,ref):evaluateExpression(store,ref);out+=v==null?'':String(v)}
         else out+=input.slice(i,j);
         i=j;
       }else out+=input[i++];

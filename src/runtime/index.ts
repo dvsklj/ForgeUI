@@ -9,7 +9,7 @@
 import { LitElement, html } from 'lit';
 import { Store } from 'tinybase';
 import type { ForgeUIManifest, SurfaceMode } from '../types/index.js';
-import { createForgeUIStore, executeAction } from '../state/index.js';
+import { createForgeUIStore, executeAction, resolveRef } from '../state/index.js';
 import { validateManifest, ValidationResult } from '../validation/index.js';
 import { renderManifest, RenderContext } from '../renderer/index.js';
 import { tokenStyles, surfaceStyles } from '../tokens/index.js';
@@ -227,9 +227,28 @@ export class ForgeUIApp extends LitElement {
 
   private _handleAction(actionId: string, payload?: Record<string, unknown>) {
     const manifest = this._parsedManifest;
-    if (!manifest?.actions || !this._store) return;
+    if (!manifest || !this._store) return;
+
+    const bind = typeof payload?.bind === 'string' ? payload.bind : '';
+    let handledBind = false;
+    if (bind[7] && bind.startsWith('$state:')) {
+      const value = payload?.value ?? payload?.checked ?? payload?.active;
+      if (value !== undefined) {
+        executeAction(this._store, {
+          type: 'mutateState',
+          path: bind.slice(7),
+          operation: 'set',
+          value,
+        });
+        handledBind = true;
+        this.requestUpdate();
+      }
+    }
+
+    if (!manifest.actions) return;
 
     const action = manifest.actions[actionId];
+    if (!action && handledBind) return;
     if (!action) {
       console.warn(`[Forge] Unknown action: ${actionId}`);
       return;
@@ -244,17 +263,23 @@ export class ForgeUIApp extends LitElement {
               type: action.type,
               path: key,
               operation: 'set',
-              value: val,
+              value: typeof val === 'string' ? resolveRef(this._store, val) : val,
             });
           }
         } else {
           const key = action.key?.replace('{{id}}', String(payload?.id || ''));
+          const path = action.path?.replace('{{id}}', String(payload?.id || ''));
+          let value = action.value ?? payload;
+          if (typeof value === 'string') value = resolveRef(this._store, value);
+          else if (value && typeof value === 'object') {
+            value = Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([k, v]) => [k, typeof v === 'string' ? resolveRef(this._store!, v) : v]));
+          }
           executeAction(this._store, {
             type: action.type,
-            path: action.path,
+            path,
             operation: action.operation,
             key,
-            value: action.value ?? payload,
+            value,
           });
         }
         this.requestUpdate();
