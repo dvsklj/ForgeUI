@@ -5,7 +5,7 @@
 import { readFileSync, statSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 
-const BUDGET_BYTES = 50_500; // Runtime demo binding support keeps the IIFE just over the old 50 KB line.
+const BUDGET_BYTES = 51_000; // Runtime binding + catalog guidance keep the IIFE just over the old 50 KB line.
 
 const path = 'dist/forgeui.js';
 let raw;
