@@ -3,6 +3,12 @@
   "id": "social-profile",
   "meta": { "title": "Social Profile", "description": "User profile view", "generator": "manual" },
   "root": "shell",
+  "state": {
+    "profile/following": false,
+    "post/liked": false,
+    "profile/status": "",
+    "profile/tab": "posts"
+  },
   "elements": {
     "shell": {
       "type": "Stack",
@@ -12,7 +18,7 @@
     "profile-content": {
       "type": "Stack",
       "props": { "gap": "lg", "padding": "lg" },
-      "children": ["profile-card", "stats-grid", "tabs"]
+      "children": ["profile-card", "profile-status", "stats-grid", "tabs"]
     },
     "profile-card": {
       "type": "Card",
@@ -33,7 +39,13 @@
     "display-name": { "type": "Text", "props": { "content": "Jian-Yang", "variant": "heading2" } },
     "username": { "type": "Text", "props": { "content": "@jianyang", "variant": "muted" } },
     "spacer": { "type": "Spacer", "props": { "width": "100%" } },
-    "follow-btn": { "type": "Button", "props": { "label": "Follow", "variant": "primary" } },
+    "follow-btn": { "type": "Button", "props": { "label": "Follow", "variant": "primary", "action": "follow-profile" } },
+
+    "profile-status": {
+      "type": "Alert",
+      "visible": { "$when": { "path": "profile/status", "neq": "" } },
+      "props": { "variant": "success", "title": "Profile action", "message": "{{$state:profile/status}}" }
+    },
 
     "bio-text": { "type": "Text", "props": { "content": "Building compact tools, strange prototypes, and a better internet one release at a time.", "variant": "body" } },
 
@@ -54,7 +66,7 @@
           { "label": "Media", "id": "media" },
           { "label": "Likes", "id": "likes" }
         ],
-        "activeTab": "posts"
+        "bind": "$state:profile/tab"
       },
       "children": ["tab-posts", "tab-media", "tab-likes"]
     },
@@ -81,13 +93,35 @@
       "props": {},
       "children": ["p1-like", "p1-rt"]
     },
-    "p1-like": { "type": "Button", "props": { "label": "Like (420)", "variant": "ghost" } },
-    "p1-rt": { "type": "Button", "props": { "label": "Share", "variant": "ghost" } },
+    "p1-like": { "type": "Button", "props": { "label": "Like (420)", "variant": "ghost", "action": "like-post" } },
+    "p1-rt": { "type": "Button", "props": { "label": "Share", "variant": "ghost", "action": "share-post" } },
 
     "tab-media": { "type": "Container", "props": { "slot": "media", "padding": "md" }, "children": ["media-empty"] },
     "media-empty": { "type": "Text", "props": { "content": "No media found.", "variant": "muted" } },
 
     "tab-likes": { "type": "Container", "props": { "slot": "likes", "padding": "md" }, "children": ["likes-empty"] },
     "likes-empty": { "type": "Text", "props": { "content": "No likes found.", "variant": "muted" } }
+  },
+  "actions": {
+    "follow-profile": {
+      "type": "mutateState",
+      "set": {
+        "profile/following": true,
+        "profile/status": "You are now following Jian-Yang."
+      }
+    },
+    "like-post": {
+      "type": "mutateState",
+      "set": {
+        "post/liked": true,
+        "profile/status": "Post liked."
+      }
+    },
+    "share-post": {
+      "type": "mutateState",
+      "path": "profile/status",
+      "operation": "set",
+      "value": "Share link copied."
+    }
   }
 }

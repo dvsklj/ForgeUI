@@ -46,6 +46,33 @@ test('feedback form keeps rating, fields, category, and submit status bound', as
   await expect(page.getByText('Feedback draft captured locally')).toBeVisible();
 });
 
+test('nutrition tracker stages a meal from bound inputs', async ({ page }) => {
+  await loadDemo(page, '01-nutrition-tracker');
+
+  await page.getByLabel('Meal Name').fill('Tofu power bowl');
+  await page.getByLabel('Calories').fill('640');
+  await page.getByLabel('Protein (g)').fill('42');
+  await page.getByLabel('Meal Type').selectOption('dinner');
+
+  await expect.poll(() => stateValue(page, 'meal/name')).toBe('Tofu power bowl');
+  await expect.poll(() => stateValue(page, 'meal/calories')).toBe(640);
+  await expect.poll(() => stateValue(page, 'meal/type')).toBe('dinner');
+
+  await page.getByRole('button', { name: 'Add Meal' }).click();
+  await expect(page.getByText('Meal staged locally: Tofu power bowl at 640 calories.')).toBeVisible();
+});
+
+test('analytics dashboard renders metrics, charts, and status table', async ({ page }) => {
+  await loadDemo(page, '02-analytics-dashboard');
+
+  await expect(page.getByText('Total Revenue')).toBeVisible();
+  await expect(page.getByText('$299K')).toBeVisible();
+  await expect(page.getByText('Monthly Revenue')).toBeVisible();
+  await expect(page.locator('forgeui-chart svg')).toHaveCount(2);
+  await expect(page.getByText('API rate limit hit')).toBeVisible();
+  await expect(page.getByText('error')).toBeVisible();
+});
+
 test('settings panel tabs and controls update Forge state', async ({ page }) => {
   await loadDemo(page, '05-settings-panel');
 
@@ -65,6 +92,47 @@ test('settings panel tabs and controls update Forge state', async ({ page }) => 
     el.dispatchEvent(new InputEvent('input', { bubbles: true, composed: true }));
   });
   await expect.poll(() => stateValue(page, 'settings/fontSize')).toBe(18);
+});
+
+test('issue tracker opens, closes, and submits the new issue dialog', async ({ page }) => {
+  await loadDemo(page, '23-issue-tracker');
+
+  await expect(page.getByText('FRG-102')).toBeVisible();
+  await page.getByRole('button', { name: 'New Issue' }).click();
+  await expect.poll(() => stateValue(page, 'modal_open')).toBe(true);
+  await expect(page.getByRole('dialog', { name: 'Create New Issue' })).toBeVisible();
+
+  await page.getByLabel('Title').fill('Keyboard focus escape edge case');
+  await page.getByLabel('Description').fill('Dialog should close cleanly and keep state tidy.');
+  await expect.poll(() => stateValue(page, 'issue/title')).toBe('Keyboard focus escape edge case');
+
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await expect.poll(() => stateValue(page, 'modal_open')).toBe(false);
+
+  await page.getByRole('button', { name: 'New Issue' }).click();
+  await page.getByLabel('Title').fill('Chart tooltip overflow');
+  await page.getByRole('button', { name: 'Create' }).click();
+  await expect.poll(() => stateValue(page, 'modal_open')).toBe(false);
+  await expect(page.getByText('Draft saved for Chart tooltip overflow.')).toBeVisible();
+});
+
+test('social profile actions and tabs are interactive', async ({ page }) => {
+  await loadDemo(page, '24-social-profile');
+
+  await page.getByRole('button', { name: 'Follow' }).click();
+  await expect.poll(() => stateValue(page, 'profile/following')).toBe(true);
+  await expect(page.getByText('You are now following Jian-Yang.')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Like (420)' }).click();
+  await expect.poll(() => stateValue(page, 'post/liked')).toBe(true);
+  await expect(page.getByText('Post liked.')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Share' }).click();
+  await expect(page.getByText('Share link copied.')).toBeVisible();
+
+  await page.getByRole('tab', { name: 'Media' }).click();
+  await expect.poll(() => stateValue(page, 'profile/tab')).toBe('media');
+  await expect(page.getByText('No media found.')).toBeVisible();
 });
 
 test('todo tracker quick add writes through templates into the table-backed list', async ({ page }) => {

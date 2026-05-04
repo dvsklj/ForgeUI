@@ -8,14 +8,16 @@
       { "id": "FRG-103", "title": "Add DatePicker component", "status": "in-progress", "priority": "medium", "assignee": "alice" },
       { "id": "FRG-104", "title": "Typo in README.md", "status": "resolved", "priority": "low", "assignee": "unassigned" }
     ],
-    "modal_open": false
+    "modal_open": false,
+    "issue/title": "",
+    "issue/description": ""
   },
   "root": "shell",
   "elements": {
     "shell": {
       "type": "Stack",
       "props": { "gap": "lg", "padding": "lg", "align": "stretch" },
-      "children": ["header-actions", "table-card", "new-issue-modal"]
+      "children": ["header-actions", "issue-status", "table-card", "new-issue-modal"]
     },
     "header-actions": {
       "type": "Stack",
@@ -24,7 +26,13 @@
     },
     "page-title": { "type": "Text", "props": { "content": "Backlog", "variant": "heading1" } },
     "spacer": { "type": "Spacer", "props": { "width": "100%" } },
-    "new-btn": { "type": "Button", "props": { "label": "New Issue", "variant": "primary" } },
+    "new-btn": { "type": "Button", "props": { "label": "New Issue", "variant": "primary", "action": "open-new-issue" } },
+
+    "issue-status": {
+      "type": "Alert",
+      "visible": { "$when": { "path": "issue/status", "exists": true } },
+      "props": { "variant": "success", "title": "Issue created", "message": "{{$state:issue/status}}" }
+    },
 
     "table-card": {
       "type": "Card",
@@ -56,14 +64,41 @@
       "props": { "gap": "md" },
       "children": ["m-title", "m-desc", "m-actions"]
     },
-    "m-title": { "type": "TextInput", "props": { "label": "Title", "required": true } },
-    "m-desc": { "type": "TextInput", "props": { "label": "Description" } },
+    "m-title": { "type": "TextInput", "props": { "label": "Title", "required": true, "bind": "$state:issue/title" } },
+    "m-desc": { "type": "TextInput", "props": { "label": "Description", "bind": "$state:issue/description" } },
     "m-actions": {
       "type": "Stack",
       "props": { "direction": "horizontal", "gap": "xs" },
       "children": ["btn-cancel", "btn-create"]
     },
-    "btn-cancel": { "type": "Button", "props": { "label": "Cancel", "variant": "ghost" } },
-    "btn-create": { "type": "Button", "props": { "label": "Create", "variant": "primary" } }
+    "btn-cancel": { "type": "Button", "props": { "label": "Cancel", "variant": "ghost", "action": "close-new-issue" } },
+    "btn-create": { "type": "Button", "props": { "label": "Create", "variant": "primary", "action": "create-new-issue" } }
+  },
+  "actions": {
+    "open-new-issue": {
+      "type": "mutateState",
+      "path": "modal_open",
+      "operation": "set",
+      "value": true
+    },
+    "close-new-issue": {
+      "type": "mutateState",
+      "path": "modal_open",
+      "operation": "set",
+      "value": false
+    },
+    "close": {
+      "type": "mutateState",
+      "path": "modal_open",
+      "operation": "set",
+      "value": false
+    },
+    "create-new-issue": {
+      "type": "mutateState",
+      "set": {
+        "modal_open": false,
+        "issue/status": "Draft saved for {{$state:issue/title}}."
+      }
+    }
   }
 }
