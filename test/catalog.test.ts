@@ -100,6 +100,12 @@ describe('catalogPrompt', () => {
       expect(prompt).toContain(type);
     }
   });
+
+  it('requires a visible theme toggle when dark and light modes are generated', () => {
+    expect(catalogPrompt('minimal')).toContain('If the app offers dark and light modes');
+    expect(catalogPrompt('default')).toContain('If dark/light modes exist, include a visible bound Toggle');
+    expect(catalogPrompt('full')).toContain('must not include theme state without an on-screen toggle');
+  });
 });
 
 describe('catalogToJsonSchema', () => {

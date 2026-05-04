@@ -44,7 +44,7 @@ function buildMinimalPrompt(): string {
     'ELEMENT FORMAT: { "type": "ComponentName", "props": {}, "children": ["id"] }',
     'Root element is set in "root" field. All elements are a flat map — reference by ID, never nest.',
     '',
-    'COMPONENTS (37 types):',
+    `COMPONENTS (${ALL_COMPONENT_TYPES.length} types):`,
     cats,
     '',
     'STATE BINDINGS:',
@@ -61,6 +61,7 @@ function buildMinimalPrompt(): string {
     '',
     'Never use raw CSS values, hex colors, or pixel sizes. Always use tokens.',
     'Responsive rules: Grid(columns>=2) auto-collapses on mobile. Stack wrap:true for horizontal button rows.',
+    'If the app offers dark and light modes, include an explicit Toggle bound to state such as "$state:settings/dark" or "$state:theme/dark"; do not rely on hidden/system-only theme switching.',
     '',
     'EXAMPLE:',
     '{',
@@ -138,6 +139,10 @@ function buildDefaultPrompt(): string {
     '  Shape types: rect, circle, ellipse, line, text, path',
     '  For custom icons: use a 24x24 box, 1-4 simple shapes, currentColor, 2px strokes, and no raw SVG markup.',
     '',
+    'THEME MODES:',
+    '  If you include or imply dark/light mode, always add a visible Toggle labeled "Dark Mode" or "Theme" and bind it to state such as $state:settings/dark or $state:theme/dark.',
+    '  Keep both modes token-driven. Never create a dark/light mode with raw hex colors, inline CSS, or hidden state only.',
+    '',
     'CONDITIONAL RENDERING:',
     '{ "type": "Alert", "props": { ... }, "visible": { "$when": { "path": "state/path", "gt": 0 } } }',
     'Operators: eq, neq, gt, lt, gte, lte, in, notIn, exists.',
@@ -165,7 +170,8 @@ function buildDefaultPrompt(): string {
     '7. Actions are declarative — never write JavaScript.',
     '8. Keep manifests under 100KB.',
     '9. Write mobile-safe layouts: Grid for metric cards, short labels, wrap:true for button rows.',
-    '10. Prefer token gap/padding values (sm, md, lg) over raw numbers.'
+    '10. Prefer token gap/padding values (sm, md, lg) over raw numbers.',
+    '11. If dark/light modes exist, include a visible bound Toggle so users can switch modes.'
   ].join('\n');
 }
 
@@ -253,6 +259,8 @@ function buildFullPrompt(): string {
     '',
     'For sets of repetitive actions (one per day, one per item, etc.), define a single parameterized action and pass the distinguishing value at dispatch time rather than defining one action per item.',
     '',
+    'Theme rule: when an app has dark/light modes, include a visible Toggle labeled "Dark Mode" or "Theme" bound to state (for example "$state:settings/dark"). A generated manifest must not include theme state without an on-screen toggle.',
+    '',
     'GUIDELINES:',
     '1. Always use design tokens — never raw CSS, hex colors, or pixel sizes.',
     '2. Keep manifests under ~100KB — if an app needs more, it outgrew Forge.',
@@ -268,7 +276,8 @@ function buildFullPrompt(): string {
     '12. Prefer query over read — use forgeui_query_app_data for aggregates instead of forgeui_read_app_data.',
     '13. Never modify user data directly — read to reason, then update the manifest, not the records.',
     '14. Write mobile-safe layouts: Grid for metric cards, short labels, wrap:true for horizontal button rows.',
-    '15. Prefer token gap/padding values (sm, md, lg) over raw numbers.'
+    '15. Prefer token gap/padding values (sm, md, lg) over raw numbers.',
+    '16. If dark/light modes exist, include a visible bound Toggle so users can switch modes.'
   ].join('\n');
 }
 

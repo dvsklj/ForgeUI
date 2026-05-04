@@ -5,11 +5,39 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ForgeUI Demo</title>
   <style>
+    :root {
+      --demo-bg: #f0f2f5;
+      --demo-text: #111827;
+      --demo-shell: #13161c;
+      --demo-shell-text: #e8eaed;
+      --demo-shell-muted: #b8c0cc;
+      --demo-shell-border: #0d7377;
+      --demo-shell-control: #1c2028;
+      --demo-shell-control-border: #2f3641;
+      --demo-stage: #ffffff;
+      --demo-stage-border: #cbd5e1;
+      --demo-status-text: #4b5563;
+      --demo-focus: #2dd4c0;
+    }
+    body[data-scheme="dark"] {
+      --demo-bg: #0f1217;
+      --demo-text: #f0f2f5;
+      --demo-shell: #090b0f;
+      --demo-shell-text: #f0f2f5;
+      --demo-shell-muted: #c6ccd6;
+      --demo-shell-border: #2dd4c0;
+      --demo-shell-control: #171b22;
+      --demo-shell-control-border: #3a4350;
+      --demo-stage: #13161c;
+      --demo-stage-border: #2f3641;
+      --demo-status-text: #c6ccd6;
+      --demo-focus: #2dd4c0;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-      background: #f0f2f5;
-      color: #111827;
+      background: var(--demo-bg);
+      color: var(--demo-text);
       min-height: 100vh;
     }
     .topbar {
@@ -18,37 +46,60 @@
       flex-wrap: wrap;
       gap: 0.75rem;
       padding: 0.625rem 1.25rem;
-      background: #13161c;
-      color: #e8eaed;
-      border-bottom: 2px solid #0d7377;
+      background: var(--demo-shell);
+      color: var(--demo-shell-text);
+      border-bottom: 2px solid var(--demo-shell-border);
       font-size: 0.85rem;
     }
     .topbar a {
-      color: #b8c0cc;
+      color: var(--demo-shell-muted);
       text-decoration: none;
       padding: 4px 10px;
-      border: 1px solid #2f3641;
+      border: 1px solid var(--demo-shell-control-border);
       border-radius: 6px;
       transition: all 120ms ease;
     }
-    .topbar a:hover { color: #fff; border-color: #475563; background: #1c2028; }
-    .topbar a:focus-visible { outline: 3px solid #2dd4c0; outline-offset: 2px; }
-    .topbar .sep { color: #475563; }
-    .topbar .title { font-weight: 600; color: #f0f2f5; }
+    .topbar a:hover { color: #fff; border-color: #667285; background: var(--demo-shell-control); }
+    .topbar a:focus-visible { outline: 3px solid var(--demo-focus); outline-offset: 2px; }
+    .topbar .sep { color: #667285; }
+    .topbar .title { font-weight: 600; color: var(--demo-shell-text); }
     .topbar .spacer { flex: 1; }
     .topbar .pill {
       font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
       font-size: 0.75rem;
-      color: #8892a0;
-      background: #1c2028;
+      color: var(--demo-shell-muted);
+      background: var(--demo-shell-control);
       padding: 3px 8px;
       border-radius: 4px;
-      border: 1px solid #2f3641;
+      border: 1px solid var(--demo-shell-control-border);
       max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+    .scheme-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-height: 2rem;
+      padding: 0 0.75rem;
+      border: 1px solid var(--demo-shell-control-border);
+      border-radius: 6px;
+      background: var(--demo-shell-control);
+      color: var(--demo-shell-text);
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.8rem;
+    }
+    .scheme-toggle:focus-visible { outline: 3px solid var(--demo-focus); outline-offset: 2px; }
+    .scheme-icon {
+      width: 0.875rem;
+      height: 0.875rem;
+      border-radius: 50%;
+      background: var(--demo-shell-border);
+      box-shadow: inset -4px -2px 0 rgb(0 0 0 / 0.35);
+    }
+    body[data-scheme="light"] .scheme-icon { box-shadow: 0 0 0 2px rgb(255 255 255 / 0.16); }
     .stage {
       max-width: 1200px;
       margin: 0 auto;
@@ -56,10 +107,10 @@
     }
     .status {
       padding: 1rem 1.25rem;
-      background: #fff;
-      border: 1px solid #cbd5e1;
+      background: var(--demo-stage);
+      border: 1px solid var(--demo-stage-border);
       border-radius: 8px;
-      color: #4b5563;
+      color: var(--demo-status-text);
       font-size: 0.9rem;
     }
     .status.error {
@@ -69,8 +120,8 @@
     }
     forgeui-app {
       display: block;
-      background: #fff;
-      border: 1px solid #cbd5e1;
+      background: var(--demo-stage);
+      border: 1px solid var(--demo-stage-border);
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
@@ -88,6 +139,10 @@
     <span class="sep">/</span>
     <span class="title" id="demo-title">Loading…</span>
     <div class="spacer"></div>
+    <button class="scheme-toggle" id="scheme-toggle" type="button" aria-pressed="false">
+      <span class="scheme-icon" aria-hidden="true"></span>
+      <span id="scheme-label">Light</span>
+    </button>
     <span class="pill" id="demo-slug">—</span>
   </div>
 
@@ -105,6 +160,22 @@
       const title = document.getElementById('demo-title');
       const status = document.getElementById('status');
       const app = document.getElementById('app');
+      const toggle = document.getElementById('scheme-toggle');
+      const schemeLabel = document.getElementById('scheme-label');
+      const storedScheme = localStorage.getItem('forgeui-demo-scheme');
+      let scheme = storedScheme === 'dark' || storedScheme === 'light' ? storedScheme : 'light';
+
+      const applyScheme = (next) => {
+        scheme = next;
+        document.body.dataset.scheme = scheme;
+        app.setAttribute('color-scheme', scheme);
+        toggle.setAttribute('aria-pressed', String(scheme === 'dark'));
+        schemeLabel.textContent = scheme === 'dark' ? 'Dark' : 'Light';
+        localStorage.setItem('forgeui-demo-scheme', scheme);
+      };
+
+      applyScheme(scheme);
+      toggle.addEventListener('click', () => applyScheme(scheme === 'dark' ? 'light' : 'dark'));
       slug.textContent = demo + '.json';
 
       try {
