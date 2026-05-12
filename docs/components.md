@@ -1,14 +1,27 @@
 # Component Catalog
 
-All 39 components available in the Forge runtime, organized by category.
+Forge currently accepts **38 manifest-addressable component types**. The runtime also has an internal `forgeui-error` fallback component, but `Error` is not a valid manifest `type`.
+
+Component type validation is driven by the catalog registry, and rendering is dispatched through a static renderer map. Element envelopes are flat JSON records:
+
+```json
+{
+  "type": "Stack",
+  "props": { "gap": "md", "padding": "lg" },
+  "children": ["title", "actions"],
+  "visible": { "$when": { "path": "ready", "eq": true } }
+}
+```
+
+`props` are component-specific and intentionally open at the manifest-schema level. Most components accept state references in props.
 
 ---
 
-## Structural
+## Layout
 
 ### Stack
 
-Vertical or horizontal layout container.
+Flex layout container.
 
 ```json
 {
@@ -16,226 +29,478 @@ Vertical or horizontal layout container.
   "props": {
     "direction": "vertical",
     "gap": "md",
+    "spacing": "md",
     "padding": "lg",
     "align": "stretch",
+    "justify": "start",
     "wrap": false
   },
   "children": ["child-1", "child-2"]
 }
 ```
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `direction` | string | `"vertical"` | `"vertical"` or `"horizontal"` |
-| `gap` | string | `"8"` | CSS gap value (px) |
-| `padding` | string | `"0"` | CSS padding value (px) |
-| `align` | string | `"stretch"` | `"start"`, `"center"`, `"end"`, `"stretch"` |
-| `wrap` | boolean | `false` | Allow wrapping in horizontal mode |
+Useful props: `direction` (`vertical`, `horizontal`, `column`, `row`), `gap`, `spacing`, `padding`, `align`, `justify`, `wrap`.
 
 ### Grid
 
-CSS Grid container.
+CSS Grid container. Numeric `columns` values become `repeat(n, minmax(0, 1fr))`; string values pass through as a grid-template value.
 
 ```json
 {
   "type": "Grid",
-  "props": { "columns": 3, "gap": "md" },
+  "props": { "columns": 3, "gap": "md", "padding": "lg" },
   "children": ["a", "b", "c"]
 }
 ```
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `columns` | number | `2` | Number of grid columns |
-| `gap` | string | `"16"` | CSS gap value |
+Useful props: `columns`, `gap`, `padding`. Grids with 2+ numeric columns automatically collapse responsively.
 
 ### Card
 
-Bordered container with optional title/subtitle.
+Bordered content container with optional header.
 
 ```json
 {
   "type": "Card",
-  "props": { "title": "Section", "subtitle": "Description" },
+  "props": { "title": "Section", "subtitle": "Description", "variant": "elevated" },
   "children": ["content"]
 }
 ```
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `title` | string | — | Card heading |
-| `subtitle` | string | — | Card subheading |
+Useful props: `title`, `subtitle`, `variant` (`elevated`, `compact`, `outline`, `ghost`).
 
 ### Container
 
-Slot container for use inside Tabs and Modals.
+Centered width container.
 
 ```json
 {
   "type": "Container",
-  "props": { "slot": "tab-1", "padding": "md" },
+  "props": { "maxWidth": "lg", "padding": "md" },
   "children": ["content"]
 }
 ```
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `slot` | string | — | Slot name (must match tab/modal slot ID) |
-| `padding` | string | `"0"` | Inner padding |
+Useful props: `maxWidth` (`sm`, `md`, `lg`, `xl`, `2xl`, `full`, `none`, or a CSS width), `padding`. `slot` is also useful when `Container` is used as a tab panel child.
 
-### ButtonGroup
+### Tabs
 
-Horizontal button layout.
+Tabbed container. Child elements are shown when their `props.slot` or position matches the active tab.
 
 ```json
 {
-  "type": "ButtonGroup",
-  "props": {},
-  "children": ["btn-1", "btn-2"]
+  "type": "Tabs",
+  "props": {
+    "items": [
+      { "id": "general", "label": "General" },
+      { "id": "security", "label": "Security" }
+    ],
+    "activeTab": "general"
+  },
+  "children": ["tab-general", "tab-security"]
 }
 ```
+
+Aliases: `items` or `tabs`; `activeTab` or `value`.
+
+### Accordion
+
+Disclosure section.
+
+```json
+{
+  "type": "Accordion",
+  "props": { "title": "Advanced" },
+  "children": ["advanced-content"]
+}
+```
+
+Useful props: `title`.
 
 ### Divider
 
-Horizontal separator line.
+Horizontal separator.
 
 ```json
-{ "type": "Divider", "props": { "variant": "solid" } }
+{ "type": "Divider" }
 ```
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `variant` | string | `"solid"` | `"solid"`, `"dashed"`, `"dotted"` |
 
 ### Spacer
 
-Empty space element.
+Empty spacing element.
 
 ```json
-{ "type": "Spacer", "props": { "height": "lg" } }
+{ "type": "Spacer", "props": { "size": "lg", "height": "lg", "width": "100%" } }
 ```
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `height` | string | `"16"` | Height in px |
-| `width` | string | — | Width in px (for horizontal layouts) |
+Useful props: `size`, `height`, `width`.
+
+### Repeater
+
+Renders its children once per item in `props.data`. `$item:` and `item.` expressions are available inside repeated children.
+
+```json
+{
+  "type": "Repeater",
+  "props": {
+    "data": { "$expr": "state.todos | values" },
+    "emptyMessage": "No todos yet",
+    "gap": "md"
+  },
+  "children": ["todo-row-template"]
+}
+```
+
+Useful props: `data`, `emptyMessage`, `direction`, `gap`.
 
 ---
 
-## Data Display
-
-### Table
-
-Data table with typed columns.
-
-```json
-{
-  "type": "Table",
-  "props": {
-    "data": { "$expr": "state.data.items | values" },
-    "columns": [
-      { "key": "name", "label": "Name", "type": "text" },
-      { "key": "status", "label": "Status", "type": "badge", "badgeMap": { "active": "success", "inactive": "error" } },
-      { "key": "count", "label": "Count", "type": "number" }
-    ],
-    "selectable": true
-  }
-}
-```
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `data` | array or expr | `[]` | Array of row objects |
-| `columns` | array | `[]` | Column definitions |
-| `selectable` | boolean | `false` | Enable row selection |
-
-**Column definition:**
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `key` | string | Property name in row data |
-| `label` | string | Header text |
-| `type` | string | `"text"`, `"number"`, `"badge"`, `"date"` |
-| `badgeMap` | object | Value→variant mapping (only for `type: "badge"`) |
-
-### Chart
-
-Data visualization using recharts.
-
-```json
-{
-  "type": "Chart",
-  "props": {
-    "chartType": "bar",
-    "data": { "$expr": "state.data.revenue" },
-    "xKey": "month",
-    "yKey": "value",
-    "color": "var(--forgeui-color-primary)",
-    "yFormat": "$"
-  }
-}
-```
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `chartType` | string | `"bar"` | `"bar"`, `"line"`, `"area"`, `"pie"` |
-| `data` | array or expr | `[]` | Data points |
-| `xKey` | string | — | X-axis property name |
-| `yKey` | string | — | Y-axis property name |
-| `color` | string | `"var(--forgeui-color-primary)"` | Primary chart color |
-| `yFormat` | string | — | Y-axis prefix (e.g. `"$"`, `"%"`) |
-| `height` | number | `300` | Chart height in px |
-
-### Metric
-
-KPI card with trend indicator.
-
-```json
-{
-  "type": "Metric",
-  "props": {
-    "label": "Revenue",
-    "value": "$299K",
-    "trend": "up",
-    "subtitle": "+12% vs last period",
-    "unit": "USD"
-  }
-}
-```
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `label` | string | — | Metric name |
-| `value` | string | — | Display value |
-| `trend` | string | — | `"up"`, `"down"`, or omit |
-| `subtitle` | string | — | Secondary text |
-| `unit` | string | — | Unit label |
+## Content
 
 ### Text
 
 Typography element.
 
 ```json
-{ "type": "Text", "props": { "content": "Hello!", "variant": "heading1" } }
+{
+  "type": "Text",
+  "props": {
+    "content": "Hello!",
+    "variant": "heading1",
+    "colorScheme": "primary",
+    "align": "center",
+    "weight": "bold"
+  }
+}
 ```
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `content` | string | — | Text content |
-| `variant` | string | `"body"` | `"heading1"`, `"heading2"`, `"heading3"`, `"body"`, `"muted"`, `"code"`, `"label"` |
+Useful props: `content`, `variant`, `colorScheme`, `align`, `weight`.
+
+Common variants: `heading1`, `heading2`, `heading3`, `heading`, `subheading`, `body`, `caption`, `muted`, `code`, `label`. Aliases such as `h1`, `h2`, `title`, `paragraph`, and `secondary` are normalized.
+
+### Image
+
+Image element.
+
+```json
+{ "type": "Image", "props": { "src": "https://example.com/image.jpg", "alt": "Description", "fit": "cover" } }
+```
+
+Useful props: `src`, `alt`, `fit`.
+
+### Icon
+
+Small built-in line icon.
+
+```json
+{ "type": "Icon", "props": { "name": "check" } }
+```
+
+Built-in names include `check`, `x`, `plus`, `minus`, `chevron`, `arrow`, `star`, `circle`, and `alert`.
 
 ### Badge
 
-Status/color label.
+Compact status label.
 
 ```json
 { "type": "Badge", "props": { "text": "Active", "variant": "success" } }
 ```
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `text` | string | — | Badge text |
-| `variant` | string | `"info"` | `"success"`, `"warning"`, `"error"`, `"info"` |
+Useful props: `text` or `label`, `variant` (`success`, `warning`, `error`; default styling is primary/info-like).
+
+### Avatar
+
+Circular image or initials avatar.
+
+```json
+{ "type": "Avatar", "props": { "name": "Ada Lovelace", "src": "https://example.com/avatar.jpg" } }
+```
+
+Useful props: `name`, `src`.
+
+### EmptyState
+
+Empty list or placeholder message.
+
+```json
+{
+  "type": "EmptyState",
+  "props": { "title": "No data yet", "description": "Add your first item to get started." }
+}
+```
+
+Useful props: `title`, `description`. Put buttons or links in `children` for actions.
+
+---
+
+## Input
+
+All input components can use `bind: "$state:path"` for two-way state updates. They dispatch `change` actions internally; the runtime handles bound state updates before looking for matching manifest actions.
+
+### TextInput
+
+Single-line or multiline text input.
+
+```json
+{
+  "type": "TextInput",
+  "props": {
+    "label": "Name",
+    "placeholder": "Enter your name",
+    "value": { "$state": "name" },
+    "bind": "$state:name",
+    "required": true,
+    "hint": "Shown below the input",
+    "error": "Validation message"
+  }
+}
+```
+
+Useful props: `label`, `placeholder`, `value`, `bind`, `required`, `hint`, `error`, `multiline`, `inputType`.
+
+### NumberInput
+
+Numeric input.
+
+```json
+{
+  "type": "NumberInput",
+  "props": { "label": "Quantity", "bind": "$state:quantity", "min": 0, "max": 100, "step": 1 }
+}
+```
+
+Useful props: `label`, `value`, `bind`, `min`, `max`, `step`, `placeholder`, `required`, `hint`, `error`.
+
+### Select
+
+Single-select dropdown.
+
+```json
+{
+  "type": "Select",
+  "props": {
+    "label": "Category",
+    "bind": "$state:category",
+    "options": [
+      { "value": "a", "label": "Option A" },
+      { "value": "b", "label": "Option B" }
+    ]
+  }
+}
+```
+
+Useful props: `label`, `options`, `value`, `bind`, `placeholder`, `required`, `hint`, `error`.
+
+### MultiSelect
+
+Multi-select input.
+
+```json
+{
+  "type": "MultiSelect",
+  "props": {
+    "label": "Tags",
+    "bind": "$state:tags",
+    "options": ["Design", "Engineering", "Research"]
+  }
+}
+```
+
+Useful props: `label`, `options`, `value`, `bind`, `maxSelections`, `hint`, `error`.
+
+### Checkbox
+
+Checkbox input.
+
+```json
+{ "type": "Checkbox", "props": { "label": "Accept terms", "bind": "$state:accepted", "checked": false } }
+```
+
+Useful props: `label`, `checked`, `value`, `bind`, `description`, `hint`, `error`.
+
+### Toggle
+
+Switch input.
+
+```json
+{ "type": "Toggle", "props": { "label": "Dark Mode", "bind": "$state:settings/dark", "value": true } }
+```
+
+Useful props: `label`, `value`, `checked`, `bind`, `description`, `hint`, `error`.
+
+### DatePicker
+
+Date, time, or datetime input.
+
+```json
+{ "type": "DatePicker", "props": { "label": "Due date", "bind": "$state:due", "format": "date" } }
+```
+
+Useful props: `label`, `value`, `bind`, `format` (`date`, `datetime`, `time`), `min`, `max`, `required`, `hint`, `error`.
+
+### Slider
+
+Range slider.
+
+```json
+{
+  "type": "Slider",
+  "props": { "label": "Font Size", "bind": "$state:fontSize", "min": 10, "max": 24, "step": 1, "showValue": true, "unit": "px" }
+}
+```
+
+Useful props: `label`, `value`, `bind`, `min`, `max`, `step`, `showValue`, `unit`, `hint`.
+
+### FileUpload
+
+File input.
+
+```json
+{
+  "type": "FileUpload",
+  "props": { "label": "Upload", "accept": "image/*", "multiple": true, "bind": "$state:files" }
+}
+```
+
+Useful props: `label`, `accept`, `multiple`, `maxSize`, `bind`, `hint`, `error`.
+
+---
+
+## Action
+
+### Button
+
+Action button.
+
+```json
+{ "type": "Button", "props": { "label": "Save", "variant": "primary", "action": "save", "disabled": false } }
+```
+
+Useful props: `label`, `variant` (`primary`, `secondary`, `danger`, `ghost`), `size`, `icon`, `action`, `disabled`.
+
+### ButtonGroup
+
+Button layout wrapper.
+
+```json
+{
+  "type": "ButtonGroup",
+  "props": { "direction": "horizontal", "spacing": "sm" },
+  "children": ["save", "cancel"]
+}
+```
+
+Useful props: `direction`, `spacing`, `gap`.
+
+### Link
+
+Anchor link.
+
+```json
+{ "type": "Link", "props": { "label": "Open docs", "href": "https://example.com", "external": true } }
+```
+
+Useful props: `label`, `href`, `variant`, `external`.
+
+---
+
+## Data
+
+### Table
+
+Data table.
+
+```json
+{
+  "type": "Table",
+  "props": {
+    "data": { "$expr": "state.todos | values" },
+    "columns": [
+      { "key": "task", "label": "Task", "type": "text" },
+      { "key": "priority", "label": "Priority", "type": "badge", "badgeMap": { "high": "error", "low": "info" } }
+    ],
+    "selectable": true,
+    "emptyMessage": "No rows"
+  }
+}
+```
+
+Useful props: `data`, `dataPath`, `columns`, `selectable`, `pageSize`, `searchable`, `emptyMessage`.
+
+Column fields commonly used: `key`, `label`, `type` (`text`, `number`, `badge`, `date`), `badgeMap`, `format`, `sortable`.
+
+### List
+
+Simple list renderer for arrays or objects.
+
+```json
+{
+  "type": "List",
+  "props": { "data": { "$expr": "state.items | values" }, "emptyMessage": "Nothing here" }
+}
+```
+
+Useful props: `data`, `dataPath`, `emptyMessage`, `dividers`.
+
+### Chart
+
+Lightweight runtime-rendered SVG chart. No external charting library is required by the runtime component.
+
+```json
+{
+  "type": "Chart",
+  "props": {
+    "chartType": "bar",
+    "data": { "$expr": "state.revenue" },
+    "xKey": "month",
+    "yKey": "value",
+    "height": 300
+  }
+}
+```
+
+Useful props: `chartType` or `variant` (`bar`, `line`, `area`, `pie`, `donut`, `scatter` depending on renderer support), `data`, `dataPath`, `xKey`, `yKey`, `color`, `colorScheme`, `height`, `yFormat`.
+
+### Metric
+
+KPI display.
+
+```json
+{
+  "type": "Metric",
+  "props": { "label": "Revenue", "value": "$299K", "trend": "up", "subtitle": "+12%", "unit": "USD" }
+}
+```
+
+Useful props: `label`, `value`, `trend` (`up`, `down`, `flat`, `neutral`), `subtitle`, `unit`, `format`, `prefix`, `suffix`, `goal`.
+
+---
+
+## Feedback
+
+### Alert
+
+Notification banner.
+
+```json
+{ "type": "Alert", "props": { "title": "Saved", "message": "Settings saved.", "variant": "success" } }
+```
+
+Useful props: `title`, `message`, `variant` (`info`, `success`, `warning`, `error`), `dismissible`.
+
+### Dialog
+
+Modal dialog. The runtime manages focus when it opens.
+
+```json
+{
+  "type": "Dialog",
+  "props": { "title": "Confirm", "open": false },
+  "children": ["dialog-content"]
+}
+```
+
+Useful props: `title`, `open`, `confirmLabel`, `cancelLabel`, `action`.
 
 ### Progress
 
@@ -245,210 +510,65 @@ Progress indicator.
 { "type": "Progress", "props": { "value": 75, "max": 100, "label": "Loading", "showValue": true } }
 ```
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `value` | number | `0` | Current value |
-| `max` | number | `100` | Maximum value |
-| `label` | string | — | Label text |
-| `showValue` | boolean | `false` | Show percentage |
+Useful props: `value`, `max`, `label`, `showValue`, `variant`, `size`.
+
+### Toast
+
+Toast-style message.
+
+```json
+{ "type": "Toast", "props": { "message": "Saved", "variant": "success", "duration": 3000 } }
+```
+
+Useful props: `message`, `variant`, `duration`.
 
 ---
 
-## Input
+## Navigation
 
-### TextInput
+### Breadcrumb
 
-Text input field.
-
-```json
-{ "type": "TextInput", "props": { "label": "Name", "placeholder": "Enter your name", "required": true } }
-```
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `label` | string | — | Field label |
-| `placeholder` | string | — | Placeholder text |
-| `required` | boolean | `false` | Required field |
-| `value` | string | — | Initial value |
-
-### NumberInput
-
-Numeric input field.
-
-```json
-{ "type": "NumberInput", "props": { "label": "Quantity", "min": 0, "max": 100, "step": 1 } }
-```
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `label` | string | — | Field label |
-| `min` | number | — | Minimum value |
-| `max` | number | — | Maximum value |
-| `step` | number | `1` | Step increment |
-| `value` | number | — | Initial value |
-
-### Select
-
-Dropdown select.
+Breadcrumb navigation.
 
 ```json
 {
-  "type": "Select",
+  "type": "Breadcrumb",
   "props": {
-    "label": "Category",
-    "options": [
-      { "value": "a", "label": "Option A" },
-      { "value": "b", "label": "Option B" }
-    ],
-    "value": "a"
+    "items": [
+      { "label": "Home", "view": "home" },
+      { "label": "Settings", "view": "settings" }
+    ]
   }
 }
 ```
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `label` | string | — | Field label |
-| `options` | array | `[]` | `[{value, label}]` pairs |
-| `value` | string | — | Selected value |
+Useful props: `items`.
 
-### Toggle
+### Stepper
 
-Switch toggle.
+Step indicator.
 
 ```json
-{ "type": "Toggle", "props": { "label": "Dark Mode", "value": true, "description": "Use dark theme" } }
+{
+  "type": "Stepper",
+  "props": {
+    "steps": [
+      { "label": "Account" },
+      { "label": "Profile" }
+    ],
+    "activeStep": { "$state": "activeStep" },
+    "variant": "horizontal"
+  }
+}
 ```
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `label` | string | — | Toggle label |
-| `value` | boolean | `false` | Current state |
-| `description` | string | — | Help text |
-
-### Checkbox
-
-Checkbox input.
-
-```json
-{ "type": "Checkbox", "props": { "label": "Accept terms", "checked": false } }
-```
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `label` | string | — | Checkbox label |
-| `checked` | boolean | `false` | Current state |
-
-### Slider
-
-Range slider.
-
-```json
-{ "type": "Slider", "props": { "label": "Font Size", "min": 10, "max": 24, "value": 14, "showValue": true, "unit": "px" } }
-```
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `label` | string | — | Slider label |
-| `min` | number | `0` | Minimum value |
-| `max` | number | `100` | Maximum value |
-| `value` | number | `50` | Current value |
-| `showValue` | boolean | `false` | Show current value |
-| `unit` | string | — | Unit suffix (e.g. `"px"`, `"%"`) |
-| `step` | number | `1` | Step increment |
+Useful props: `steps`, `activeStep`, `variant` (`horizontal`, `vertical`).
 
 ---
 
-## Presentation
+## Drawing
 
-### Button
-
-Action button.
-
-```json
-{ "type": "Button", "props": { "label": "Save", "variant": "primary", "disabled": false } }
-```
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `label` | string | — | Button text |
-| `variant` | string | `"secondary"` | `"primary"`, `"secondary"`, `"ghost"` |
-| `disabled` | boolean | `false` | Disabled state |
-
-### Tabs
-
-Tabbed container.
-
-```json
-{
-  "type": "Tabs",
-  "props": {
-    "tabs": [
-      { "label": "General", "id": "general" },
-      { "label": "Security", "id": "security" }
-    ],
-    "activeTab": "general"
-  },
-  "children": ["tab-general", "tab-security"]
-}
-```
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `tabs` | array | `[]` | `[{id, label}]` tab definitions |
-| `activeTab` | string | — | Initially active tab ID |
-
-Child containers must use `"slot"` prop matching the tab ID.
-
-### Dialog
-
-Dialog overlay.
-
-```json
-{
-  "type": "Dialog",
-  "props": { "title": "Confirm", "open": false },
-  "children": ["modal-content"]
-}
-```
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `title` | string | — | Modal heading |
-| `open` | boolean | `false` | Visibility state |
-
-### Alert
-
-Notification banner.
-
-```json
-{ "type": "Alert", "props": { "message": "Settings saved!", "variant": "success", "title": "Success" } }
-```
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `message` | string | — | Alert text |
-| `variant` | string | `"info"` | `"success"`, `"warning"`, `"error"`, `"info"` |
-| `title` | string | — | Optional heading |
-
-### Error
-
-Error boundary / fallback display for invalid manifests or failed renders.
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `message` | string | — | Error message to display |
-| `details` | string | — | Optional technical details |
-
-### Drawing
-
-SVG drawing surface for small diagrams and custom icons. LLMs should generate `shapes` data, not raw SVG markup. See the [LLM SVG icon guide](llm-svg-icon-guide.md) for icon-specific constraints.
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `width` | number | `400` | SVG width in px |
-| `height` | number | `300` | SVG height in px |
-| `background` | string | `"transparent"` | SVG background color |
-| `shapes` | array | `[]` | Shape records: `rect`, `circle`, `ellipse`, `line`, `text`, or `path` |
+SVG drawing surface for diagrams and icons. Generate `shapes` data, not raw SVG markup. See the [LLM SVG icon guide](llm-svg-icon-guide.md) for icon-specific constraints.
 
 ```json
 {
@@ -456,66 +576,122 @@ SVG drawing surface for small diagrams and custom icons. LLMs should generate `s
   "props": {
     "width": 24,
     "height": 24,
+    "background": "transparent",
     "shapes": [
-      { "type": "circle", "cx": 12, "cy": 12, "r": 9, "stroke": "currentColor", "strokeWidth": 2 },
-      { "type": "path", "d": "M8 12l3 3 5-6", "stroke": "currentColor", "strokeWidth": 2 }
+      { "type": "circle", "cx": 12, "cy": 12, "r": 9, "stroke": "currentColor", "strokeWidth": 2, "fill": "none" },
+      { "type": "path", "d": "M8 12l3 3 5-6", "stroke": "currentColor", "strokeWidth": 2, "fill": "none" }
     ]
   }
 }
 ```
 
+Useful props: `width`, `height`, `background`, `shapes`.
+
+Shape types: `rect`, `circle`, `ellipse`, `line`, `text`, `path`.
+
 ---
 
-## Design Tokens
+## Design tokens and CSS values
 
-Always use design tokens instead of raw CSS values. This ensures consistency, accessibility, and resilience across themes.
+Prefer tokens for predictable, theme-safe output:
 
-| Token Category | Values |
+| Token category | Values |
 |---|---|
-| **Spacing** | `none`, `3xs` (2px), `2xs` (4px), `xs` (8px), `sm` (12px), `md` (16px), `lg` (24px), `xl` (32px), `2xl` (48px) |
-| **Colors** | `primary`, `success`, `warning`, `error`, `info`, `secondary`, `muted` |
-| **Sizes** | `sm`, `md`, `lg` |
-| **Radius** | `none`, `sm` (4px), `md` (8px), `lg` (12px), `full` |
+| Spacing | `none`, `3xs`, `2xs`, `xs`, `sm`, `md`, `lg`, `xl`, `2xl` |
+| Semantic colors | `primary`, `secondary`, `success`, `warning`, `error`, `info`, `muted`, `default` |
+| Sizes | `sm`, `md`, `lg` |
+| Radius | `none`, `sm`, `md`, `lg`, `full` |
 
-**Bad practice:** `"gap": "16"`, `"padding": "24"`, `"color": "#ff0000"`
-**Good practice:** `"gap": "md"`, `"padding": "lg"`, `"colorScheme": "error"`
+The runtime accepts numeric spacing values and common CSS lengths in some layout props for compatibility, but generated manifests should prefer tokens.
 
-## Responsive Guidelines
+Bad:
 
-Forge components adapt automatically, but manifests should be written with mobile in mind:
-
-- Use `Grid` for KPI cards; it collapses to 1 column on narrow screens.
-- Keep `Metric` labels short so they wrap gracefully.
-- Use `Stack` with `wrap` for horizontal button rows.
-- Avoid fixed widths; let containers fill available space.
-
-## Expressions
-
-Use `$expr` to bind props to state data:
-
-```
-state.data.path           → access nested state
-state.data.items | values → Object.values()
-state.data.items | keys   → Object.keys()
-state.data.items | json   → JSON.stringify()
-```
-
-Example — bind table data to a state collection:
 ```json
-{ "data": { "$expr": "state.data.todos | values" } }
+{ "gap": "16", "padding": "24", "color": "#ff0000" }
 ```
 
-Example — bind a metric to a computed value:
+Good:
+
 ```json
-{ "value": { "$expr": "state.data.stats.total" } }
+{ "gap": "md", "padding": "lg", "colorScheme": "error" }
 ```
 
----
+## State references
+
+Props can reference state and derived values:
+
+```json
+{ "content": { "$expr": "state.user.name" } }
+{ "value": "$computed:count:todos" }
+{ "text": "Hello {{state.user.name}}" }
+```
+
+| Form | Description |
+|---|---|
+| `$state:path` | TinyBase value, row, or cell path. Slash paths such as `todos/t1/done` are supported. |
+| `$computed:count:table` | Row count. |
+| `$computed:sum:table/column` | Numeric sum. |
+| `$computed:avg:table/column` | Numeric average. |
+| `$item:field` | Current `Repeater` item field. Dot paths are supported. |
+| `$expr:state.todos \| values` | Constrained expression. |
+| `{{state.name}}` | Template interpolation. |
+
+Supported `$expr` forms include `state.foo.bar`, `item.field`, literals, pipe filters (`values`, `keys`, `count`, `length`, `sum`, `first`, `last`), and simple numeric/comparison expressions with one operator.
+
+## Actions
+
+Buttons and many interactive components dispatch action IDs. The runtime currently handles `mutateState`, `navigate`, and bound-input state updates directly. Other action types are surfaced as `forgeui-action` events for host applications.
+
+```json
+{
+  "actions": {
+    "inc": {
+      "type": "mutateState",
+      "path": "count",
+      "operation": "increment",
+      "value": 1
+    },
+    "go-settings": {
+      "type": "navigate",
+      "target": "settings-root"
+    }
+  }
+}
+```
+
+`mutateState` operations: `set`, `append`, `delete`, `update`, `increment`, `decrement`, `toggle`.
+
+Shorthand multi-set is also supported:
+
+```json
+{
+  "actions": {
+    "reset": {
+      "type": "mutateState",
+      "set": {
+        "count": 0,
+        "status": "idle"
+      }
+    }
+  }
+}
+```
+
+## Responsive guidelines
+
+- Use `Grid` for KPI cards; numeric multi-column grids collapse on narrower screens.
+- Use `Stack` with `wrap: true` for horizontal button rows.
+- Keep labels short so they wrap gracefully.
+- Prefer token spacing over raw lengths.
+- Avoid fixed widths unless the design explicitly needs them.
 
 ## Lifecycle
 
-1. **Parse** — manifest JSON parsed and validated (Ajv schema + security + semantic)
-2. **Mount** — `<forgeui-app>` connected to DOM, TinyBase store created with `state`
-3. **Render** — element tree walked, components instantiated, props bound
-4. **Update** — state changes trigger TinyBase reactivity, components re-render
-5. **Destroy** — `<forgeui-app>` disconnected, store cleaned up
+1. Parse manifest input from property, `src`, or inline JSON.
+2. Convert A2UI payloads when detected.
+3. Validate manifest.
+4. Create the TinyBase store from `schema` and `state`.
+5. Set up persistence: `persistState: true` forces IndexedDB, `skipPersistState: true` disables it, otherwise `standalone`/`embed` persist and `chat` is in-memory.
+6. Render the root element through the static renderer dispatch map.
+7. Resolve bound props and dispatch declarative actions during interaction.
+8. Clean up the persister when `<forgeui-app>` disconnects.
