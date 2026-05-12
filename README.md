@@ -49,20 +49,20 @@ Drop one script tag, assign a manifest, done.
 </html>
 ```
 
-Serve the file over HTTP (browsers block module scripts from `file://`):
+Serve the file over HTTP:
 
 ```bash
 npx serve .
 # or: python3 -m http.server
 ```
 
-Open the URL, you'll see a rendered card with a heading and a button. That's the full loop.
+Open the URL and you'll see a rendered heading and button.
 
 ---
 
 ## What a manifest looks like
 
-A manifest is flat, ID-indexed JSON. Elements reference each other by ID in a `children` array, not by nesting. State is declarative, and values can bind to state via `$state:` / `$expr:` expressions.
+A manifest is flat, ID-indexed JSON. Elements reference each other by ID in a `children` array, not by nesting. State is declarative, and values can bind to state via `$state:`, `$computed:`, `$item:`, `$expr:`, object-form references, or `{{...}}` interpolation.
 
 ```json
 {
@@ -72,11 +72,11 @@ A manifest is flat, ID-indexed JSON. Elements reference each other by ID in a `c
   "state": { "count": 0 },
   "elements": {
     "root": { "type": "Stack", "children": ["label", "plus"], "props": { "gap": "sm" } },
-    "label": { "type": "Text", "props": { "content": { "$expr": "state.count" } } },
+    "label": { "type": "Text", "props": { "content": "Count: {{state.count}}" } },
     "plus":  { "type": "Button", "props": { "label": "+1", "action": "inc" } }
   },
   "actions": {
-    "inc": { "type": "mutateState", "set": { "count": { "$expr": "state.count + 1" } } }
+    "inc": { "type": "mutateState", "path": "count", "operation": "increment", "value": 1 }
   }
 }
 ```
@@ -97,7 +97,7 @@ For chat embeds, iframes, demos, or prototyping. Zero dependencies, nothing to i
 <script src="https://unpkg.com/@nedast/forgeui-runtime/forgeui.js"></script>
 ```
 
-The IIFE bundle inlines everything: Lit, TinyBase, the validator, and all components.
+The IIFE bundle inlines the browser runtime, validator, state layer, and components.
 
 ### Bundler mode — npm + ESM
 
@@ -108,9 +108,15 @@ npm install @nedast/forgeui-runtime
 ```
 
 ```js
-import { ForgeUIApp, validateManifest, extractManifest } from '@nedast/forgeui-runtime';
+import {
+  ForgeUIApp,
+  validateManifest,
+  extractManifest,
+  catalogPrompt,
+  catalogToJsonSchema
+} from '@nedast/forgeui-runtime';
 
-// Components-only entry (no validation, no state runtime):
+// Components-only entry:
 import '@nedast/forgeui-runtime/components';
 ```
 
@@ -121,19 +127,31 @@ For hosting LLM-generated apps as real URLs, backed by SQLite.
 ```bash
 npm install @nedast/forgeui-server
 npx forgeui-server --port 3000 --db ./apps.db
+# or:
+npx forgeui serve --port 3000 --db ./apps.db
 ```
 
-The server exposes a REST CRUD API at `/api/apps/:id`, hosts the runtime at `/runtime/forgeui.js`, and serves each stored app at `/apps/:id`. See [`docs/api-reference.md`](docs/api-reference.md) for the full surface and [`docs/deployment.md`](docs/deployment.md) for deploy recipes (Docker, systemd, nginx, Cloudflare Workers).
+The server exposes REST CRUD routes under `/api/apps`, hosts the runtime at `/runtime/forgeui.js`, and serves each stored app at `/apps/:id`. See [`docs/api-reference.md`](docs/api-reference.md) for the full surface and [`docs/deployment.md`](docs/deployment.md) for deploy recipes.
 
 ### Agent mode — MCP connector
 
-For LLM agents (Claude, any MCP-aware client) to create, update, and query Forge apps directly.
+For LLM agents and MCP-aware clients to create, update, validate, and query Forge apps directly.
 
 ```bash
 npm install @nedast/forgeui-connect
 ```
 
-Exposes five tools over stdio: `create_app`, `update_app`, `get_app`, `list_apps`, `delete_app`. See [`docs/api-reference.md`](docs/api-reference.md) for the full tool schemas.
+The connector exposes these tools over stdio:
+
+- `forgeui_create_app`
+- `forgeui_update_app`
+- `forgeui_validate_manifest`
+- `forgeui_component_docs`
+- `forgeui_list_apps`
+- `forgeui_get_app`
+- `forgeui_delete_app`
+
+See [`docs/api-reference.md`](docs/api-reference.md) for schemas and examples.
 
 ---
 
@@ -152,22 +170,22 @@ if (valid) {
 }
 ```
 
-The validator is strict by design: unknown keys, unknown component types, malformed URLs, and unsafe schemes (`javascript:`, `data:text/html`, …) are all rejected before any rendering happens. Bad manifests produce error states, never blank pages or runtime crashes.
+The validator is strict by design: unknown top-level keys, unknown element keys, unknown component types, malformed references, dangerous URL schemes, and obvious injection patterns are rejected before normal rendering. Invalid manifests produce validation/error states rather than blank pages or uncaught crashes.
 
-A ready-to-use system prompt describing the full component catalog is available via `generatePrompt()` from `@nedast/forgeui-runtime`, or see [`docs/components.md`](docs/components.md) for the full component reference.
+A ready-to-use LLM prompt describing the component catalog is available via `catalogPrompt()` from `@nedast/forgeui-runtime` or `ForgeUIApp.catalogPrompt()`. Use [`docs/components.md`](docs/components.md) for the human-readable component reference.
 
 ---
 
 ## The persistence spectrum
 
-The same manifest can run as a throwaway chat artifact, persist locally in the user's browser, or sync through a self-hosted server — without changing the manifest format. You pick where on the spectrum an app lives; Forge handles the plumbing.
+The same manifest can run as a throwaway chat artifact, persist locally in the user's browser, or sync through a self-hosted server — without changing the manifest format.
 
-| Ring | Where state lives | Use case |
-|---|---|---|
-| 0 — Ephemeral | In-memory | Chat artifacts, previews, embeds |
-| 1 — Browser | IndexedDB | Single-user apps that persist across reloads |
-| 2 — Server | SQLite via `@nedast/forgeui-server` | Multi-device, shareable URLs |
-| 3 — Collaborative | CRDT (planned) | Real-time multi-user editing |
+| Ring | Where state lives | Current status | Use case |
+|---|---|---|---|
+| 0 — Ephemeral | In-memory | Implemented (`surface="chat"` or `skipPersistState`) | Chat artifacts, previews, embeds |
+| 1 — Browser | IndexedDB | Implemented (`surface="standalone"`/`embed` or `persistState`) | Single-user apps that persist across reloads |
+| 2 — Server | SQLite app storage | Implemented for stored manifests/shareable URLs | Multi-device access to hosted app manifests |
+| 3 — Collaborative | CRDT | Planned | Real-time multi-user editing |
 
 See [`docs/architecture.md`](docs/architecture.md) for how the rings work and how Forge selects a persister.
 
@@ -177,23 +195,23 @@ See [`docs/architecture.md`](docs/architecture.md) for how the rings work and ho
 
 Forge assumes manifest *authors* are trusted (you, your server, or an LLM running under your supervision) and that the runtime's job is to render that manifest safely. In practice:
 
-- **Four-layer validation** — JSON Schema, URL scheme allowlist, state-path resolution, component catalog. Invalid manifests never reach the renderer.
+- **Layered validation** — JSON Schema, URL/string safety checks, state-reference checks, component catalog enforcement, and element reference/cycle checks.
 - **XSS defense at the template layer** — rendering is Lit tagged templates, so interpolated values are escaped by the engine itself, not by an added filter.
-- **No dynamic code** — the `$expr:` and `$computed:` engines are deliberately narrow. No `eval`, no `Function`, no regex, no dynamic imports.
-- **Server hardening** — when running `@nedast/forgeui-server`, CORS allowlist, body size cap, per-IP rate limiting, and optional Bearer-token auth are configurable via env vars.
+- **No arbitrary code execution** — `$expr:` and `$computed:` are deliberately narrow. There is no `eval`, `Function`, dynamic import, or user-supplied JavaScript callback execution.
+- **Server hardening knobs** — CORS allowlist, body size cap, per-IP rate limiting, trusted-proxy mode, and optional Bearer-token auth are configurable via env vars.
 
-See [`SECURITY.md`](SECURITY.md) for the reporting process and [`docs/architecture.md`](docs/architecture.md) §4 for the full validation pipeline.
+See [`SECURITY.md`](SECURITY.md) for the reporting process and [`docs/architecture.md`](docs/architecture.md) for the full validation and threat model.
 
 ---
 
 ## Documentation
 
 - [**Getting started**](docs/getting-started.md) — step-by-step tutorial, build a small app end to end
-- [**Component catalog**](docs/components.md) — every component, every prop, every variant
+- [**Component catalog**](docs/components.md) — component reference and manifest patterns
 - [**LLM SVG icon guide**](docs/llm-svg-icon-guide.md) — rules for generating clean icon drawings with Forge shapes
 - [**API reference**](docs/api-reference.md) — runtime exports, server REST API, MCP tools, manifest schema
 - [**Architecture**](docs/architecture.md) — the persistence spectrum, validation pipeline, expression engine
-- [**Deployment**](docs/deployment.md) — Docker, systemd, Cloudflare Workers, nginx
+- [**Deployment**](docs/deployment.md) — Docker, systemd, nginx, runtime hosting
 - [**Architecture Decisions**](docs/adr/) — the why behind the design choices
 
 ---
