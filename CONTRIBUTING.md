@@ -25,85 +25,100 @@ npm run validate     # Validate example manifests
 
 Once built, open [`demos/index.html`](demos/index.html) via any static server (`npx serve .`) to see a live runtime.
 
-## Project Structure
+## Project structure
 
 ```
 forgeui/
 ├── src/
-│   ├── index.ts                 # Runtime entry — IIFE bundle
+│   ├── index.ts                 # Runtime/package entry and public exports
+│   ├── cli.ts                   # forgeui CLI entry point
 │   ├── components/
-│   │   ├── index.ts             # All 39 components in one file (by design)
+│   │   ├── index.ts             # Component implementations in one file for now
 │   │   └── base.ts              # ForgeUIElement base class
 │   ├── runtime/
-│   │   ├── index.ts             # ForgeAppElement (web component host)
-│   │   └── expressions.ts       # $expr evaluation engine
+│   │   ├── index.ts             # <forgeui-app> web component host
+│   │   ├── persister.ts         # Persistence mode selection and IndexedDB wiring
+│   │   └── undo-redo.ts         # Manifest undo/redo stack
 │   ├── renderer/
-│   │   └── index.ts             # Manifest → Lit template compiler
+│   │   └── index.ts             # Manifest element tree → Lit templates
 │   ├── validation/
-│   │   ├── index.ts             # validateManifest() — 4-layer pipeline
+│   │   ├── index.ts             # validateManifest(), validateManifestPatch(), extractManifest()
 │   │   ├── manifest-schema.ts   # JSON Schema definition for ForgeUIManifest
 │   │   └── manifest-validator.generated.ts  # Precompiled Ajv standalone validator
 │   ├── state/
-│   │   └── index.ts             # TinyBase store creation
+│   │   └── index.ts             # TinyBase store creation, refs, expressions, actions
 │   ├── catalog/
 │   │   ├── registry.ts          # Component catalog + type definitions
-│   │   └── prompt.ts            # LLM system prompt generation
+│   │   └── prompt.ts            # LLM prompt and JSON schema generation
 │   ├── tokens/
-│   │   └── index.ts             # CSS design tokens
+│   │   └── index.ts             # CSS design tokens and surface styles
 │   ├── a2ui/
 │   │   └── index.ts             # A2UI adapter
 │   ├── server/
 │   │   ├── index.ts             # Hono HTTP server
 │   │   ├── db.ts                # SQLite persistence (better-sqlite3)
-│   │   └── cli.ts               # CLI entry point
+│   │   ├── body.ts              # Bounded JSON reader
+│   │   ├── client-ip.ts         # Trusted proxy/client IP helpers
+│   │   ├── rate-limit.ts        # Token-bucket rate limiter
+│   │   └── cli.ts               # forgeui-server CLI entry point
 │   ├── connect/
 │   │   └── index.ts             # MCP connector (stdio transport)
 │   ├── types/
 │   │   └── index.ts             # TypeScript type definitions
-│   ├── __tests__/               # Test suite
-│   └── cli.ts                   # CLI tool entry point
+│   └── __tests__/               # Test suite
 ├── examples/                    # Example manifests
+├── demos/                       # Browser demos
+├── packages/                    # Publishable package staging directories
 ├── scripts/
 │   ├── check-size.mjs           # IIFE gzip size budget gate
-│   └── gen-validator.mjs        # Precompile Ajv standalone validator
+│   ├── gen-validator.mjs        # Precompile Ajv standalone validator
+│   ├── validate-examples.mjs    # Example manifest validation
+│   └── pack-smoke.mjs           # Package smoke tests
 ├── build.mjs                    # esbuild build script
 ├── package.json
 └── tsconfig.json
 ```
 
-## Build Modes
+## Build modes
 
 ```bash
 npm run build                    # All bundles
-npm run build -- --mode=artifact # forgeui.js only (IIFE, all inline)
-npm run build -- --mode=server   # forgeui-server.js only
-npm run build -- --mode=cli      # forge.mjs only
-npm run build -- --mode=connect  # forgeui-connect.mjs only
+npm run build -- --mode=artifact # dist/forgeui.js only (IIFE, all inline)
+npm run build -- --mode=standalone # dist/forgeui-standalone.js only
+npm run build -- --mode=server   # dist/forgeui-server.js only
+npm run build -- --mode=server-cli # dist/forgeui-cli.js only
+npm run build -- --mode=cli      # dist/forgeui.mjs only
+npm run build -- --mode=connect  # dist/forgeui-connect.mjs only
+npm run build -- --mode=types    # Type declarations only
 npm run build -- --dev           # Dev mode (sourcemaps, no minify)
 ```
 
-## Adding a Component
+## Adding a component
 
-1. Create `src/components/<category>/<name>.ts`
-2. Extend `ForgeUIElement` from `../base.js`
-3. Register with `customElements.define()`
-4. Export from `src/components/<category>/index.ts`
-5. Add to component catalog in `src/catalog/registry.ts`
-6. Add example usage to `examples/`
+Component implementations currently live in `src/components/index.ts`, and valid manifest type strings are registered in `src/catalog/registry.ts` plus `src/types/index.ts`.
+
+1. Add or update the component class in `src/components/index.ts`.
+2. Extend `ForgeUIElement` from `./base.js`.
+3. Register with `customElements.define()`.
+4. Add the manifest component type to `src/types/index.ts`.
+5. Add the component to `componentCategories` and `componentsByCategory` in `src/catalog/registry.ts`.
+6. Add renderer dispatch in `src/renderer/index.ts`.
+7. Add docs in `docs/components.md`.
+8. Add example usage to `examples/` or `demos/` where useful.
 
 Example:
 
 ```typescript
 import { html, css } from 'lit';
-import { ForgeUIElement } from '../base.js';
+import { ForgeUIElement } from './base.js';
 
 export class ForgeMyComponent extends ForgeUIElement {
-  static styles = css`
+  static get styles() { return css`
     :host { display: block; }
-  `;
+  `; }
 
   render() {
-    const label = this.getProp('label') ?? 'Default';
+    const label = this.getString('label', 'Default');
     return html`<div class="my-component">${label}</div>`;
   }
 }
@@ -111,20 +126,23 @@ export class ForgeMyComponent extends ForgeUIElement {
 customElements.define('forgeui-my-component', ForgeMyComponent);
 ```
 
-## Validation Pipeline
+## Validation pipeline
 
-Four layers, all must pass:
+`validateManifest()` runs layered checks:
 
-1. **JSON Schema** (Ajv strict mode) — structure, types, required fields
-2. **URL allowlisting** — scheme allowlist, event handler rejection, XSS patterns
-3. **State path validation** — state paths resolve, no cycles
-4. **Component catalog enforcement** — type values match registered components
+1. **JSON Schema** — top-level structure, element envelope shape, component type enum, required fields.
+2. **URL and value checks** — dangerous URL schemes, event handler prop names, obvious script/object/embed injection patterns.
+3. **State reference checks** — `$state:` and `$computed:` sanity checks where state/schema information is available.
+4. **Component catalog enforcement** — type values match registered manifest component types.
+5. **Reference checks** — root exists, child IDs exist, and the element graph has no cycles.
+6. **Size warning** — manifests above 100 KB produce a warning.
 
 When adding features that affect validation:
-- Update `src/validation/manifest-schema.ts` for structural rules
-- Update `src/validation/index.ts` for semantic rules
-- Run `npm run gen:validator` after schema changes
-- Add tests covering both valid and invalid inputs
+
+- Update `src/validation/manifest-schema.ts` for structural rules.
+- Update `src/validation/index.ts` for semantic rules.
+- Run `npm run gen:validator` after schema changes.
+- Add tests covering both valid and invalid inputs.
 
 ## Testing
 
@@ -134,38 +152,46 @@ npm run test:watch               # Watch mode
 npm run test:coverage            # Coverage report
 npm run typecheck                # TypeScript type checking
 npm run ci:size                  # IIFE gzip size budget check
-npm run e2e                      # Playwright browser tests (Chromium, Firefox, WebKit)
+npm run e2e                      # Playwright browser tests
+npm run smoke:pack               # Package smoke tests
+npm run gauntlet                 # LLM/app generation gauntlet
 ```
 
 ## Size budget
 
 Forge UI enforces a gzip size ceiling on `dist/forgeui.js` via CI. Current ceiling: 50,000 bytes (50 KB gzip). Run locally:
 
-    npm run ci:size
+```bash
+npm run ci:size
+```
 
-Any PR that pushes past the ceiling fails the `Enforce IIFE gzip size budget` check in GitHub Actions. The ceiling is a ratchet — it drops as the bundle shrinks. To raise it intentionally (rare), edit `BUDGET_BYTES` in `scripts/check-size.mjs` and include the bump in the same PR.
+Any PR that pushes past the ceiling fails the size check. The ceiling is a ratchet — it drops as the bundle shrinks. To raise it intentionally, edit `BUDGET_BYTES` in `scripts/check-size.mjs` and include the bump in the same PR.
 
 ## Regenerating the validator
 
-The Ajv validator for `ForgeUIManifest` is precompiled at build time into `src/validation/manifest-validator.generated.ts`. `npm run build` regenerates it automatically via the `prebuild` script. To regenerate manually after editing `src/validation/manifest-schema.ts`:
+The Ajv validator for `ForgeUIManifest` is precompiled into `src/validation/manifest-validator.generated.ts`. `npm run build` regenerates it automatically via the `prebuild` script. To regenerate manually after editing `src/validation/manifest-schema.ts`:
 
-    npm run gen:validator
+```bash
+npm run gen:validator
+```
 
-The generated file is checked into git so CI doesn't need to regenerate on every run.
+The generated file is checked into git so CI does not need to regenerate on every run.
 
-## Code Style
+## Code style
 
-- TypeScript strict mode
-- No `any` in public APIs (use `unknown` or proper types)
-- All components must work with zero external CSS
-- Mobile-first responsive design (components adapt to container width)
-- All string interpolation in templates auto-escaped by Lit
+- TypeScript strict mode.
+- No `any` in public APIs unless unavoidable at integration boundaries.
+- All components must work with zero external CSS.
+- Mobile-first responsive design.
+- All string interpolation in Lit templates must rely on Lit escaping, not manual `innerHTML`.
+- Avoid runtime code execution from manifests. Expressions must remain constrained and auditable.
 
-## Manifest Version
+## Manifest version
 
-Current version: `0.1.0`
+Current version: `0.1.0`.
 
 Version bump when:
-- Adding/removing component types → minor bump
-- Changing prop semantics → minor bump
-- Removing fields or breaking changes → major bump
+
+- Adding/removing component types → minor bump.
+- Changing prop semantics → minor bump.
+- Removing fields or other breaking changes → major bump.
