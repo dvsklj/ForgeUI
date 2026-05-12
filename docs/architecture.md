@@ -1,679 +1,337 @@
-# Forge — Architecture v3
+# Forge UI Architecture
 
-**A framework for LLM-generated interactive applications**
-*Revised April 2026 — MIT licensed*
-
-This document is the living architecture spec. For decisions and their history see
-[docs/adr/](./adr/). For release notes see [`../CHANGELOG.md`](../CHANGELOG.md).
+This document describes the architecture that exists in the repository today and separates it from planned work. For historical design decisions, see [`docs/adr/`](./adr/). For public API details, see [`api-reference.md`](api-reference.md).
 
 ---
 
-## 1. The thesis: one manifest, a persistence spectrum
+## 1. Thesis
 
-A Forge app lives on a persistence spectrum. The same manifest can render as:
+Forge UI renders interactive web apps from declarative JSON manifests.
 
-- an ephemeral chat artifact (no storage, vanishes on reload)
-- a persistent single-user app backed by IndexedDB
-- a multi-device app synced through a server
-- a real-time collaborative app backed by CRDTs
+The LLM, CMS, low-code editor, or server generates structured data. A deterministic runtime validates that data, creates a TinyBase store, resolves state bindings, and renders a fixed catalog of Lit Web Components.
 
-Nothing about the manifest's component vocabulary or data model changes as you
-move along the spectrum. You add a persister, not a rewrite. **That is Forge's
-core product thesis.** Everything else in this document — the component
-catalog, the A2UI compatibility, the "no build step" constraint, the Three
-Rings — is machinery in service of it.
+The core invariant is:
 
-This matters because most LLM-UI projects pick one point on this spectrum and
-stay there. Claude Artifacts and A2UI target ephemeral. Streamlit targets
-session-scoped. Retool targets server-backed. None let the LLM generate a
-manifest that can live anywhere on the spectrum depending on how the user
-wants to use it. Forge does.
-
-### How the manifest produces an app
-
-```html
-<forgeui-app manifest='{"root":"shell","elements":{...}}'></forgeui-app>
+```txt
+manifest data → validation + state setup → static renderer dispatch → Lit components
 ```
 
-The LLM never generates code. It generates structured data describing *what*
-the UI should be. A deterministic, pre-built renderer — shipped, tested, and
-owned by us — handles *how*. This is the invariant underneath every security,
-reliability, and portability claim in this document.
-
-### A2UI: ingest, not conformance
-
-Forge ingests A2UI v0.8+ payloads through an adapter. Forge does **not** claim
-conformance to A2UI semantics on the rendering side, because Forge extends the
-state, action, and persistence model beyond anything A2UI specifies. Practical
-effect: any A2UI payload will render in Forge, but a Forge manifest is generally
-richer than what a pure A2UI renderer can express. The adapter is the
-compatibility surface; the core renderer is free to evolve without A2UI
-constraining it.
-
-### What Forge is not
-
-Not a general-purpose app builder. Not a game engine, not a 3D tool, not a
-video editor. The component vocabulary is finite and the declarative-actions
-model is deliberately non-Turing-complete. The constraint is the feature.
+Forge does **not** ask manifest authors to generate JavaScript, HTML templates, or custom DOM tags.
 
 ---
 
-## 2. Architecture: three rings
+## 2. Packages and entry points
 
-Forge is three concentric layers. Each is independently useful. You adopt
-only the ones you need.
+The repository builds several outputs from the same source tree.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│   RING 3 — FORGE CLOUD (optional, commercial managed service)   │
-│   Cloudflare Workers, Durable Objects, Data Localization.       │
-│   Edge deployment, capability-based V8 sandboxing, SLA.         │
-│                                                                 │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │   RING 2 — FORGE SERVER (self-hostable, open source)      │  │
-│  │   Hono + SQLite. REST API, shareable URLs, MCP tools,     │  │
-│  │   optional WebSocket sync. Docker, npm, or bare binary.   │  │
-│  │                                                           │  │
-│  │  ┌─────────────────────────────────────────────────────┐  │  │
-│  │  │   RING 1 — FORGE CORE (browser-only, MIT licensed)  │  │  │
-│  │  │   Lit + TinyBase + Ajv + component catalog +        │  │  │
-│  │  │   A2UI adapter. Browser-only, no dependencies       │  │  │
-│  │  │   beyond the DOM.                                   │  │  │
-│  │  └─────────────────────────────────────────────────────┘  │  │
-│  └───────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-```
+| Area | Source | Output / package | Purpose |
+|---|---|---|---|
+| Browser runtime | `src/index.ts`, `src/runtime/`, `src/components/`, `src/renderer/` | `@nedast/forgeui-runtime` | `<forgeui-app>`, validation helpers, catalog helpers, A2UI ingest. |
+| Server | `src/server/` | `@nedast/forgeui-server` | Hono HTTP API, SQLite manifest storage, hosted app pages. |
+| MCP connector | `src/connect/` | `@nedast/forgeui-connect` | Stdio MCP tools for agents to create/update/validate/read/delete apps. |
+| CLI | `src/cli.ts`, `src/server/cli.ts` | `forgeui`, `forgeui-server` binaries | Local serving, deploy, validation, catalog output, MCP startup. |
+| Catalog | `src/catalog/` | runtime exports and CLI output | Component registry and LLM prompt/schema generation. |
 
-Ring 3 is an *adapter implementation* of Ring 2's interfaces. It adds no
-capability the self-hosted tier cannot provide; see **ADR-0001** for the
-commitment that locks this in.
+The build script emits IIFE, standalone ESM, component-only ESM, catalog, server, server CLI, connector, CLI, and type declarations.
 
 ---
 
-## 3. Rendering engine
+## 3. Manifest shape
 
-### Why Lit
-
-Runtime manifest generation without a build step rules out Svelte, SolidJS,
-and Stencil (all compiler-required). Lit wraps the Web Components standard
-at ~5KB minified+gzipped. Shadow DOM provides style encapsulation. Tagged
-template literals escape interpolated values by default — XSS is prevented
-at the template layer, not added on as a filter.
-
-### The core component: `<forgeui-app>`
-
-The entry point is a single web component. It accepts a manifest (as a JSON
-string attribute or a JS object property), validates it, creates a TinyBase
-store from the manifest's schema, and recursively renders elements from the
-catalog. It never calls `document.createElement` with an LLM-supplied tag
-name — component `type` values are looked up against a registered allowlist.
-
-### Multi-surface rendering
-
-The same manifest renders across surfaces through CSS, not code branching:
-
-- **Container queries** — components adapt to their container, not the viewport.
-- **CSS Cascade Layers** — `@layer tokens, base, components, surfaces` gives
-  clean override precedence.
-- **Design tokens** — `--forgeui-space-md`, `--forgeui-color-primary`, etc.
-  The LLM writes `colorScheme: "primary"`, never `color: "#3B82F6"`.
-
-### Accessibility is a first-class concern
-
-Every component in the catalog must ship with:
-
-1. A correct ARIA role or native semantic element.
-2. Full keyboard operability (tab order, Enter/Space activation, Escape for
-   dismissible surfaces, arrow-key navigation where conventional).
-3. Visible focus indicators that survive Shadow DOM boundaries.
-4. Programmatic labels (`aria-label`, `aria-labelledby`, or associated
-   `<label>` elements for inputs).
-5. Respect for `prefers-reduced-motion` on all transitions.
-6. Color contrast meeting WCAG 2.2 AA for text and focus indicators at the
-   default token values.
-
-Accessibility is a **gate on component completion**, not a "Phase 2" item.
-Merging a component without keyboard support is a regression. The
-design:accessibility-review checklist (WCAG 2.1 AA audit) runs against every
-demo app before a release is tagged.
-
----
-
-## 4. Component system
-
-### Manifest format
-
-Flat, ID-based JSON. Not a nested tree. LLMs handle flat structures more
-reliably and the shape enables clean JSON Merge Patch (RFC 7396) for
-incremental updates.
+Forge manifests are flat, ID-indexed JSON records.
 
 ```json
 {
   "manifest": "0.1.0",
-  "id": "nutrition-tracker",
-  "root": "shell",
-  "schema": { ... },
-  "state": { ... },
-  "elements": { ... },
-  "actions": { ... }
-}
-```
-
-The `manifest` version is semver (`0.x.y`). Starting at `0.x` signals the
-format is evolving; breaking changes between minor versions are expected
-until we graduate to `1.0.0`. See **§5 — Manifest-format migration** for what
-happens to existing manifests when the format changes.
-
-### Catalog: core vs extended
-
-The catalog today is **39 components** (19 core + 20 extended). For LLM
-reliability and testing discipline, we split it into two tiers:
-
-- **Core (19):** the components the LLM is told about by default in
-  `catalog.prompt('core')`, and the components every release must pass full
-  a11y, LLM-reliability, and visual regression tests on. Shipped in the
-  base runtime.
-- **Extended (20):** components lazy-loaded or opted-in via
-  `catalog.prompt('full')`. These must pass the same tests to stay in
-  extended, but the prompt budget and reliability bar for the LLM is
-  measured on the core set.
-
-| Tier | Category | Components |
-|------|----------|-----------|
-| Core | Layout | Stack, Grid, Card, Tabs |
-| Core | Content | Text, Badge |
-| Core | Input | TextInput, NumberInput, Select, Toggle, Checkbox |
-| Core | Action | Button |
-| Core | Data | Table, Chart, Metric |
-| Core | Feedback | Alert, Dialog, Progress, Error |
-| Extended | Layout | Container, Accordion, ButtonGroup, Divider, Spacer |
-| Extended | Content | Image, Icon, Avatar, EmptyState |
-| Extended | Input | MultiSelect, DatePicker, Slider, FileUpload |
-| Extended | Action | Link |
-| Extended | Data | List |
-| Extended | Feedback | Toast |
-| Extended | Drawing | Drawing |
-| Extended | Navigation | Breadcrumb, Stepper |
-
-Component promotions and demotions are ADR-worthy decisions. A component
-only enters core after two consecutive releases of ≥99% LLM validity on
-real traffic.
-
-### Declarative actions (no code, ever)
-
-Actions are data: `{"type": "mutateState", "path": "meals", "operation": "append"}`.
-Conditional rendering uses `$when` expressions. Loops use the `Repeater`
-component. No JavaScript callbacks. No event handler strings. No `eval`.
-Where behavior cannot be expressed declaratively, the right answer is
-either a new action type (audited, documented, shipped in the renderer)
-or a new component — never a code-escape hatch.
-
-### Incremental updates
-
-When the LLM modifies an existing app it emits a JSON Merge Patch (RFC 7396).
-The runtime deep-merges the patch into the current manifest, re-validates,
-and re-renders. Partial patches are how conversational iteration works
-without regenerating entire manifests.
-
----
-
-## 5. Data layer
-
-### Progressive persistence
-
-The same TinyBase API works at every persistence level. You move along the
-spectrum by adding a persister, not by rewriting data access code.
-
-| Phase | Storage | Bundle cost | Use case |
-|-------|---------|-------------|----------|
-| 1 — In-memory | TinyBase store | 0 KB | Chat artifacts, ephemeral apps |
-| 2 — Browser | TinyBase + IndexedDB persister | ~1 KB | Persistent single-user apps |
-| 3 — Server sync | TinyBase + WebSocket persister | ~2 KB | Multi-device, shareable apps |
-| 4 — Collaborative | TinyBase MergeableStore + Yjs | ~15 KB | Real-time multi-user editing |
-
-### Who decides where on the spectrum an app lives
-
-Persistence is a deliberate choice, not an emergent one. The decision rule
-the LLM is prompted with:
-
-1. **Default ephemeral.** No `schema` block → no persistence, period.
-2. **IndexedDB (Phase 2)** requires a declared `schema` with at least one
-   user-data table. If the user says "track" or "log" or "save," the LLM
-   should add a schema and IndexedDB. If the user says "show me a chart
-   of...," the LLM should not.
-3. **Server sync (Phase 3)** requires an explicit `persistence: "server"`
-   field and a Ring 2+ host. Never inferred.
-4. **Collaborative (Phase 4)** requires explicit `persistence: "sync"` and
-   MergeableStore + Yjs loaded.
-
-The goal is that a user can predict whether their data will survive a
-reload. Ambiguity here kills the "same manifest, anywhere on the spectrum"
-claim because users don't know which point they're on.
-
-### Schema management — additive by default
-
-Schema changes follow an additive-only policy by default: new columns and
-tables permitted, dropping columns requires explicit user confirmation.
-Additive changes handle ~90% of real-world evolution without migration
-code.
-
-### Schema-breaking changes — declarative migrations
-
-When a column is renamed, retyped, or removed, the manifest declares a
-migration chain:
-
-```json
-{
-  "schema": {
-    "version": 3,
-    "migrations": [
-      { "from": 2, "to": 3, "operations": [
-        { "op": "rename_column", "table": "meals", "from": "cals", "to": "calories" },
-        { "op": "add_column", "table": "meals", "column": "protein", "default": 0 },
-        { "op": "drop_column", "table": "meals", "column": "notes" }
-      ]}
-    ]
+  "id": "example",
+  "root": "root",
+  "state": { "count": 0 },
+  "elements": {
+    "root": {
+      "type": "Stack",
+      "props": { "gap": "md" },
+      "children": ["title", "button"]
+    },
+    "title": {
+      "type": "Text",
+      "props": { "content": "Count: {{state.count}}" }
+    },
+    "button": {
+      "type": "Button",
+      "props": { "label": "+1", "action": "inc" }
+    }
+  },
+  "actions": {
+    "inc": { "type": "mutateState", "path": "count", "operation": "increment", "value": 1 }
   }
 }
 ```
 
-Operations are declarative (not code), ordered, and generate a backup on
-destructive steps. If a device comes online with data at v1 and the
-manifest is now at v5 with migrations v1→v2→v3→v4→v5, the runtime applies
-each in order. If a chain step is missing, the runtime prompts the user:
-"this app has been updated — start fresh or export your data?"
+Required top-level fields are:
 
-### Manifest-format migrations
+```txt
+manifest, id, root, elements
+```
 
-Schema migrations handle the user's data shape. Manifest-format migrations
-handle the manifest shape itself — the structural keys Forge reads.
+Allowed top-level fields are:
 
-- The runtime reads `manifest.manifest` (the version field) first.
-- Every minor version (0.1 → 0.2 → 0.3) ships a manifest-format migration
-  in the renderer. Old manifests are transformed in memory before
-  validation runs against the current JSON Schema.
-- The migration chain is versioned alongside the renderer; no user action
-  required.
-- **Commitment:** for the duration of 0.x, every minor release ships a
-  migration from the previous minor. We do not break old manifests without
-  a migration path.
+```txt
+manifest, id, root, schema, state, elements, actions, meta, persistState, skipPersistState, dataAccess
+```
 
-When we move to 1.0.0, the format-migration policy becomes: every release
-must ship a migration from the previous **major**. Minor and patch
-releases are backward compatible by definition.
+Element envelopes allow only:
 
-### File handling in browser-only mode
+```txt
+type, props, children, visible
+```
 
-`FileUpload` stores files as raw `Blob` objects in IndexedDB, linked by
-UUID from the TinyBase store. Never Base64 as strings — that's a 33% size
-penalty and destroys memory performance. A **5 MB per-file limit in
-Ring 1** prevents storage-quota accidents; Ring 2+ handles larger files
-server-side.
+`props`, `state`, `actions`, and table definitions stay open enough for component-specific behavior and user-defined app data.
 
 ---
 
-## 6. Expression language — `$expr`, `$computed`, `$when`
+## 4. Rendering runtime
 
-This is the escape valve. Stateful apps accumulate requirements for
-derived values, conditional rendering, and validation. The declarative
-actions model handles simple mutations; everything beyond that funnels
-through a formal expression language that is **deliberately not
-Turing-complete** and generates **no code at runtime**.
+The browser runtime centers on one custom element:
 
-### Grammar (minimal surface, strict allowlist)
+```html
+<forgeui-app surface="standalone"></forgeui-app>
+```
 
-Primary expressions:
+`ForgeUIApp` accepts a manifest from:
 
-- `state.<path>` — read a value from the TinyBase store.
-- `item.<field>` — read a field from the current Repeater row.
-- `number`, `string`, `true`, `false`, `null` literals.
-- Function calls, whitelist only: `count`, `sum`, `avg`, `min`, `max`,
-  `len`, `round`, `floor`, `ceil`, `abs`, `concat`, `lower`, `upper`,
-  `date`, `now`, `before`, `after`, `between`, `contains`,
-  `startsWith`, `endsWith`.
+1. the `manifest` JavaScript property,
+2. the `src` string property, or
+3. an inline `<script type="application/json">` child.
 
-Operators:
+Initialization flow:
 
-- Arithmetic: `+`, `-`, `*`, `/`, `%`
-- Comparison: `==`, `!=`, `<`, `<=`, `>`, `>=`
-- Logical: `and`, `or`, `not`
-- Pipe: `|` applies a whitelisted function to the left-hand value:
-  `state.meals | count`, `state.weight * state.activity | round`.
+1. Read manifest input.
+2. Convert A2UI payloads through `ingestPayload()` when detected.
+3. Validate the manifest with `validateManifest()`.
+4. Create a TinyBase store from `schema` and `state`.
+5. Configure persistence based on `surface`, `persistState`, and `skipPersistState`.
+6. Render the root element with `renderManifest()`.
+7. Route user actions through `_handleAction()`.
 
-Explicitly **not** in the grammar: arbitrary function calls, regular
-expressions, property access on arbitrary JS objects, iteration, variable
-assignment, `eval`, `Function`. The parser is a hand-rolled recursive
-descent; unknown identifiers reject at parse time, not runtime.
-
-### Usage surfaces
-
-- `$expr` in any prop value: `"value": "$expr: state.weight * 0.8"`
-- `$computed` as a shorthand when the expression reads only from state:
-  `"value": "$computed: meals | count"`
-- `$when` in conditional props:
-  `"visible": {"$when": "state.user.role == 'admin'"}`
-- Action parameters may reference `$expr` values:
-  `{"type": "mutateState", "path": "meals", "value": "$expr: item"}`
-
-### Hallucination resistance
-
-Every release runs a hallucination fuzz test: generate 200+ expressions
-from multiple LLMs across real user prompts, parse them, and fail CI if
-any expression slips through as a string containing arbitrary JS, regex,
-or property access outside the allowlist. Expression language is the
-#1 attack surface in a "no code" system; we treat it that way.
+The renderer uses an explicit switch over known component types. It does not call `document.createElement()` with a manifest-provided tag name.
 
 ---
 
-## 7. Security
+## 5. Component catalog
 
-### Core insight: manifests are data, not code
+The manifest catalog currently contains **38 component types**:
 
-Four validation layers, every time:
+| Category | Components |
+|---|---|
+| Layout | Stack, Grid, Card, Container, Tabs, Accordion, Divider, Spacer, Repeater |
+| Content | Text, Image, Icon, Badge, Avatar, EmptyState |
+| Input | TextInput, NumberInput, Select, MultiSelect, Checkbox, Toggle, DatePicker, Slider, FileUpload |
+| Action | Button, ButtonGroup, Link |
+| Data | Table, List, Chart, Metric |
+| Feedback | Alert, Dialog, Progress, Toast |
+| Navigation | Breadcrumb, Stepper |
+| Drawing | Drawing |
 
-1. **Structured LLM output.** Use provider-level schema constraints
-   (Anthropic tool use, OpenAI Structured Outputs) to bind generation to
-   the manifest schema at the source.
-2. **JSON Schema validation.** Ajv with `additionalProperties: false`,
-   component type enums, `maxLength` / `maxItems` constraints, URL
-   pattern validation. Reject invalid manifests — never silently repair.
-3. **URL and value sanitization.** Allowlist schemes (`https:`, `mailto:`,
-   app-internal `forge:`). Reject `javascript:`, `data:text/html`, and
-   anything with on-handler name patterns.
-4. **Component catalog enforcement.** Map `type` values to pre-registered
-   Lit classes. Unknown types render as error placeholders. Never
-   `document.createElement()` with LLM-provided tag names.
+There is also an internal `forgeui-error` component used as a fallback in rendering error paths. It is not a valid manifest `type`.
 
-### Threat model (selected rows)
-
-| Threat | Severity | Mitigation |
-|--------|----------|------------|
-| Manifest injection via prompt injection | CRITICAL | Structured output + Ajv + catalog allowlist |
-| Expression-language injection | CRITICAL | Grammar has no arbitrary JS hooks; fuzz-tested |
-| Agent-to-agent prompt injection via manifest content | HIGH | Manifest content visible to reader LLMs is treated as untrusted input; `forgeui_read_app_data` strips component-rendered text before returning to caller LLMs; audit-log suspicious payloads |
-| Sandbox escape (iframe or V8) | HIGH | Defense in depth: iframe sandbox + CSP (Ring 1), V8 isolate + MPK (Ring 3) |
-| Cross-tenant data access | CRITICAL | Per-app IndexedDB databases (browser); Durable Object Facets (Ring 3) |
-| Phishing via spoofed login UI | HIGH | No password input in catalog; CSP `form-action 'none'` in sandbox mode |
-| Data exfiltration via image/fetch URLs | HIGH | CSP `default-src 'none'` in sandbox mode; URL allowlist |
-| Storage quota exhaustion | MEDIUM | Per-app storage limits; `maxItems` schema constraints |
-
-The agent-to-agent row is new and worth underlining. In a world where
-agent A writes a manifest, agent B reads user-contributed content from
-that manifest's data (via Phase 3 read tools), agent B's context can be
-poisoned by strings the user *or another agent* injected. Treat every
-manifest field and every cell returned by `forgeui_read_app_data` as
-untrusted input to whatever agent consumes it next.
-
-### Shadow DOM is not a security boundary
-
-Shadow DOM provides style encapsulation only. Security boundaries come
-from iframe sandbox + CSP (client-side) or V8 isolates (server-side),
-never from Shadow DOM.
+Component definitions currently live in `src/components/index.ts`. The registry in `src/catalog/registry.ts` is the source of truth for valid manifest component type strings.
 
 ---
 
-## 8. Integration surfaces
+## 6. State and expressions
 
-### MCP tools — write and read
+Forge uses TinyBase for runtime state.
 
-Write-side (already shipped):
+`createForgeUIStore()`:
 
-- `forgeui_create_app(manifest) → { url }`
-- `forgeui_update_app(app_id, patch)`
-- `forgeui_get_app(app_id) → { manifest }`
-- `forgeui_list_apps() → [{ app_id, ... }]`
-- `forgeui_delete_app(app_id)`
+- creates a TinyBase store,
+- applies a TinyBase table schema when `manifest.schema` exists,
+- loads primitive initial state values as TinyBase values,
+- loads object initial state values as JSON values or table data depending on TinyBase schema behavior.
 
-Read-side (Phase 3, specified below):
+Props are resolved through `resolveRef()` before rendering. Supported reference forms include:
 
-- `forgeui_read_app_data(app_id, tables, limit, since) → { data }`
-- `forgeui_query_app_data(app_id, queries) → { results }`
+| Form | Meaning |
+|---|---|
+| `$state:path` | Read a TinyBase value, table row, or cell path. Slash paths are supported. |
+| `$computed:count:table` | Count rows. |
+| `$computed:sum:table/column` | Sum numeric column values. |
+| `$computed:avg:table/column` | Average numeric column values. |
+| `$item:field` | Read current `Repeater` item field. Dot paths are supported. |
+| `$expr:state.todos \| values` | Evaluate a constrained expression. |
+| `{{state.name}}` | Interpolate expression output into a string. |
 
-The read tools exist so agents can reason about the data *inside* a
-Forge app without dumping the entire store into a context window. They
-are gated by an explicit `dataAccess` manifest field; default is sealed.
+The current expression engine supports simple state/item reads, literals, pipe filters (`values`, `keys`, `count`, `length`, `sum`, `first`, `last`), and simple one-operator numeric/comparison expressions. It deliberately does not use `eval` or `Function`.
 
-### A2UI ingest
-
-The A2UI adapter accepts v0.8+ payloads and translates them into Forge
-manifests. Forge-specific extensions (schema, state, actions, persistence)
-are absent from the A2UI side, so a Forge-authored manifest with those
-extensions round-trips lossy through A2UI export. This is expected and
-documented — Forge is a superset at the feature level, a compatible
-ingester at the spec level.
-
-### Surfaces
-
-- **Chat inline** — iframe-sandboxed for untrusted contexts; direct for
-  trusted. Surface mode `"chat"` for compact spacing.
-- **Standalone PWA** — service worker, dynamic `manifest.json`.
-- **Enterprise embed** — standard web component; drops into Salesforce
-  Lightning, SAP UI5, or plain HTML without modification.
-- **Agent-deployed** — MCP `forgeui_create_app` returns a URL; optional TTL
-  for ephemeral apps.
+The broader formal expression grammar described in earlier design drafts is roadmap, not the current implementation.
 
 ---
 
-## 9. Phase 3 — closing the LLM/data loop
+## 7. Actions
 
-Today's write-only flow:
+Runtime-handled actions today:
 
-```
-LLM → manifest → Forge → user interacts → data accumulates in TinyBase
-```
+| Action | Behavior |
+|---|---|
+| `mutateState` | Mutates TinyBase values/tables through `set`, `append`, `delete`, `update`, `increment`, `decrement`, or `toggle`. Also supports shorthand `set: { key: value }`. |
+| `navigate` | Updates the runtime active view target. |
+| bound input updates | Components with `bind: "$state:path"` update state before matching manifest actions are looked up. |
+| `callApi` | Recognized, but currently logs that Ring 2+ support is required. |
+| unknown/custom types | Surfaced as `forgeui-action` events for host applications. |
 
-Phase 3 closes the loop:
-
-```
-LLM → manifest → Forge → user interacts → data accumulates in TinyBase
- ↑                                                                    │
- └────────────── LLM reads data, reasons, updates app ←──────────────┘
-```
-
-This shifts Forge from "LLM builds app for user" to **"LLM builds app with
-user."**
-
-### Three additions; nothing else changes
-
-**1. Manifest-level permission declaration.**
-
-```json
-{
-  "dataAccess": {
-    "enabled": true,
-    "readable": ["workouts", "exercises"],
-    "restricted": ["user_profile"],
-    "summaries": true
-  }
-}
-```
-
-- `enabled: false` (default) — LLM cannot read any app data. Sealed box.
-- `enabled: true` — LLM reads tables in `readable`. Tables in `restricted`
-  are never returned, even by aggregate queries.
-- `summaries: true` — Forge Server returns aggregates instead of raw rows
-  for token-efficient reasoning.
-
-The user sees a consent prompt before this takes effect: *"This app
-allows the AI to read your workout and exercise data to provide
-personalized updates."*
-
-**2. Two MCP tools.**
-
-`forgeui_read_app_data` — raw rows, bounded:
-```
-Input: { app_id, tables: ["workouts"], limit: 20, since: "2026-04-01" }
-Output: { schema, data: { workouts: [...] }, rowCounts: { workouts: 147 } }
-```
-
-`forgeui_query_app_data` — aggregates, token-efficient:
-```
-Input: { app_id, queries: [{ table: "workouts", aggregate: "max", column: "weight", groupBy: "exercise" }] }
-Output: { results: [{ data: { "Bench Press": 85, "Squat": 110 } }] }
-```
-
-Supported aggregates: `count`, `max`, `min`, `avg`, `sum`, `trend`,
-`distinct`. Aggregates run server-side against TinyBase; raw rows come
-through the same permission gate.
-
-**3. The loop in practice.**
-
-- Week 1: LLM generates a manifest with a workout plan, exercise table,
-  logging form. Declares `dataAccess.enabled: true` with user consent.
-  Deploys via `forgeui_create_app`.
-- Week 3: user asks "how am I doing?" LLM calls `forgeui_query_app_data` —
-  gets trends per exercise, consistency, volume progression. Reasons:
-  squat plateauing, bench progressing, leg day skipped twice.
-- LLM calls `forgeui_update_app` with a manifest patch: adjusts squat
-  scheme 5×5 → 3×8 deload, adds reminder Alert for leg day, updates the
-  bench Metric goal. User sees the updated plan — no manual editing.
-
-**Invariant:** The LLM never writes user data. It reads data (with
-permission), reasons about it, and modifies the manifest (app structure
-and plan). Logged data stays untouched in TinyBase. The LLM modifies
-the app *around* the data.
-
-### Token cost
-
-| Approach | Tokens per interaction |
-|----------|------------------------|
-| Dump entire TinyBase store | 2,000–10,000 (scales with data) |
-| `forgeui_read_app_data` with limit + since | 200–500 (bounded) |
-| `forgeui_query_app_data` with aggregates | 50–150 (minimal) |
-| Event-driven push (single row) | 30–80 (tiny) |
-
-### Future: event-driven data push
-
-Post-Phase 3, the app notifies the LLM when something interesting
-happens — workout logged, streak broken, goal hit — via
-`dataAccess.events` declarations with `$when` triggers and minimal
-payloads. This flips the loop from LLM-polls-app to app-pushes-LLM.
+The TypeScript action type also lists `openDialog`, `closeDialog`, `toast`, and `custom`, but the runtime switch only directly implements the behavior above today.
 
 ---
 
-## 10. Bundle budget and tree-shaking
+## 8. Persistence spectrum
 
-### Current state
+Forge supports a practical subset of the persistence spectrum today.
 
-| Bundle                | Raw    | Gzip    | Use case                      |
-|-----------------------|--------|---------|-------------------------------|
-| IIFE (CDN)            | 163 KB | 46 KB   | `<script>`-tag, zero build    |
-| ESM standalone        | 119 KB | 28 KB   | Modern bundler, whole runtime |
-| ESM per-component     | 70 KB  | 16 KB   | Tree-shaking consumers        |
+| Ring | Storage | Current status |
+|---|---|---|
+| 0 — Ephemeral | In-memory TinyBase store | Implemented. Used by `surface="chat"` or `skipPersistState: true`. |
+| 1 — Browser | IndexedDB TinyBase persister | Implemented. Used by `surface="standalone"` / `surface="embed"` unless disabled, or forced with `persistState: true`. |
+| 2 — Server | SQLite app manifest storage | Implemented for storing and serving manifests as shareable URLs. |
+| 3 — Collaborative | CRDT / real-time sync | Planned. |
 
-The IIFE now ships Lit, TinyBase, components, the precompiled Ajv
-standalone validator function, and small Ajv runtime helpers — no Zod, no
-Ajv compiler. The 50 KB gzip budget is enforced in CI via
-`scripts/check-size.mjs`.
+Important distinction: the server currently stores manifests and serves app pages. It does not yet sync live TinyBase user state between devices.
 
-This is the *Core* runtime only — server and connector are separate
-packages.
+---
 
-### Per-component code splitting
+## 9. Server architecture
 
-The single IIFE bundle is the convenient default. For consumers that care
-about payload, the runtime also ships with per-component ESM entry
-points:
+The server is a Hono app backed by `better-sqlite3`.
 
-```js
-import { ForgeUIApp } from '@nedast/forgeui-runtime/core';       // ~20 KB gz
-import '@nedast/forgeui-runtime/components/chart';             // +~3 KB gz
-import '@nedast/forgeui-runtime/components/table';             // +~2 KB gz
+Main routes:
+
+```txt
+GET    /                         landing page
+GET    /apps/:id                 rendered app page
+GET    /runtime/forgeui.js        runtime bundle
+GET    /runtime/forgeui-standalone.js
+GET    /api/health
+POST   /api/apps
+GET    /api/apps
+GET    /api/apps/:id
+PUT    /api/apps/:id
+PATCH  /api/apps/:id
+DELETE /api/apps/:id
 ```
 
-`sideEffects` is narrowly scoped to component registration files so
-tree-shakers keep everything else. Goal: a consumer importing only core
-components pays ≤25 KB gzipped; a consumer importing everything pays
-the full ~28 KB ESM bundle (or ~46 KB IIFE on CDN). This is what makes growing the catalog cheap for us
-and for them.
+Implemented hardening knobs:
 
-### Size discipline
+- CORS origin allowlist via `FORGEUI_CORS_ORIGINS`.
+- Request body size limit via `FORGEUI_MAX_BODY_BYTES`.
+- Per-IP token-bucket rate limiting on `/api/*`.
+- Trusted-proxy client IP resolution via `FORGEUI_TRUST_PROXY`.
+- Optional Bearer-token auth for write requests when `FORGEUI_API_TOKEN` is set.
+- Basic security headers on API responses.
+- CSP headers on hosted app pages and the landing page.
 
-`size-limit` CI check fails the build if any entry point exceeds its
-budget by >5%. Every new component ships with its own budget row.
+Current behavior to be aware of:
 
-### Size honesty
-
-The IIFE shipped at 95 KB gzip before the Ajv precompilation and Zod
-extraction work (2026-04-17). Zod was removed from the runtime bundle
-entirely — catalog schemas now validate at build time and the IIFE imports
-pre-generated data. Ajv's compiler was replaced with a precompiled
-standalone validator function, saving ~34 KB gzip. The IIFE is now ~46 KB
-gzip with a 50 KB ceiling enforced in CI. The aspirational ~40 KB target
-from early development is within reach but not worth chasing — the remaining
-budget is better spent on components and features than on shaving the last
-few KB of third-party dep wiring. See
-`docs/performance/2026-04-bundle-audit.md` for the detailed breakdown.
+- `POST /api/apps` checks JSON, body size, and app ID format, but does not run full manifest validation before writing.
+- `PUT /api/apps/:id` validates the full replacement manifest before writing.
+- `PATCH /api/apps/:id` validates the patch envelope, merges it, validates the merged manifest, then writes.
+- If `NODE_ENV=production` and `FORGEUI_API_TOKEN` is unset, the server logs a warning but does not reject writes.
 
 ---
 
-## 11. Roadmap (indicative, revised)
+## 10. MCP connector
 
-Original plan quoted "Phase 1 in 12 weeks" and "~200 lines for Ring 2."
-Both under-counted reality. The numbers below are honest.
+The MCP connector starts over stdio and uses the same SQLite database layer as the server.
 
-### Phase 1 — MVP (shipped)
+Current tools:
 
-Core runtime, Ring 2 server, MCP connector, 39 components, validation
-pipeline, design tokens, benchmarks, A2UI ingest. Remaining cleanup: chart
-z-index bug, open CORS, auth middleware, body size limits.
+| Tool | Purpose |
+|---|---|
+| `forgeui_create_app` | Validate and create an app from a manifest. |
+| `forgeui_update_app` | Patch or replace an existing app. Defaults to patch mode. |
+| `forgeui_validate_manifest` | Validate a manifest without writing. |
+| `forgeui_component_docs` | Return catalog prompt text and generated JSON schema. |
+| `forgeui_list_apps` | List stored apps. |
+| `forgeui_get_app` | Fetch a stored app. |
+| `forgeui_delete_app` | Delete a stored app. |
 
-### Phase 2 — sandbox, encryption, a11y depth (next)
-
-- iframe sandbox mode with CSP meta injection
-- `postMessage` protocol for sandboxed rendering
-- `RichText` component with DOMPurify allowlist
-- Field-level AES-256-GCM for PII (Web Crypto API)
-- JSON Merge Patch for incremental updates
-- WebSocket sync for multi-device persistence
-- Declarative schema migration execution
-- Component a11y deep audit (WCAG 2.2 AA on all 39)
-- Expression-language formal parser + fuzz harness
-
-### Phase 3 — data read channel (specced, see §9)
-
-- `dataAccess` manifest field + consent UI
-- `forgeui_read_app_data` and `forgeui_query_app_data`
-- LLM prompt updates documenting the read-reason-update cycle
-- Event-driven push (stretch)
-
-### Phase 4 — enterprise, cloud, collaborative
-
-- Ring 3 Cloudflare Workers adapter (per ADR-0001, this ships no new
-  interfaces not available in Ring 2 first)
-- Durable Object Facets for per-app storage
-- Data Localization Suite (EU/CH residency)
-- CRDT sync via MergeableStore + Yjs
-- OAuth 2.1/PKCE, passkeys
-- Crypto-shredding for right-to-erasure
+Data read/query tools described in older architecture drafts are planned, not currently implemented.
 
 ---
 
-## 12. Decision records
+## 11. Validation pipeline
 
-Architecture decisions live in `docs/adr/` as numbered, append-only
-records. Never edit a merged ADR — supersede it with a new one.
+`validateManifest()` currently performs:
 
-Initial ADRs:
+1. Ajv validation against the generated manifest schema.
+2. URL and dangerous-string checks over element string props and action data.
+3. State reference checks for `$state:` and `$computed:` where schema/state information is available.
+4. Component catalog enforcement.
+5. Root/child reference validation and cycle detection.
+6. Manifest size warning above 100 KB.
 
-- **ADR-0001** — Ring 2 interfaces land in open source first
-  (commitment that Ring 3 cannot hold back protocol or capability from
-  self-hosters; commercial differentiation is operational only)
+The generated Ajv validator comes from `src/validation/manifest-schema.ts` and is regenerated with:
 
-Future decisions that belong as ADRs, not inline edits to this doc:
+```bash
+npm run gen:validator
+```
 
-- Changes to the core component set
-- Changes to the expression language grammar
-- Changes to the manifest versioning contract
-- Any adoption of a new runtime dependency
-- Any deviation from the "no code, ever" principle
-
-When this doc contradicts an ADR, the newer ADR wins and this doc should
-be updated to match.
+The generated file is checked in at `src/validation/manifest-validator.generated.ts`.
 
 ---
 
-*Previous revision (v2, April 2026) is preserved in git history. Diffs
-against v2 are review-worthy — in particular the new §1 thesis framing,
-§5 manifest-format migrations and persistence decision rules, the new
-§6 expression language, and the new agent-to-agent row in §7.*
+## 12. Security model
+
+Forge treats manifests as data, not code.
+
+Current safeguards:
+
+- strict top-level and element-envelope schema validation,
+- fixed component catalog and static renderer dispatch,
+- Lit template escaping for interpolated content,
+- URL scheme deny/allow checks,
+- event-handler prop-name rejection,
+- injection-pattern checks for obvious script/object/embed payloads,
+- no `eval` or `Function` in expression handling,
+- CSP on server-rendered app pages,
+- optional Bearer-token auth and rate limiting for server API deployments.
+
+Shadow DOM is style encapsulation, not a security boundary.
+
+Known limitations:
+
+- Component-specific props are not exhaustively validated server-side by the manifest JSON schema.
+- `POST /api/apps` should not be treated as a full validation gate today.
+- Manifest authors are assumed to be trusted; rendering untrusted manifests still requires defense in depth.
+- Server-hosted app pages allow `img-src * data: blob:` for broad image compatibility.
+
+---
+
+## 13. Roadmap boundaries
+
+These items are described in design discussions or older docs but should be treated as planned work unless code lands:
+
+- live server-side TinyBase sync,
+- CRDT/Yjs collaboration,
+- Cloudflare Workers / Durable Objects managed service layer,
+- data read/query MCP tools,
+- consent UI for `dataAccess`,
+- formal full expression grammar with parser/fuzzer,
+- per-component ESM entry points such as `@nedast/forgeui-runtime/components/chart`,
+- built-in Prometheus metrics,
+- field-level encryption / rich PII handling.
+
+When any roadmap item ships, update this document and the API reference in the same PR.
+
+---
+
+## 14. Architecture decisions
+
+Architecture decisions live in [`docs/adr/`](./adr/) as append-only records. Do not edit merged ADRs to rewrite history; supersede them with a new ADR.
+
+Changes that should usually get an ADR:
+
+- manifest format changes,
+- component catalog additions/removals,
+- expression-language changes,
+- new runtime dependencies,
+- changes to the persistence model,
+- changes to the security boundary or trust model.
