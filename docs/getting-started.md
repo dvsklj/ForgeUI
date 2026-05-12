@@ -1,8 +1,8 @@
 # Getting Started with Forge UI
 
-## What You'll Build
+## What you'll build
 
-A data table app — takes 2 minutes. By the end, you'll have a live web app running in your browser.
+A small todo dashboard that runs in the Forge server. By the end, you will have a manifest stored in SQLite and served as a shareable app URL.
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ A data table app — takes 2 minutes. By the end, you'll have a live web app run
 npm install @nedast/forgeui-server
 ```
 
-## Step 2: Create a Manifest
+## Step 2: Create a manifest
 
 Create `my-app.json`:
 
@@ -32,28 +32,25 @@ Create `my-app.json`:
     "tables": {
       "todos": {
         "columns": {
-          "id": "string",
-          "task": "string",
-          "done": "boolean",
-          "priority": "string"
+          "task": { "type": "string" },
+          "done": { "type": "boolean", "default": false },
+          "priority": { "type": "string" }
         }
       }
     }
   },
   "state": {
-    "data": {
-      "todos": {
-        "t1": { "id": "t1", "task": "Build the UI", "done": true, "priority": "high" },
-        "t2": { "id": "t2", "task": "Add authentication", "done": false, "priority": "high" },
-        "t3": { "id": "t3", "task": "Write tests", "done": false, "priority": "medium" },
-        "t4": { "id": "t4", "task": "Deploy to production", "done": false, "priority": "low" }
-      }
+    "todos": {
+      "t1": { "task": "Build the UI", "done": true, "priority": "high" },
+      "t2": { "task": "Add authentication", "done": false, "priority": "high" },
+      "t3": { "task": "Write tests", "done": false, "priority": "medium" },
+      "t4": { "task": "Deploy to production", "done": false, "priority": "low" }
     }
   },
   "elements": {
     "root": {
       "type": "Stack",
-      "props": { "gap": "20", "padding": "24" },
+      "props": { "gap": "lg", "padding": "lg" },
       "children": ["header", "stats", "table"]
     },
     "header": {
@@ -63,14 +60,14 @@ Create `my-app.json`:
     },
     "badges": {
       "type": "Stack",
-      "props": { "direction": "horizontal", "gap": "8" },
+      "props": { "direction": "horizontal", "gap": "xs", "wrap": true },
       "children": ["b1", "b2"]
     },
     "b1": { "type": "Badge", "props": { "text": "4 Tasks", "variant": "info" } },
     "b2": { "type": "Badge", "props": { "text": "1 Done", "variant": "success" } },
     "stats": {
       "type": "Grid",
-      "props": { "columns": 3 },
+      "props": { "columns": 3, "gap": "md" },
       "children": ["m1", "m2", "m3"]
     },
     "m1": { "type": "Metric", "props": { "label": "Total", "value": "4", "subtitle": "tasks" } },
@@ -84,13 +81,14 @@ Create `my-app.json`:
     "todos-table": {
       "type": "Table",
       "props": {
-        "data": { "$expr": "state.data.todos | values" },
+        "data": { "$expr": "state.todos | values" },
         "columns": [
           { "key": "task", "label": "Task", "type": "text" },
           { "key": "priority", "label": "Priority", "type": "badge", "badgeMap": { "high": "error", "medium": "warning", "low": "info" } },
           { "key": "done", "label": "Status", "type": "badge", "badgeMap": { "true": "success", "false": "warning" } }
         ],
-        "selectable": true
+        "selectable": true,
+        "emptyMessage": "No tasks yet"
       }
     }
   },
@@ -98,13 +96,21 @@ Create `my-app.json`:
 }
 ```
 
-## Step 3: Start the Server
+Why the state is shaped this way: when a manifest declares `schema.tables.todos`, the initial `state.todos` object is loaded into the TinyBase `todos` table. Expressions can then read it with `state.todos | values`.
+
+## Step 3: Start the server
 
 ```bash
 npx forgeui serve --port 3000
 ```
 
-## Step 4: Deploy Your App
+Equivalent server-only binary:
+
+```bash
+npx forgeui-server --port 3000
+```
+
+## Step 4: Deploy your app
 
 ```bash
 curl -X POST http://localhost:3000/api/apps \
@@ -113,6 +119,7 @@ curl -X POST http://localhost:3000/api/apps \
 ```
 
 Response:
+
 ```json
 {
   "id": "todo-app",
@@ -121,28 +128,31 @@ Response:
 }
 ```
 
-## Step 5: Open It
+The real response also includes the stored manifest and timestamps.
+
+## Step 5: Open it
 
 Open `http://localhost:3000/apps/todo-app` in your browser.
 
-You'll see:
-- A header card with badges showing task counts
-- 3 KPI metrics (total, done, pending)
-- A data table with all 4 tasks, color-coded by priority and status
+You should see:
 
-## What Just Happened?
+- A header card with task-count badges.
+- Three KPI metrics.
+- A table with all four tasks, color-coded by priority and status.
 
-1. **You wrote a JSON manifest** — no HTML, no CSS, no JavaScript
-2. **The server stored it** in SQLite
-3. **The server served an HTML page** with the manifest embedded
-4. **The Forge runtime** (loaded via `<script>` tag) read the manifest and rendered a live web app
-5. **TinyBase** provided reactive state — the table binds to `state.data.todos` via `$expr`
+## What just happened?
 
-## Next Steps
+1. You wrote a flat JSON manifest — no HTML, CSS, or JavaScript.
+2. The server stored it in SQLite.
+3. The server served an HTML page with the manifest embedded.
+4. `<forgeui-app>` loaded the manifest, validated it, created a TinyBase store, and rendered the app.
+5. The table read the `todos` table through a `$expr` binding.
 
-### Add a Form
+## Next steps
 
-Add a form to create new todos:
+### Add a form
+
+Add these element definitions to `elements`, then include `add-form` in `root.children`:
 
 ```json
 {
@@ -153,17 +163,18 @@ Add a form to create new todos:
   },
   "form-fields": {
     "type": "Grid",
-    "props": { "columns": 2 },
+    "props": { "columns": 2, "gap": "md" },
     "children": ["input-task", "select-priority"]
   },
   "input-task": {
     "type": "TextInput",
-    "props": { "label": "Task", "placeholder": "What needs to be done?", "required": true }
+    "props": { "label": "Task", "placeholder": "What needs to be done?", "bind": "$state:draft/task", "required": true }
   },
   "select-priority": {
     "type": "Select",
     "props": {
       "label": "Priority",
+      "bind": "$state:draft/priority",
       "options": [
         { "value": "high", "label": "High" },
         { "value": "medium", "label": "Medium" },
@@ -173,17 +184,38 @@ Add a form to create new todos:
   },
   "form-actions": {
     "type": "ButtonGroup",
-    "props": {},
+    "props": { "direction": "horizontal", "spacing": "sm" },
     "children": ["btn-add"]
   },
   "btn-add": {
     "type": "Button",
-    "props": { "label": "Add Task", "variant": "primary" }
+    "props": { "label": "Add Task", "variant": "primary", "action": "add-task" }
   }
 }
 ```
 
-### Add Charts
+Then add a matching action:
+
+```json
+{
+  "actions": {
+    "add-task": {
+      "type": "mutateState",
+      "path": "todos",
+      "operation": "append",
+      "value": {
+        "task": "$state:draft/task",
+        "priority": "$state:draft/priority",
+        "done": false
+      }
+    }
+  }
+}
+```
+
+### Add a chart
+
+Add these element definitions to `elements`, then include `chart-section` in `root.children`:
 
 ```json
 {
@@ -197,13 +229,12 @@ Add a form to create new todos:
     "props": {
       "chartType": "pie",
       "data": [
-        { "name": "High", "value": 1 },
+        { "name": "High", "value": 2 },
         { "name": "Medium", "value": 1 },
         { "name": "Low", "value": 1 }
       ],
       "xKey": "name",
-      "yKey": "value",
-      "color": "var(--forgeui-color-primary)"
+      "yKey": "value"
     }
   }
 }
@@ -211,24 +242,25 @@ Add a form to create new todos:
 
 ### Update via API
 
+Patch the app with JSON Merge Patch:
+
 ```bash
-# Update a task
 curl -X PATCH http://localhost:3000/api/apps/todo-app \
   -H "Content-Type: application/json" \
   -d '{
     "state": {
-      "data": {
-        "todos": {
-          "t2": { "id": "t2", "task": "Add authentication", "done": true, "priority": "high" }
-        }
+      "todos": {
+        "t2": { "task": "Add authentication", "done": true, "priority": "high" }
       }
     }
   }'
 ```
 
-### Use with an AI Agent
+`PATCH` merges into the stored manifest, validates the merged manifest, and writes only if validation passes.
 
-Connect Forge to Claude Code or any MCP agent:
+### Use with an AI agent
+
+Connect Forge to Claude Code or any MCP-aware client:
 
 ```json
 {
@@ -241,23 +273,32 @@ Connect Forge to Claude Code or any MCP agent:
 }
 ```
 
-The agent can now say "create a todo app" and Forge will generate and deploy it.
+The connector exposes tools for creating, updating, validating, listing, reading, and deleting apps, plus a component-docs tool for prompt/schema retrieval.
 
 ## Troubleshooting
 
-**App not rendering?** Check the browser console for errors. Common issues:
-- Missing `root` field in manifest
-- `children` references to non-existent element IDs
-- Invalid component type (run `npx forgeui validate manifest.json` to check)
+**App not rendering?** Check the browser console and run validation:
 
-**Server won't start?** Make sure port 3000 is free:
-```bash
-lsof -i :3000
-```
-
-**Validation errors?** Run the validator:
 ```bash
 npx forgeui validate my-app.json
 ```
 
-It will tell you exactly what's wrong with line-by-line error details.
+Common issues:
+
+- Missing required top-level fields: `manifest`, `id`, `root`, or `elements`.
+- `root` points to an element ID that does not exist.
+- `children` references point to missing element IDs.
+- Invalid component type.
+- Schema columns are strings instead of objects like `{ "type": "string" }`.
+
+**Server won't start?** Make sure port 3000 is free:
+
+```bash
+lsof -i :3000
+```
+
+**Write requests fail with 401?** `FORGEUI_API_TOKEN` is set. Include:
+
+```http
+Authorization: Bearer <token>
+```
