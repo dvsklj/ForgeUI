@@ -1,15 +1,15 @@
 # Security Policy
 
-## Supported Versions
+## Supported versions
 
 Forge UI is at version 0.1.x. Until 1.0, only the latest minor release receives security fixes.
 
-| Version | Supported          |
-| ------- | ------------------ |
+| Version | Supported |
+| ------- | --------- |
 | 0.1.x   | :white_check_mark: |
-| < 0.1   | :x:                |
+| < 0.1   | :x: |
 
-## Reporting a Vulnerability
+## Reporting a vulnerability
 
 **Do not open a public issue for security reports.**
 
@@ -18,10 +18,11 @@ Use GitHub's private reporting flow:
 - **GitHub Private Vulnerability Reporting:** <https://github.com/dvsklj/ForgeUI/security/advisories/new>
 
 Include:
-- A description of the vulnerability and its impact
-- Steps to reproduce (a minimal manifest or HTTP request if applicable)
-- Affected version(s) and environment (browser / Node / etc.)
-- Your suggested severity (low / medium / high / critical) — optional but helpful
+
+- A description of the vulnerability and its impact.
+- Steps to reproduce, ideally with a minimal manifest or HTTP request.
+- Affected version(s) and environment: browser, Node, server, connector, etc.
+- Your suggested severity: low, medium, high, critical. Optional but helpful.
 
 ### Response expectations
 
@@ -37,23 +38,38 @@ These are targets, not guarantees — Forge UI is maintained by a single develop
 ## Scope
 
 In scope for security reports:
-- `src/validation/` — manifest validation, URL allowlisting, injection defenses
-- `src/renderer/` — Lit-based manifest rendering (XSS surface)
-- `src/server/` — HTTP API, SQLite persistence, middleware (CORS, auth, body limits)
-- `src/connect/` — MCP stdio server (untrusted JSON-RPC input)
-- `src/state/` — state path resolution, expression evaluation
-- The published IIFE artifact at `dist/forgeui.js`
+
+- `src/validation/` — manifest validation, URL checks, injection defenses, patch validation.
+- `src/renderer/` — Lit-based manifest rendering and static component dispatch.
+- `src/server/` — HTTP API, SQLite persistence, CORS, auth, body limits, rate limiting, CSP.
+- `src/connect/` — MCP stdio server and untrusted JSON-RPC/tool input.
+- `src/state/` — state path resolution, expression evaluation, and declarative actions.
+- `src/runtime/` — `<forgeui-app>` lifecycle, persistence, undo/redo, manifest initialization.
+- Published runtime artifacts such as `dist/forgeui.js`.
 
 Out of scope:
-- Vulnerabilities in dependencies with upstream fixes — please report to the dependency first and send us the CVE link
-- Issues that require the attacker to already have write access to a trusted manifest (we assume manifest authors are trusted; the attack surface is *rendering* untrusted manifests, not authoring them)
-- Denial-of-service via resource exhaustion in self-hosted `@nedast/forgeui-server` deployments (operators should rate-limit at their edge)
+
+- Vulnerabilities in dependencies with upstream fixes — report to the dependency first and send us the CVE/advisory link.
+- Issues that require the attacker to already have write access to a trusted manifest, unless rendering that manifest can escape Forge's documented constraints.
+- Denial-of-service via intentionally expensive self-hosted deployments without operator rate limiting or resource controls.
 
 ## Known limitations
 
-Per-component prop validation runs client-side (Zod, at render time), not on the server. The manifest-level JSON Schema leaves `element.props` open because prop shapes vary per component type — a Text element has different valid props than a Table element, and enumerating all permutations in a single JSON Schema is impractical.
+Component-specific prop validation is not exhaustively enforced by the manifest-level JSON Schema. The schema leaves `element.props` open because prop shapes vary per component type.
 
-Ring 2 operators deploying `@nedast/forgeui-server` as a multi-tenant service should treat manifest writes as trusted input at render time, not at store time. The server validates the manifest envelope (structure, element types, required fields, URL safety, injection patterns) but not component-specific prop contents. A malformed props object renders as an error state in the browser, not a crash, but it will persist in the database until overwritten by a valid manifest.
+Server write paths differ today:
+
+- `POST /api/apps` checks JSON/body size and the app ID format, but it does **not** run full `validateManifest()` before writing.
+- `PUT /api/apps/:id` validates the full replacement manifest before writing.
+- `PATCH /api/apps/:id` validates the patch envelope, merges it, validates the merged manifest, and writes only if validation passes.
+
+The browser runtime always validates before normal rendering and shows validation errors instead of silently rendering invalid manifests.
+
+When `FORGEUI_API_TOKEN` is unset, server write routes are unauthenticated. If `NODE_ENV=production` and no token is configured, the current server logs a warning but does not reject writes. Public deployments should set `FORGEUI_API_TOKEN` and enforce TLS at the reverse proxy or hosting layer.
+
+Ring 2 operators deploying `@nedast/forgeui-server` as a multi-tenant service should treat manifest writes as trusted input at render time, not as fully sanitized content at store time. A malformed props object should render as an error state in the browser rather than crash the runtime, but it may persist in the database until overwritten.
+
+Hosted app pages allow broad image sources (`img-src * data: blob:`) for compatibility. Tighten this with a reverse proxy or a downstream fork if your deployment needs stricter image-source policy.
 
 ## Public advisories
 
