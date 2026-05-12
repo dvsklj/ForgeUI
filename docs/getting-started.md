@@ -27,18 +27,6 @@ Create `my-app.json`:
     "title": "Todo App",
     "description": "A simple task tracker"
   },
-  "schema": {
-    "version": 1,
-    "tables": {
-      "todos": {
-        "columns": {
-          "task": { "type": "string" },
-          "done": { "type": "boolean", "default": false },
-          "priority": { "type": "string" }
-        }
-      }
-    }
-  },
   "state": {
     "todos": {
       "t1": { "task": "Build the UI", "done": true, "priority": "high" },
@@ -96,7 +84,7 @@ Create `my-app.json`:
 }
 ```
 
-Why the state is shaped this way: when a manifest declares `schema.tables.todos`, the initial `state.todos` object is loaded into the TinyBase `todos` table. Expressions can then read it with `state.todos | values`.
+Why the state is shaped this way: the current state loader stores nested `state` objects as JSON values. The expression `state.todos | values` reads that object back and turns it into an array for the table.
 
 ## Step 3: Start the server
 
@@ -146,11 +134,11 @@ You should see:
 2. The server stored it in SQLite.
 3. The server served an HTML page with the manifest embedded.
 4. `<forgeui-app>` loaded the manifest, validated it, created a TinyBase store, and rendered the app.
-5. The table read the `todos` table through a `$expr` binding.
+5. The table read `state.todos` through a `$expr` binding.
 
 ## Next steps
 
-### Add a form
+### Add a form shell
 
 Add these element definitions to `elements`, then include `add-form` in `root.children`:
 
@@ -189,29 +177,12 @@ Add these element definitions to `elements`, then include `add-form` in `root.ch
   },
   "btn-add": {
     "type": "Button",
-    "props": { "label": "Add Task", "variant": "primary", "action": "add-task" }
+    "props": { "label": "Add Task", "variant": "primary" }
   }
 }
 ```
 
-Then add a matching action:
-
-```json
-{
-  "actions": {
-    "add-task": {
-      "type": "mutateState",
-      "path": "todos",
-      "operation": "append",
-      "value": {
-        "task": "$state:draft/task",
-        "priority": "$state:draft/priority",
-        "done": false
-      }
-    }
-  }
-}
-```
+This adds the UI and bound draft fields. To persist new todos in this starter manifest, patch `state.todos` through the server API as shown below. Runtime table-row mutation is available through `mutateState`, but the starter uses a JSON state object for readability.
 
 ### Add a chart
 
@@ -289,7 +260,7 @@ Common issues:
 - `root` points to an element ID that does not exist.
 - `children` references point to missing element IDs.
 - Invalid component type.
-- Schema columns are strings instead of objects like `{ "type": "string" }`.
+- If you add a `schema`, column definitions should be objects like `{ "type": "string" }`, not shorthand strings.
 
 **Server won't start?** Make sure port 3000 is free:
 
