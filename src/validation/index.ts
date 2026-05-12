@@ -11,6 +11,7 @@
 import type { ErrorObject, ValidateFunction } from 'ajv';
 import type { ForgeUIManifest } from '../types/index.js';
 import { isValidComponentType } from '../catalog/registry.js';
+import { COMPONENT_PROP_ALLOWLIST } from './component-props.js';
 import _validate from './manifest-validator.generated.js';
 
 const validate = _validate as ValidateFunction;
@@ -88,6 +89,9 @@ export function validateManifest(data: unknown): ValidationResult {
   
   // ─── Layer 4: Component catalog enforcement ───
   validateCatalog(manifest, errors);
+
+  // ─── Layer 5: Per-component prop validation ───
+  validateComponentProps(manifest, errors);
   
   // ─── Cross-reference validation ───
   validateReferences(manifest, errors);
@@ -426,3 +430,22 @@ export function extractManifest(rawText: string): string {
 
   return trimmed;
 }
+function validateComponentProps(manifest: ForgeUIManifest, errors: ValidationError[]) {
+  for (const [id, element] of Object.entries(manifest.elements)) {
+    if (!element.props) continue;
+    const allowed = COMPONENT_PROP_ALLOWLIST[element.type];
+    if (!allowed) continue;
+
+    for (const key of Object.keys(element.props)) {
+      if (!allowed.has(key)) {
+        errors.push({
+          path: `/elements/${id}/props/${key}`,
+          message: `Unknown prop "${key}" for component type ${element.type}` ,
+          severity: 'error',
+        });
+      }
+    }
+  }
+}
+
+

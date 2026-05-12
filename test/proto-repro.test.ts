@@ -62,9 +62,9 @@ describe('validateManifest __proto__ reproduction', () => {
 
   // ─── Deeper-nested prototype pollution tests ───
 
-  it('__proto__ inside element props — rejected by Zod layer, not AJV', () => {
-    // props is intentionally open in the AJV schema (validated by per-type Zod schemas).
-    // __proto__ in props passes AJV but would be caught by Zod validation.
+  it('__proto__ inside element props — rejected by component prop allowlist layer', () => {
+    // props remains open in AJV schema, but validation now includes
+    // per-component prop checking that rejects unknown keys like __proto__.
     const input = JSON.parse(JSON.stringify({
       manifest: '0.1.0',
       id: 'test-proto-props',
@@ -80,10 +80,8 @@ describe('validateManifest __proto__ reproduction', () => {
     input.elements.x.props = protoProps;
 
     const result = validateManifest(input);
-    // AJV schema layer: props is open, so schema validation passes.
-    // Zod layer (not tested here) rejects unknown props per component type.
-    console.log('__proto__ in props (AJV layer):', result.valid, result.errors);
-    expect(result.valid).toBe(true);
+    console.log('__proto__ in props:', result.valid, result.errors);
+    expect(result.valid).toBe(false);
   });
 
   it('__proto__ on element definition — should reject', () => {

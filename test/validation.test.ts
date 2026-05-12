@@ -513,3 +513,28 @@ describe('extractManifest', () => {
     expect(() => extractManifest('```')).not.toThrow();
   });
 });
+describe('validateManifest — per-component prop validation', () => {
+  it('rejects misspelled props like colour on Text', () => {
+    const result = validateManifest(validManifest({
+      elements: { main: { type: 'Text', props: { content: 'Hello', colour: 'primary' } as any } },
+    }));
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.path === '/elements/main/props/colour' && e.message.includes('Unknown prop'))).toBe(true);
+  });
+
+  it('rejects dummy props not supported by the component registry', () => {
+    const result = validateManifest(validManifest({
+      elements: { main: { type: 'Button', props: { label: 'Click', fakeProp: 123 } as any } },
+    }));
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.path === '/elements/main/props/fakeProp')).toBe(true);
+  });
+
+  it('accepts valid props for known components', () => {
+    const result = validateManifest(validManifest({
+      elements: { main: { type: 'Button', props: { label: 'Save', variant: 'primary', action: 'save' } } },
+      actions: { save: { type: 'custom' } },
+    }));
+    expect(result.valid).toBe(true);
+  });
+});
