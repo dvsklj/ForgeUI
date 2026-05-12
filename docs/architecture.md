@@ -147,7 +147,9 @@ Forge uses TinyBase for runtime state.
 - creates a TinyBase store,
 - applies a TinyBase table schema when `manifest.schema` exists,
 - loads primitive initial state values as TinyBase values,
-- loads object initial state values as JSON values or table data depending on TinyBase schema behavior.
+- serializes object initial state values as JSON strings and stores them as TinyBase values.
+
+`resolveStateDotPath()` parses JSON-valued state roots on read, so expressions such as `state.todos | values` can work against object-shaped state.
 
 Props are resolved through `resolveRef()` before rendering. Supported reference forms include:
 
