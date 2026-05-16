@@ -106,6 +106,14 @@ describe('catalogPrompt', () => {
     expect(catalogPrompt('default')).toContain('If dark/light modes exist, include a visible bound Toggle');
     expect(catalogPrompt('full')).toContain('must not include theme state without an on-screen toggle');
   });
+
+  it('does not advertise unsupported action types', () => {
+    for (const tier of ['minimal', 'default', 'full'] as const) {
+      const prompt = catalogPrompt(tier);
+      expect(prompt).not.toContain('setState');
+      expect(prompt).not.toContain('submitForm');
+    }
+  });
 });
 
 describe('catalogToJsonSchema', () => {
@@ -142,5 +150,24 @@ describe('catalogToJsonSchema', () => {
   it('includes actions schema', () => {
     const schema = catalogToJsonSchema();
     expect((schema.properties as any).actions).toBeDefined();
+  });
+
+  it('matches the supported action and mutation operation types', () => {
+    const schema = catalogToJsonSchema();
+    const actionProps = (schema.properties as any).actions.additionalProperties.properties;
+    expect(actionProps.type.enum).toEqual([
+      'mutateState',
+      'custom',
+    ]);
+    expect(actionProps.operation.enum).toEqual([
+      'set',
+      'append',
+      'update',
+      'delete',
+      'increment',
+      'decrement',
+      'toggle',
+    ]);
+    expect(actionProps.set).toBeDefined();
   });
 });
