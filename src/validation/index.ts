@@ -440,12 +440,11 @@ function validateComponentProps(manifest: ForgeUIManifest, errors: ValidationErr
       if (!allowed.has(key)) {
         errors.push({
           path: `/elements/${id}/props/${key}`,
-          message: `Unknown prop "${key}" for component type ${element.type}` ,
+          message: `Unknown prop "${key}" for component type ${element.type}`,
           severity: 'error',
         });
       }
     }
   }
 }
-
 
