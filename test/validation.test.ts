@@ -537,4 +537,26 @@ describe('validateManifest — per-component prop validation', () => {
     }));
     expect(result.valid).toBe(true);
   });
+
+  it('accepts runtime-supported props across component allowlists', () => {
+    const result = validateManifest(validManifest({
+      root: 'spacer',
+      elements: {
+        spacer: { type: 'Spacer', props: { height: '24px', width: '100%' } },
+        repeater: { type: 'Repeater', props: { data: [], emptyMessage: 'No rows', direction: 'row', gap: 8 } },
+        text: { type: 'Text', props: { content: 'Status', colorScheme: 'primary' } },
+        badge: { type: 'Badge', props: { label: 'Beta' } },
+        button: { type: 'Button', props: { label: 'Pin', pressed: true } },
+        table: { type: 'Table', props: { data: [], columns: [], selectable: true, rowAction: 'selectRow', caption: 'Results' } },
+        chart: { type: 'Chart', props: { title: 'Revenue', data: [], chartType: 'bar', color: '#2563eb', yFormat: '$', labelKey: 'month', valueKey: 'revenue' } },
+        metric: { type: 'Metric', props: { label: 'Revenue', value: '$299K', trend: 'up', trendLabel: 'QoQ', unit: 'USD', subtitle: '+12%' } },
+        textInput: { type: 'TextInput', props: { label: 'Email', hint: 'Use work email', error: 'Required', type: 'email', inputType: 'email' } },
+        slider: { type: 'Slider', props: { label: 'Score', min: 0, max: 10, unit: 'pts' } },
+        dialog: { type: 'Dialog', props: { title: 'Details', open: false } },
+        progress: { type: 'Progress', props: { value: 40, max: 100, showValue: true } },
+      },
+      actions: { selectRow: { type: 'custom' } },
+    }));
+    expect(result.valid).toBe(true);
+  });
 });
