@@ -8,6 +8,7 @@
  */
 
 import { createStore, Store, TablesSchema } from 'tinybase';
+import { markSchemaVersion } from './migrations.js';
 
 // ─── Security: path safety ────────────────────────────────────────
 
@@ -28,6 +29,7 @@ export interface ForgeStateConfig {
     }>;
   };
   initialState?: Record<string, unknown>;
+  deferSchema?: boolean;
 }
 
 /** Resolve a $state:path reference to a value */
@@ -404,10 +406,7 @@ function forgeuiSchemaToTinyBase(schema: ForgeStateConfig['schema']): TablesSche
 export function createForgeUIStore(config: ForgeStateConfig): Store {
   const store = createStore();
   
-  if (config.schema) {
-    const tablesSchema = forgeuiSchemaToTinyBase(config.schema);
-    store.setTablesSchema(tablesSchema);
-  }
+  if (config.schema && !config.deferSchema) applyForgeUISchemaToStore(store, config.schema);
   
   // Set initial state values
   if (config.initialState) {
@@ -423,6 +422,15 @@ export function createForgeUIStore(config: ForgeStateConfig): Store {
   
   return store;
 }
+
+export function applyForgeUISchemaToStore(store: Store, schema: ForgeStateConfig['schema']): void {
+  if (!schema) return;
+  const tablesSchema = forgeuiSchemaToTinyBase(schema);
+  store.setTablesSchema(tablesSchema);
+  markSchemaVersion(store, schema.version);
+}
+
+export { applySchemaMigrations, markSchemaVersion, SCHEMA_VERSION_VALUE_ID } from './migrations.js';
 
 /** Execute a declarative action against the store */
 export function executeAction(
