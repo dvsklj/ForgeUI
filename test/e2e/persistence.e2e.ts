@@ -24,7 +24,7 @@ const counterManifest = {
     },
   },
   actions: {
-    inc: { type: 'setState', path: 'count', value: 1 },
+    inc: { type: 'mutateState', path: 'count', operation: 'set', value: 1 },
   },
 };
 

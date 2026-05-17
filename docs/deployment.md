@@ -84,10 +84,10 @@ Set `FORGEUI_TRUST_PROXY=1` so the server honors `X-Forwarded-For` / `X-Real-IP`
 | `FORGEUI_RATE_LIMIT_RPM` | `60` | Per-IP requests per minute on `/api/*`. |
 | `FORGEUI_RATE_LIMIT_BURST` | `RPM × 2` | Token-bucket burst size. |
 | `FORGEUI_RATE_LIMIT_DISABLE` | *(unset)* | Set to `1` to disable rate limiting entirely. |
-| `FORGEUI_API_TOKEN` | *(unset)* | Bearer token for `/api/apps/*` write operations (POST, PUT, PATCH, DELETE). **Required in production** — if `NODE_ENV=production` and this is unset, the server logs a warning and rejects all writes with 401. |
+| `FORGEUI_API_TOKEN` | *(unset)* | Bearer token for `/api/apps/*` write operations (POST, PUT, PATCH, DELETE). Set this in production; if `NODE_ENV=production` and this is unset, the server logs a warning. |
 | `FORGEUI_RUNTIME_PATH` | *(auto)* | Override path for `/runtime/forgeui.js`. By default the server resolves from its own location or walks up to `dist/forgeui.js`. |
 | `FORGEUI_STANDALONE_PATH` | *(auto)* | Override path for `/runtime/forgeui-standalone.js`. |
-| `NODE_ENV` | *(unset)* | When set to `production`, enforces `FORGEUI_API_TOKEN`. |
+| `NODE_ENV` | *(unset)* | When set to `production`, enables the missing `FORGEUI_API_TOKEN` warning. |
 
 Port, host, and database path are set via CLI flags (`--port`, `--host`, `--db`), not environment variables.
 

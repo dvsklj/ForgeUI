@@ -128,8 +128,8 @@
           'alert-card': { type: 'Alert', props: { title: 'System Notice', message: 'Data syncs every 5 minutes', variant: 'info', dismissible: true } },
         },
         actions: {
-          export: { type: 'setState', path: 'action/export', value: 'clicked' },
-          refresh: { type: 'setState', path: 'action/refresh', value: 'clicked' },
+          export: { type: 'mutateState', path: 'action/export', operation: 'set', value: 'clicked' },
+          refresh: { type: 'mutateState', path: 'action/refresh', operation: 'set', value: 'clicked' },
         }
       };
       document.getElementById('dashboard-app').setAttribute('manifest', JSON.stringify(dashboard));
