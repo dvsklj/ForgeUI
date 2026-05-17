@@ -7,7 +7,7 @@
  */
 
 import { build } from 'esbuild';
-import { statSync, mkdirSync, copyFileSync, readdirSync, rmSync, existsSync } from 'fs';
+import { statSync, mkdirSync, copyFileSync, readdirSync, rmSync, existsSync, readFileSync, writeFileSync } from 'fs';
 import { execSync } from 'child_process';
 import { join } from 'path';
 
@@ -31,6 +31,39 @@ const sharedConfig = {
   legalComments: 'none',
   treeShaking: true,
 };
+
+function componentExportEntries() {
+  const source = readFileSync('src/components/index.ts', 'utf8');
+  return [...source.matchAll(/^export class (Forge[A-Za-z0-9]+) extends ForgeUIElement/gm)]
+    .map(([, className]) => {
+      const componentName = className
+        .replace(/^Forge/, '')
+        .replace(/UI/g, 'Ui')
+        .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+        .toLowerCase();
+      return { className, componentName };
+    });
+}
+
+function writeComponentEntrypoints({ typesOnly = false } = {}) {
+  const entries = componentExportEntries();
+  mkdirSync('packages/runtime/components', { recursive: true });
+
+  for (const { className, componentName } of entries) {
+    if (!typesOnly) {
+      writeFileSync(
+        `packages/runtime/components/${componentName}.js`,
+        `export { ${className} } from '../forgeui-components.js';\n`,
+      );
+    }
+    writeFileSync(
+      `packages/runtime/components/${componentName}.d.ts`,
+      `export { ${className} } from './index.js';\n`,
+    );
+  }
+
+  console.log(`✅ packages/runtime/components/{${entries.length} entrypoints}`);
+}
 
 async function buildArtifact() {
   console.log('📦 Building artifact bundle (IIFE, all inline)...');
@@ -72,6 +105,7 @@ async function buildCore() {
     external: ['lit', 'tinybase'],
   });
   console.log('✅ dist/forgeui-components.js');
+  writeComponentEntrypoints();
 }
 
 async function buildCatalog() {
@@ -159,6 +193,7 @@ async function buildTypes() {
   for (const sub of ['runtime', 'state', 'validation', 'catalog', 'renderer', 'tokens', 'a2ui', 'components', 'types']) {
     execSync(`rsync -a --include='*/' --include='*.d.ts' --exclude='*' ${typeDir}/${sub}/ packages/runtime/${sub}/ 2>/dev/null || true`, { stdio: 'pipe' });
   }
+  writeComponentEntrypoints({ typesOnly: true });
   copyFileSync(`${typeDir}/index.d.ts`, 'packages/runtime/index.d.ts');
   copyFileSync(`${typeDir}/index.d.ts`, 'packages/runtime/forgeui-standalone.d.ts');
 

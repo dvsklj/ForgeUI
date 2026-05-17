@@ -89,6 +89,7 @@ for (const p of packages) {
     for (const v of Object.values(p.pkg.bin)) refs.push(v);
   }
   for (const ref of refs) {
+    if (ref.includes('*')) continue;
     const full = join(p.dir, ref);
     if (!existsSync(full)) {
       console.log(`    ⚠️  MISSING on disk: ${ref}`);
@@ -168,6 +169,7 @@ for (const tb of tarballs) {
 
   console.log(`\n  ${tb.name}:`);
   for (const ref of refs) {
+    if (ref.path.includes('*')) continue;
     const cleanPath = ref.path.replace(/^\.\//, '');
     const inTarball = files.includes(cleanPath);
     const marker = inTarball ? '✅' : '❌';
@@ -325,6 +327,23 @@ if (runtimeComponents.ok) {
   console.log(`  ❌ import '@nedast/forgeui-runtime/components' FAILED`);
   console.log(`     stderr: ${runtimeComponents.stderr.slice(0, 300)}`);
   smokeFindings.push('@nedast/forgeui-runtime: components import failed');
+}
+
+// Resolve per-component ESM entrypoints. Component modules need a DOM-like
+// runtime to execute, but package export resolution should work in plain Node.
+const runtimeComponentEntrypoints = smokeRun('smoke-runtime-component-entrypoints.mjs', `
+console.log('index:', import.meta.resolve('@nedast/forgeui-runtime/components/index'));
+console.log('chart:', import.meta.resolve('@nedast/forgeui-runtime/components/chart'));
+console.log('table:', import.meta.resolve('@nedast/forgeui-runtime/components/table'));
+console.log('OK');
+`);
+if (runtimeComponentEntrypoints.ok) {
+  console.log(`  ✅ resolve '@nedast/forgeui-runtime/components/{index,chart,table}'`);
+  console.log(`     ${runtimeComponentEntrypoints.stdout.replace(/\n/g, '; ')}`);
+} else {
+  console.log(`  ❌ resolve '@nedast/forgeui-runtime/components/{index,chart,table}' FAILED`);
+  console.log(`     stderr: ${runtimeComponentEntrypoints.stderr.slice(0, 300)}`);
+  smokeFindings.push('@nedast/forgeui-runtime: per-component entrypoint resolution failed');
 }
 
 // Import standalone
@@ -514,7 +533,17 @@ if (tsImports.length > 0) {
     console.log(`  ⚠️  Failed to install typescript in scratch project`);
     typeFindings.push('typescript install failed in scratch project');
   } else {
-    writeFileSync(join(scratchDir, 'smoke.ts'), tsImports.join('\n') + '\n');
+    writeFileSync(join(scratchDir, 'smoke.ts'), tsImports.join('\n') + `
+import type * as RuntimeComponentsIndex from '@nedast/forgeui-runtime/components/index';
+import type { ForgeChart } from '@nedast/forgeui-runtime/components/chart';
+import type { ForgeTable } from '@nedast/forgeui-runtime/components/table';
+declare const runtimeComponentsIndex: typeof RuntimeComponentsIndex;
+declare const chart: ForgeChart;
+declare const table: ForgeTable;
+void runtimeComponentsIndex;
+void chart;
+void table;
+`);
     writeFileSync(join(scratchDir, 'tsconfig.json'), JSON.stringify({
       compilerOptions: {
         module: 'esnext',
