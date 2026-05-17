@@ -42,5 +42,16 @@ export interface ForgePersister {
     /** Clean up everything — stop auto-save/load, destroy underlying persister. */
     destroy(): Promise<void>;
 }
+export interface StoredFileBlob {
+    id: string;
+    blob: Blob;
+}
+export interface FileBlobWrite {
+    file: File;
+    id: string;
+}
+export declare function storeFileBlob(file: File, id: string, appId?: string): Promise<string | null>;
+export declare function storeFileBlobs(files: FileBlobWrite[], appId?: string): Promise<void>;
+export declare function getStoredFileBlob(id: string, appId?: string): Promise<StoredFileBlob | null>;
 export declare function createForgePersister(store: Store, appId: string | undefined, mode?: PersisterMode): ForgePersister;
 //# sourceMappingURL=persister.d.ts.map

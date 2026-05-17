@@ -54,6 +54,16 @@ export interface ForgePersister {
   destroy(): Promise<void>;
 }
 
+export interface StoredFileBlob {
+  id: string;
+  blob: Blob;
+}
+
+export interface FileBlobWrite {
+  file: File;
+  id: string;
+}
+
 /**
  * Database naming convention:
  *   forgeui_{appId}  — for app-specific storage
@@ -65,6 +75,66 @@ export interface ForgePersister {
 function getDbName(appId: string | undefined): string {
   const safeId = (appId || 'global').replace(/[^a-zA-Z0-9-]/g, '_');
   return `forgeui_${safeId}`;
+}
+
+const FILE_STORE_NAME = 'f';
+
+function openFileDb(appId?: string): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const fail = (error?: unknown) => reject(error ?? new Error('IDB'));
+    if (!globalThis.indexedDB) return fail();
+
+    const request = indexedDB.open(`${getDbName(appId)}_f`, 1);
+    request.onupgradeneeded = () => {
+      request.result.createObjectStore(FILE_STORE_NAME);
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = request.onblocked = () => fail(request.error);
+  });
+}
+
+export async function storeFileBlob(file: File, id: string, appId?: string): Promise<string | null> {
+  await storeFileBlobs([{ file, id }], appId);
+  return id;
+}
+
+export async function storeFileBlobs(files: FileBlobWrite[], appId?: string): Promise<void> {
+  if (files.length === 0) return;
+
+  let db: IDBDatabase | null = null;
+  try {
+    db = await openFileDb(appId);
+    await new Promise<void>((resolve, reject) => {
+      const tx = db!.transaction(FILE_STORE_NAME, 'readwrite');
+      const store = tx.objectStore(FILE_STORE_NAME);
+      for (const { file, id } of files) {
+        store.put(file, id);
+      }
+      tx.oncomplete = () => resolve();
+      tx.onerror = tx.onabort = () => reject(tx.error);
+    });
+  } catch {
+    return;
+  } finally {
+    db?.close();
+  }
+}
+
+export async function getStoredFileBlob(id: string, appId?: string): Promise<StoredFileBlob | null> {
+  let db: IDBDatabase | null = null;
+  try {
+    db = await openFileDb(appId);
+    return await new Promise<StoredFileBlob | null>((resolve, reject) => {
+      const tx = db!.transaction(FILE_STORE_NAME, 'readonly');
+      const request = tx.objectStore(FILE_STORE_NAME).get(id);
+      request.onsuccess = () => resolve(request.result ? { id, blob: request.result as Blob } : null);
+      request.onerror = () => reject(request.error);
+    });
+  } catch {
+    return null;
+  } finally {
+    db?.close();
+  }
 }
 
 export function createForgePersister(
