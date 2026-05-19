@@ -1,5 +1,7 @@
 # Forge UI
 
+*In development*
+
 **Render interactive web apps from JSON.**
 
 Forge UI takes a declarative JSON manifest and turns it into a live web app — validated, styled, reactive, accessible. No framework code, no build step, no HTML templates. A manifest goes in, a working UI comes out.
