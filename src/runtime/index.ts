@@ -9,7 +9,8 @@
 import { LitElement, html } from 'lit';
 import { Store } from 'tinybase';
 import type { ForgeUIManifest, SurfaceMode } from '../types/index.js';
-import { createForgeUIStore, executeAction, resolveRef } from '../state/index.js';
+import { applyForgeUISchemaToStore, createForgeUIStore, executeAction, resolveRef } from '../state/index.js';
+import { applySchemaMigrations, markSchemaVersion } from '../state/migrations.js';
 import { validateManifest, ValidationResult } from '../validation/index.js';
 import { renderManifest, RenderContext } from '../renderer/index.js';
 import { tokenStyles, surfaceStyles } from '../tokens/index.js';
@@ -17,9 +18,14 @@ import { catalogPrompt, catalogToJsonSchema } from '../catalog/prompt.js';
 import { ingestPayload } from '../a2ui/index.js';
 import { createForgePersister, type ForgePersister, type PersisterStatus, type PersisterMode } from './persister.js';
 import { UndoRedoStack, type UndoRedoState } from './undo-redo.js';
+import { migrateManifestFormat } from './manifest-migrations.js';
 
 // Import all components to register them
 import '../components/index.js';
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
 
 export class ForgeUIApp extends LitElement {
   static styles = [tokenStyles, surfaceStyles];
@@ -44,6 +50,9 @@ export class ForgeUIApp extends LitElement {
   private _parsedManifest?: ForgeUIManifest;
   private _persister: ForgePersister | null = null;
   private _undoStack: UndoRedoStack = new UndoRedoStack(50);
+  private _openDialogs: string[] = [];
+  private _runtimeToasts: Array<{ id: number; props: Record<string, unknown> }> = [];
+  private _nextToastId = 1;
 
   constructor() {
     super();
@@ -104,6 +113,7 @@ export class ForgeUIApp extends LitElement {
 
     // Auto-detect A2UI payloads and convert to Forge manifest
     manifest = ingestPayload(manifest);
+    manifest = migrateManifestFormat(manifest);
 
     // Validate
     const result = validateManifest(manifest);
@@ -120,6 +130,7 @@ export class ForgeUIApp extends LitElement {
     this._store = createForgeUIStore({
       schema: manifest.schema,
       initialState: manifest.state,
+      deferSchema: this._persistenceModeFor(manifest) !== 'none',
     });
 
     // Set initial active view from root
@@ -165,7 +176,12 @@ export class ForgeUIApp extends LitElement {
       onAction: this._handleAction.bind(this),
     };
 
-    return renderManifest(ctx);
+    return html`
+      ${renderManifest(ctx)}
+      ${this._runtimeToasts.map((toast) => html`
+        <forgeui-toast .props=${toast.props} .store=${this._store}></forgeui-toast>
+      `)}
+    `;
   }
 
   private _renderErrors() {
@@ -195,18 +211,7 @@ export class ForgeUIApp extends LitElement {
       this._persister = null;
     }
 
-    // Determine mode
-    let mode: PersisterMode;
-    const surface = this.surface;
-
-    if ((manifest as any).persistState === true) {
-      mode = 'indexeddb';
-    } else if ((manifest as any).skipPersistState === true) {
-      mode = 'none';
-    } else {
-      // Auto-detect: persistent for standalone/embed, none for chat
-      mode = (surface === 'standalone' || surface === 'embed') ? 'indexeddb' : 'none';
-    }
+    const mode = this._persistenceModeFor(manifest);
 
     if (mode === 'none') return;
 
@@ -214,10 +219,31 @@ export class ForgeUIApp extends LitElement {
     this._persister = createForgePersister(this._store, manifest.id, mode);
     try {
       await this._persister.start();
+      const migrationResult = applySchemaMigrations(this._store, manifest.schema);
+      if (migrationResult.missingStep !== undefined) {
+        console.warn(
+          `[forgeui] schema migration chain is missing a step from v${migrationResult.missingStep} to v${manifest.schema?.version}`
+        );
+        applyForgeUISchemaToStore(this._store, manifest.schema);
+        markSchemaVersion(this._store, migrationResult.missingStep);
+        if (migrationResult.migrated) await this._persister.save();
+      } else if (migrationResult.migrated) {
+        applyForgeUISchemaToStore(this._store, manifest.schema);
+        await this._persister.save();
+      } else {
+        applyForgeUISchemaToStore(this._store, manifest.schema);
+      }
     } catch {
       // IndexedDB unavailable — app still works in-memory
+      applyForgeUISchemaToStore(this._store, manifest.schema);
       this._persister = null;
     }
+  }
+
+  private _persistenceModeFor(manifest: ForgeUIManifest): PersisterMode {
+    if ((manifest as any).persistState === true) return 'indexeddb';
+    if ((manifest as any).skipPersistState === true) return 'none';
+    return (this.surface === 'standalone' || this.surface === 'embed') ? 'indexeddb' : 'none';
   }
 
   /** Get persistence status. */
@@ -294,8 +320,25 @@ export class ForgeUIApp extends LitElement {
         break;
       }
       
+      case 'openDialog': {
+        const target = typeof action.target === 'string' ? action.target : '';
+        if (target) this._setDialogOpen(target, true);
+        break;
+      }
+
+      case 'closeDialog': {
+        const target = typeof action.target === 'string' ? action.target : this._openDialogs[this._openDialogs.length - 1] || '';
+        if (target) this._setDialogOpen(target, false);
+        break;
+      }
+
+      case 'toast': {
+        this._showToast(action as unknown as Record<string, unknown>, payload);
+        break;
+      }
+
       case 'callApi': {
-        console.warn('[Forge] callApi requires Forge Server (Ring 2+)');
+        void this._callApi(actionId, action as unknown as Record<string, unknown>, payload);
         break;
       }
       
@@ -307,6 +350,135 @@ export class ForgeUIApp extends LitElement {
         }));
       }
     }
+  }
+
+  private _setDialogOpen(elementId: string, open: boolean) {
+    const manifest = this._parsedManifest;
+    if (!manifest) return;
+    const element = manifest.elements[elementId];
+    if (!element || element.type !== 'Dialog') {
+      console.warn(`[Forge] Dialog action target is not a Dialog element: ${elementId}`);
+      return;
+    }
+
+    this._parsedManifest = {
+      ...manifest,
+      elements: {
+        ...manifest.elements,
+        [elementId]: {
+          ...element,
+          props: { ...(element.props || {}), open },
+        },
+      },
+    };
+
+    this._openDialogs = open
+      ? [...this._openDialogs.filter((id) => id !== elementId), elementId]
+      : this._openDialogs.filter((id) => id !== elementId);
+    this.requestUpdate();
+  }
+
+  private _showToast(action: Record<string, unknown>, payload?: Record<string, unknown>) {
+    const data = isRecord(action.data) ? action.data : {};
+    const message = this._stringFromAction(action.message ?? data.message ?? action.value ?? payload?.message);
+    if (!message) return;
+
+    const durationRaw = action.duration ?? data.duration;
+    const duration = typeof durationRaw === 'number' && Number.isFinite(durationRaw)
+      ? Math.max(0, durationRaw)
+      : 3000;
+    const id = this._nextToastId++;
+    this._runtimeToasts = [
+      ...this._runtimeToasts,
+      {
+        id,
+        props: {
+          ...data,
+          message,
+        },
+      },
+    ];
+    this.requestUpdate();
+    if (duration > 0) {
+      window.setTimeout(() => {
+        this._runtimeToasts = this._runtimeToasts.filter((toast) => toast.id !== id);
+        this.requestUpdate();
+      }, duration);
+    }
+  }
+
+  private async _callApi(actionId: string, action: Record<string, unknown>, payload?: Record<string, unknown>) {
+    const url = this._stringFromAction(action.url);
+    if (!url) {
+      this._dispatchApiError(actionId, payload, 'callApi action requires a url');
+      return;
+    }
+
+    const requestUrl = this._safeRequestUrl(url);
+    if (!requestUrl) {
+      this._dispatchApiError(actionId, payload, `Blocked unsafe callApi URL: ${url}`);
+      return;
+    }
+
+    const method = this._safeMethod(action.method);
+    const rawBody = isRecord(action.body) ? action.body : undefined;
+    const body = rawBody && method !== 'GET' ? this._resolveActionValue(rawBody) : undefined;
+
+    try {
+      const response = await fetch(requestUrl, {
+        method,
+        headers: body === undefined ? undefined : { 'content-type': 'application/json' },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+      const result = await this._readApiResponse(response);
+      const detail = { action: actionId, payload, status: response.status, ok: response.ok, result };
+      this.dispatchEvent(new CustomEvent('forgeui-api-result', { detail, bubbles: true, composed: true }));
+      this.dispatchEvent(new CustomEvent('forgeui-action-result', { detail, bubbles: true, composed: true }));
+    } catch (err) {
+      this._dispatchApiError(actionId, payload, err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  private _safeRequestUrl(value: string): string | null {
+    try {
+      const base = globalThis.location?.href || 'http://localhost/';
+      const url = new URL(value, base);
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+      return url.href;
+    } catch {
+      return null;
+    }
+  }
+
+  private _safeMethod(value: unknown): string {
+    const method = typeof value === 'string' ? value.toUpperCase() : 'GET';
+    return ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(method) ? method : 'GET';
+  }
+
+  private async _readApiResponse(response: Response): Promise<unknown> {
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) return response.json();
+    return response.text();
+  }
+
+  private _dispatchApiError(actionId: string, payload: Record<string, unknown> | undefined, error: string) {
+    const detail = { action: actionId, payload, ok: false, error };
+    this.dispatchEvent(new CustomEvent('forgeui-api-error', { detail, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('forgeui-action-result', { detail, bubbles: true, composed: true }));
+  }
+
+  private _resolveActionValue(value: unknown): unknown {
+    if (typeof value === 'string') return resolveRef(this._store!, value);
+    if (Array.isArray(value)) return value.map((item) => this._resolveActionValue(item));
+    if (isRecord(value)) {
+      return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, this._resolveActionValue(item)]));
+    }
+    return value;
+  }
+
+  private _stringFromAction(value: unknown): string {
+    const resolved = typeof value === 'string' ? resolveRef(this._store!, value) : value;
+    return typeof resolved === 'string' ? resolved : '';
   }
 
   // ─── Public API ──────────────────────────────────────────────

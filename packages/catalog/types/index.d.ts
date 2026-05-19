@@ -104,7 +104,8 @@ export type MigrationOperation = {
     op: 'add_column';
     table: string;
     column: string;
-    definition: ColumnDefinition;
+    definition?: ColumnDefinition;
+    default?: unknown;
 } | {
     op: 'drop_column';
     table: string;

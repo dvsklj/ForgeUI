@@ -138,7 +138,7 @@ export interface Migration {
 
 /** A single migration operation */
 export type MigrationOperation =
-  | { op: 'add_column'; table: string; column: string; definition: ColumnDefinition }
+  | { op: 'add_column'; table: string; column: string; definition?: ColumnDefinition; default?: unknown }
   | { op: 'drop_column'; table: string; column: string }
   | { op: 'rename_column'; table: string; from: string; to: string }
   | { op: 'add_table'; table: string; definition: TableDefinition }

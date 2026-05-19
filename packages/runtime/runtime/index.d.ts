@@ -40,6 +40,9 @@ export declare class ForgeUIApp extends LitElement {
     private _parsedManifest?;
     private _persister;
     private _undoStack;
+    private _openDialogs;
+    private _runtimeToasts;
+    private _nextToastId;
     constructor();
     connectedCallback(): void;
     disconnectedCallback(): Promise<void>;
@@ -47,13 +50,23 @@ export declare class ForgeUIApp extends LitElement {
     private _readInlineManifest;
     updated(changed: Map<string, unknown>): void;
     private _initManifest;
-    render(): import("lit-html").TemplateResult;
+    render(): import("lit-html").TemplateResult<1>;
     private _renderErrors;
     /** ─── Persistence ──────────────────────────────────────────── */
     private _setupPersistence;
+    private _persistenceModeFor;
     /** Get persistence status. */
     getPersistenceStatus(): PersisterStatus | null;
     private _handleAction;
+    private _setDialogOpen;
+    private _showToast;
+    private _callApi;
+    private _safeRequestUrl;
+    private _safeMethod;
+    private _readApiResponse;
+    private _dispatchApiError;
+    private _resolveActionValue;
+    private _stringFromAction;
     getStore(): Store | undefined;
     getManifest(): ForgeUIManifest | undefined;
     getValidation(): ValidationResult | undefined;

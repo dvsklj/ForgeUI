@@ -18,6 +18,7 @@ export interface ForgeStateConfig {
         }>;
     };
     initialState?: Record<string, unknown>;
+    deferSchema?: boolean;
 }
 export declare function setItemContext(item: Record<string, unknown> | null): void;
 export declare function getItemContext(): Record<string, unknown> | null;
@@ -33,6 +34,8 @@ export declare function getItemContext(): Record<string, unknown> | null;
 export declare function resolveRef(store: Store, value: unknown): unknown;
 /** Create a Forge state store from config */
 export declare function createForgeUIStore(config: ForgeStateConfig): Store;
+export declare function applyForgeUISchemaToStore(store: Store, schema: ForgeStateConfig['schema']): void;
+export { applySchemaMigrations, markSchemaVersion, SCHEMA_VERSION_VALUE_ID } from './migrations.js';
 /** Execute a declarative action against the store */
 export declare function executeAction(store: Store, action: {
     type: string;
