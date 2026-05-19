@@ -14,7 +14,18 @@
       "types": "./forgeui-standalone.d.ts",
       "default": "./forgeui-standalone.js"
     },
-    "./components": "./forgeui-components.js",
+    "./components": {
+      "types": "./components/index.d.ts",
+      "default": "./forgeui-components.js"
+    },
+    "./components/index": {
+      "types": "./components/index.d.ts",
+      "default": "./forgeui-components.js"
+    },
+    "./components/*": {
+      "types": "./components/*.d.ts",
+      "default": "./components/*.js"
+    },
     "./forgeui.js": "./forgeui.js"
   },
   "files": [
