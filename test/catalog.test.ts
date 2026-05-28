@@ -114,6 +114,13 @@ describe('catalogPrompt', () => {
       expect(prompt).not.toContain('submitForm');
     }
   });
+
+  it('advertises supported declarative action types', () => {
+    const prompt = catalogPrompt('default');
+    for (const actionType of ['mutateState', 'navigate', 'openDialog', 'closeDialog', 'toast', 'callApi', 'custom']) {
+      expect(prompt).toContain(actionType);
+    }
+  });
 });
 
 describe('catalogToJsonSchema', () => {
@@ -157,6 +164,11 @@ describe('catalogToJsonSchema', () => {
     const actionProps = (schema.properties as any).actions.additionalProperties.properties;
     expect(actionProps.type.enum).toEqual([
       'mutateState',
+      'navigate',
+      'openDialog',
+      'closeDialog',
+      'callApi',
+      'toast',
       'custom',
     ]);
     expect(actionProps.operation.enum).toEqual([
