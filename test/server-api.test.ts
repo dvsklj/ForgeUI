@@ -211,6 +211,9 @@ describe('Server API — App pages', () => {
     expect(res.status).toBe(200);
     const html = await res.text();
     expect(html).toContain('Forge Server');
+    expect(html).not.toContain('🔥');
+    expect(html).not.toContain('background: #0a0a0a');
+    expect(html).toContain('--forge-page-bg');
   });
 });
 
