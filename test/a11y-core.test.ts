@@ -84,6 +84,8 @@ describe('Core a11y — label linkage (P1)', () => {
     ['forgeui-select', 'select'],
     ['forgeui-checkbox', 'input'],
     ['forgeui-toggle', 'button'],
+    ['forgeui-date-picker', 'input'],
+    ['forgeui-slider', 'input'],
   ])('%s label is associated to the %s via for/id', async (tag, innerSel) => {
     const el = await mount(tag, { label: 'Field' });
     const label = el.shadowRoot!.querySelector('label');

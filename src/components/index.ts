@@ -658,9 +658,10 @@ export class ForgeDatePicker extends ForgeUIElement {
   render() {
     const label = this.getString('label', '');
     const val = this.getString('value', '');
+    const inputId = this._instanceId;
     return html`
-      ${label ? html`<label>${label}</label>` : nothing}
-      <input type="date" .value=${val} @change=${(e: any) => this.dispatchAction('change', { value: e.target.value })}>
+      ${label ? html`<label for="${inputId}">${label}</label>` : nothing}
+      <input id="${inputId}" type="date" .value=${val} @change=${(e: any) => this.dispatchAction('change', { value: e.target.value })}>
     `;
   }
 }
@@ -681,9 +682,10 @@ export class ForgeSlider extends ForgeUIElement {
     const rawVal = this.getBoundProp('value', min);
     let val = Number(rawVal);
     if (!Number.isFinite(val)) val = min;
+    const inputId = this._instanceId;
     return html`
-      ${label ? html`<label>${label}</label>` : nothing}
-      <input type="range" min=${min} max=${max} step=${step} .value=${val}
+      ${label ? html`<label for="${inputId}">${label}</label>` : nothing}
+      <input id="${inputId}" type="range" min=${min} max=${max} step=${step} .value=${val}
         @input=${(e: any) => this.dispatchAction('change', { value: Number(e.target.value) })}>
       <div class="value">${val}</div>
     `;
