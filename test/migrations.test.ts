@@ -7,17 +7,17 @@ import { validateManifest } from '../src/validation/index.js';
 import type { ForgeUISchema } from '../src/types/index.js';
 
 describe('manifest-format migrations', () => {
-  it('transforms legacy 0.0 manifests before current validation', () => {
-    const legacy = {
+  it('transforms 0.0 manifests before current validation', () => {
+    const priorManifest = {
       version: '0.0.0',
-      id: 'legacy-app',
+      id: 'prior-app',
       rootElement: 'root',
       components: {
         root: { component: 'Text', props: { content: 'Hello' } },
       },
     };
 
-    const result = migrateManifestFormat(legacy);
+    const result = migrateManifestFormat(priorManifest);
     const validation = validateManifest(result);
 
     expect(validation.valid).toBe(true);
@@ -31,20 +31,20 @@ describe('manifest-format migrations', () => {
   });
 
   it('does not mutate the caller-provided manifest object', () => {
-    const legacy = {
+    const priorManifest = {
       version: '0.0.0',
-      id: 'legacy-app',
+      id: 'prior-app',
       rootElement: 'root',
       components: {
         root: { component: 'Text', props: { content: 'Hello' } },
       },
     };
 
-    migrateManifestFormat(legacy);
+    migrateManifestFormat(priorManifest);
 
-    expect(legacy).toHaveProperty('version', '0.0.0');
-    expect(legacy).toHaveProperty('rootElement', 'root');
-    expect(legacy.components.root).toHaveProperty('component', 'Text');
+    expect(priorManifest).toHaveProperty('version', '0.0.0');
+    expect(priorManifest).toHaveProperty('rootElement', 'root');
+    expect(priorManifest.components.root).toHaveProperty('component', 'Text');
   });
 
   it('leaves newer manifest versions untouched', () => {
