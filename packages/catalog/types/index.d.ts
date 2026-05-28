@@ -6,7 +6,7 @@
  * Flat structures enable clean incremental patches (JSON Merge Patch).
  */
 /** All component types in the Forge catalog */
-export type ComponentType = 'Stack' | 'Grid' | 'Card' | 'Container' | 'Tabs' | 'Accordion' | 'Divider' | 'Spacer' | 'Repeater' | 'Text' | 'Image' | 'Icon' | 'Badge' | 'Avatar' | 'EmptyState' | 'Form' | 'FieldGroup' | 'TextInput' | 'Textarea' | 'NumberInput' | 'Select' | 'Combobox' | 'MultiSelect' | 'RadioGroup' | 'Checkbox' | 'Toggle' | 'DatePicker' | 'DateRangePicker' | 'Slider' | 'FileUpload' | 'Button' | 'ButtonGroup' | 'Link' | 'Table' | 'List' | 'Chart' | 'Metric' | 'StatCard' | 'KpiGrid' | 'Alert' | 'Dialog' | 'Progress' | 'Toast' | 'Breadcrumb' | 'Stepper' | 'SearchBox' | 'SegmentedControl' | 'Pagination' | 'Drawing';
+export type ComponentType = 'Stack' | 'Grid' | 'Card' | 'Container' | 'PageHeader' | 'Tabs' | 'Accordion' | 'Divider' | 'Spacer' | 'Repeater' | 'Text' | 'Image' | 'Icon' | 'Badge' | 'Avatar' | 'EmptyState' | 'Form' | 'FieldGroup' | 'TextInput' | 'Textarea' | 'NumberInput' | 'Select' | 'Combobox' | 'MultiSelect' | 'RadioGroup' | 'Checkbox' | 'Toggle' | 'DatePicker' | 'DateRangePicker' | 'Slider' | 'FileUpload' | 'Button' | 'ButtonGroup' | 'Link' | 'Table' | 'List' | 'Chart' | 'Metric' | 'StatCard' | 'KpiGrid' | 'Alert' | 'Dialog' | 'Progress' | 'Toast' | 'Breadcrumb' | 'Stepper' | 'SearchBox' | 'SegmentedControl' | 'Pagination' | 'Drawing';
 /** Component categories for grouping */
 export type ComponentCategory = 'layout' | 'content' | 'input' | 'action' | 'data' | 'feedback' | 'navigation' | 'drawing';
 /** The top-level Forge manifest structure */

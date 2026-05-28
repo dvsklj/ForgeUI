@@ -1,6 +1,6 @@
 # Component Catalog
 
-All 49 manifest components available in Forge, organized by category.
+All 50 manifest components available in Forge, organized by category.
 
 ---
 
@@ -82,6 +82,32 @@ Slot container for use inside Tabs and Modals.
 |------|------|---------|-------------|
 | `slot` | string | — | Slot name (must match tab/modal slot ID) |
 | `padding` | string | `"0"` | Inner padding |
+
+### PageHeader
+
+Page title area with optional subtitle, eyebrow, metadata, and action children.
+
+```json
+{
+  "type": "PageHeader",
+  "props": {
+    "title": "Issues",
+    "subtitle": "Triage queue",
+    "eyebrow": "Workspace",
+    "meta": "Updated today"
+  },
+  "children": ["new-issue-button"]
+}
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | string | `"Untitled"` | Primary page heading |
+| `subtitle` | string | — | Supporting description |
+| `eyebrow` | string | — | Short label above the title |
+| `meta` | string | — | Secondary metadata below the subtitle |
+| `align` | string | — | Use `"center"` to vertically center actions |
+| `density` | string | — | Use `"compact"` for shorter vertical spacing |
 
 ### ButtonGroup
 

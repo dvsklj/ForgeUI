@@ -113,6 +113,15 @@ describe('Core a11y — label linkage (P1)', () => {
   });
 });
 
+describe('Core a11y — page structure', () => {
+  it('forgeui-page-header renders a semantic header and h1', async () => {
+    const el = await mount('forgeui-page-header', { title: 'Issues' });
+
+    expect(el.shadowRoot!.querySelector('header')).not.toBeNull();
+    expect(el.shadowRoot!.querySelector('h1')!.textContent).toBe('Issues');
+  });
+});
+
 describe('Core a11y — prefers-reduced-motion (P1)', () => {
   it.each([
     ['forgeui-tabs', '.tab'],

@@ -1,6 +1,55 @@
 import { html, css, nothing } from 'lit';
 import { ForgeUIElement } from './base.js';
 
+export class ForgePageHeader extends ForgeUIElement {
+  static get styles() { return css`
+    :host { display:block; min-width:0; }
+    header { display:flex; align-items:flex-start; justify-content:space-between; gap:var(--forgeui-space-md);
+      min-width:0; padding-block:var(--forgeui-space-sm); border-bottom:1px solid var(--forgeui-color-border); }
+    :host([density="compact"]) header { padding-block:var(--forgeui-space-xs); }
+    :host([align="center"]) header { align-items:center; }
+    .copy { min-width:0; display:flex; flex-direction:column; gap:var(--forgeui-space-2xs); }
+    .eyebrow { color:var(--forgeui-color-primary); font-size:var(--forgeui-text-xs);
+      font-weight:var(--forgeui-weight-semibold); text-transform:uppercase; overflow-wrap:anywhere; }
+    h1 { margin:0; color:var(--forgeui-color-text); font-size:var(--forgeui-text-2xl);
+      line-height:var(--forgeui-leading-tight); font-weight:var(--forgeui-weight-semibold); overflow-wrap:anywhere; }
+    :host([density="compact"]) h1 { font-size:var(--forgeui-text-xl); }
+    .subtitle { color:var(--forgeui-color-text-secondary); font-size:var(--forgeui-text-sm);
+      line-height:var(--forgeui-leading-normal); overflow-wrap:anywhere; }
+    .meta { color:var(--forgeui-color-text-tertiary); font-size:var(--forgeui-text-xs); overflow-wrap:anywhere; }
+    .actions { display:flex; align-items:center; justify-content:flex-end; gap:var(--forgeui-space-xs);
+      flex-wrap:wrap; min-width:0; }
+    @media (max-width: 640px) {
+      header { flex-direction:column; align-items:stretch; }
+      .actions { justify-content:flex-start; }
+    }
+  `; }
+  render() {
+    const title = this.getString('title', 'Untitled');
+    const subtitle = this.getString('subtitle', '');
+    const eyebrow = this.getString('eyebrow', '');
+    const meta = this.getString('meta', '');
+    const density = this.getString('density', '');
+    const align = this.getString('align', '');
+    if (density) this.setAttribute('density', density);
+    else this.removeAttribute('density');
+    if (align) this.setAttribute('align', align);
+    else this.removeAttribute('align');
+    return html`
+      <header>
+        <div class="copy">
+          ${eyebrow ? html`<div class="eyebrow">${eyebrow}</div>` : nothing}
+          <h1>${title}</h1>
+          ${subtitle ? html`<div class="subtitle">${subtitle}</div>` : nothing}
+          ${meta ? html`<div class="meta">${meta}</div>` : nothing}
+        </div>
+        <div class="actions"><slot></slot></div>
+      </header>
+    `;
+  }
+}
+customElements.define('forgeui-page-header', ForgePageHeader);
+
 export class ForgeStack extends ForgeUIElement {
   static get properties() { return { props: { type: Object } }; }
   static get styles() { return css`

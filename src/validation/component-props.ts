@@ -9,6 +9,7 @@ const defs: Record<ComponentType, string[]> = {
   Grid: [...SHARED, 'columns', 'gap', 'padding', 'minChildWidth'],
   Card: [...SHARED, 'variant', 'title', 'subtitle', 'padding'],
   Container: [...SHARED, 'maxWidth', 'padding'],
+  PageHeader: [...SHARED, 'title', 'subtitle', 'eyebrow', 'meta', 'align', 'density'],
   Tabs: [...SHARED, 'items', 'tabs', 'activeTab', 'value'],
   Accordion: [...SHARED, 'title', 'items', 'multiple'],
   Divider: [...SHARED, 'direction', 'spacing'],

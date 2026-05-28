@@ -17,6 +17,7 @@ describe('layout components', () => {
     expect(customElements.get('forgeui-grid')).toBeDefined();
     expect(customElements.get('forgeui-card')).toBeDefined();
     expect(customElements.get('forgeui-container')).toBeDefined();
+    expect(customElements.get('forgeui-page-header')).toBeDefined();
     expect(customElements.get('forgeui-tabs')).toBeDefined();
     expect(customElements.get('forgeui-accordion')).toBeDefined();
     expect(customElements.get('forgeui-divider')).toBeDefined();
@@ -47,5 +48,28 @@ describe('layout components', () => {
 
     expect(el.shadowRoot!.querySelector('.title')!.textContent).toBe('Revenue');
     expect(el.shadowRoot!.querySelector('.subtitle')!.textContent).toBe('Trailing month');
+  });
+
+  it('renders page header copy and exposes an action slot', async () => {
+    const el = await mount('forgeui-page-header', {
+      title: 'Issues',
+      subtitle: 'Triage queue',
+      eyebrow: 'Workspace',
+      meta: 'Updated today',
+      align: 'center',
+      density: 'compact',
+    });
+    const button = document.createElement('button');
+    button.textContent = 'New issue';
+    el.appendChild(button);
+    await el.updateComplete;
+
+    expect(el.shadowRoot!.querySelector('h1')!.textContent).toBe('Issues');
+    expect(el.shadowRoot!.querySelector('.subtitle')!.textContent).toBe('Triage queue');
+    expect(el.shadowRoot!.querySelector('.eyebrow')!.textContent).toBe('Workspace');
+    expect(el.shadowRoot!.querySelector('.meta')!.textContent).toBe('Updated today');
+    expect(el.getAttribute('align')).toBe('center');
+    expect(el.getAttribute('density')).toBe('compact');
+    expect(el.shadowRoot!.querySelector('.actions slot')).not.toBeNull();
   });
 });
