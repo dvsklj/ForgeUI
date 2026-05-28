@@ -5,7 +5,7 @@ import { catalogPrompt, catalogToJsonSchema } from '../src/catalog/prompt.js';
 describe('isValidComponentType', () => {
   it('accepts all valid component types', () => {
     const expectedTypes = [
-      'Stack', 'Grid', 'Card', 'Container', 'Tabs', 'Accordion', 'Divider', 'Spacer', 'Repeater',
+      'Stack', 'Grid', 'Card', 'Container', 'PageHeader', 'Tabs', 'Accordion', 'Divider', 'Spacer', 'Repeater',
       'Text', 'Image', 'Icon', 'Badge', 'Avatar', 'EmptyState',
       'Form', 'FieldGroup', 'TextInput', 'Textarea', 'NumberInput', 'Select', 'Combobox', 'MultiSelect', 'RadioGroup', 'Checkbox', 'Toggle', 'DatePicker', 'DateRangePicker', 'Slider', 'FileUpload',
       'Button', 'ButtonGroup', 'Link',

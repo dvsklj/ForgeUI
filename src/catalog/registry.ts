@@ -7,9 +7,9 @@
 
 import type { ComponentType, ComponentCategory } from '../types/index.js';
 
-/** Category mapping for all 49 manifest components */
+/** Category mapping for all 50 manifest components */
 export const componentCategories: Record<ComponentType, ComponentCategory> = {
-  Stack: 'layout', Grid: 'layout', Card: 'layout', Container: 'layout',
+  Stack: 'layout', Grid: 'layout', Card: 'layout', Container: 'layout', PageHeader: 'layout',
   Tabs: 'layout', Accordion: 'layout', Divider: 'layout', Spacer: 'layout', Repeater: 'layout',
   
   Text: 'content', Image: 'content', Icon: 'content', Badge: 'content',
@@ -31,7 +31,7 @@ export const componentCategories: Record<ComponentType, ComponentCategory> = {
 
 /** Components grouped by category */
 export const componentsByCategory: Record<ComponentCategory, ComponentType[]> = {
-  layout: ['Stack', 'Grid', 'Card', 'Container', 'Tabs', 'Accordion', 'Divider', 'Spacer', 'Repeater'],
+  layout: ['Stack', 'Grid', 'Card', 'Container', 'PageHeader', 'Tabs', 'Accordion', 'Divider', 'Spacer', 'Repeater'],
   content: ['Text', 'Image', 'Icon', 'Badge', 'Avatar', 'EmptyState'],
   input: ['Form', 'FieldGroup', 'TextInput', 'Textarea', 'NumberInput', 'Select', 'Combobox', 'MultiSelect', 'RadioGroup', 'Checkbox', 'Toggle', 'DatePicker', 'DateRangePicker', 'Slider', 'FileUpload'],
   action: ['Button', 'ButtonGroup', 'Link'],

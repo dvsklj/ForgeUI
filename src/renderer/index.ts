@@ -44,6 +44,7 @@ export function renderElement(elementId: string, ctx: RenderContext): TemplateRe
       case 'Grid':     return html`<forgeui-grid .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}>${children}</forgeui-grid>`;
       case 'Card':     return html`<forgeui-card .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}>${children}</forgeui-card>`;
       case 'Container':return html`<forgeui-container .props=${resolvedProps} .store=${ctx.store}>${children}</forgeui-container>`;
+      case 'PageHeader':return html`<forgeui-page-header .props=${resolvedProps} .store=${ctx.store}>${children}</forgeui-page-header>`;
       case 'Tabs':     return html`<forgeui-tabs .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}>${children}</forgeui-tabs>`;
       case 'Accordion':return html`<forgeui-accordion .props=${resolvedProps} .store=${ctx.store}>${children}</forgeui-accordion>`;
       case 'Divider':  return html`<forgeui-divider .props=${resolvedProps} .store=${ctx.store}></forgeui-divider>`;

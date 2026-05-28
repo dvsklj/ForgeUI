@@ -90,6 +90,7 @@ function buildDefaultPrompt(): string {
     '  Grid(columns: number|"auto", gap, minChildWidth)',
     '  Card(title?, variant: "default"|"outlined"|"elevated"|"compact", padding)',
     '  Container(maxWidth: "sm"|"md"|"lg"|"xl"|"full", padding)',
+    '  PageHeader(title, subtitle?, eyebrow?, meta?, children) — page title area with optional actions.',
     '  Tabs(items: string[], bind: $state:path)',
     '  Accordion(items: [{title, contentId}], multiple?: boolean)',
     '  Divider(direction: "horizontal"|"vertical", spacing)',

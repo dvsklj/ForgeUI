@@ -10,8 +10,8 @@
 
 /** All component types in the Forge catalog */
 export type ComponentType =
-  // Layout (9)
-  | 'Stack' | 'Grid' | 'Card' | 'Container' | 'Tabs' | 'Accordion' | 'Divider' | 'Spacer' | 'Repeater'
+  // Layout (10)
+  | 'Stack' | 'Grid' | 'Card' | 'Container' | 'PageHeader' | 'Tabs' | 'Accordion' | 'Divider' | 'Spacer' | 'Repeater'
   // Content (6)
   | 'Text' | 'Image' | 'Icon' | 'Badge' | 'Avatar' | 'EmptyState'
   // Input (15)

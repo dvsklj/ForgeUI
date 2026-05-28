@@ -77,7 +77,7 @@ describe('validateManifest — schema validation', () => {
 
   it('accepts all valid component types', () => {
     const types = [
-      'Stack', 'Grid', 'Card', 'Container', 'Tabs', 'Accordion', 'Divider', 'Spacer', 'Repeater',
+      'Stack', 'Grid', 'Card', 'Container', 'PageHeader', 'Tabs', 'Accordion', 'Divider', 'Spacer', 'Repeater',
       'Text', 'Image', 'Icon', 'Badge', 'Avatar', 'EmptyState',
       'Form', 'FieldGroup', 'TextInput', 'Textarea', 'NumberInput', 'Select', 'Combobox', 'MultiSelect', 'RadioGroup', 'Checkbox', 'Toggle', 'DatePicker', 'DateRangePicker', 'Slider', 'FileUpload',
       'Button', 'ButtonGroup', 'Link',
@@ -636,6 +636,7 @@ describe('validateManifest — per-component prop validation', () => {
         badge: { type: 'Badge', props: { label: 'Beta' } },
         button: { type: 'Button', props: { label: 'Pin', pressed: true } },
         table: { type: 'Table', props: { data: [], columns: [], selectable: true, searchable: true, pageSize: 10, rowAction: 'selectRow', caption: 'Results' } },
+        pageHeader: { type: 'PageHeader', props: { title: 'Issues', subtitle: 'Triage queue', eyebrow: 'Workspace', meta: 'Updated today', align: 'center', density: 'compact' } },
         chart: { type: 'Chart', props: { title: 'Revenue', data: [], chartType: 'bar', color: '#2563eb', yFormat: '$', labelKey: 'month', valueKey: 'revenue' } },
         metric: { type: 'Metric', props: { label: 'Revenue', value: '$299K', trend: 'up', trendLabel: 'QoQ', unit: 'USD', subtitle: '+12%' } },
         statCard: { type: 'StatCard', props: { label: 'Revenue', value: '$299K', trend: 'up', trendLabel: '+12%', unit: 'USD', subtitle: 'vs last period' } },
