@@ -181,6 +181,27 @@ export interface ForgeEvents {
         action: string;
         payload?: Record<string, unknown>;
     }>;
+    'forgeui-action-result': CustomEvent<{
+        action: string;
+        payload?: Record<string, unknown>;
+        ok: boolean;
+        status?: number;
+        result?: unknown;
+        error?: string;
+    }>;
+    'forgeui-api-result': CustomEvent<{
+        action: string;
+        payload?: Record<string, unknown>;
+        ok: boolean;
+        status: number;
+        result: unknown;
+    }>;
+    'forgeui-api-error': CustomEvent<{
+        action: string;
+        payload?: Record<string, unknown>;
+        ok: false;
+        error: string;
+    }>;
     'forgeui-state-change': CustomEvent<{
         path: string;
         value: unknown;

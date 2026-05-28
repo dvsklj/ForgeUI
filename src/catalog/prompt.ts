@@ -153,6 +153,10 @@ function buildDefaultPrompt(): string {
     '',
     'ACTIONS:',
     '  mutateState — set, increment, decrement, or toggle a value; append/update/delete rows in a table.',
+    '  navigate — switch the active view by element ID.',
+    '  openDialog / closeDialog — control Dialog elements by target ID.',
+    '  toast — show a transient Toast message.',
+    '  callApi — call same-origin or HTTPS APIs and emit result/error events.',
     '  custom — emit a forgeui-action event for host-provided behavior.',
     '',
     'SCHEMA (optional, for persistent data):',
@@ -360,7 +364,7 @@ export function catalogToJsonSchema(): { type: string; required: string[]; prope
         additionalProperties: {
           type: 'object',
           properties: {
-            type: { type: 'string', enum: ['mutateState', 'custom'] },
+            type: { type: 'string', enum: ['mutateState', 'navigate', 'openDialog', 'closeDialog', 'callApi', 'toast', 'custom'] },
             path: { type: 'string' },
             value: {},
             operation: { type: 'string', enum: ['set', 'append', 'update', 'delete', 'increment', 'decrement', 'toggle'] },

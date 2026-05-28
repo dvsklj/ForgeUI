@@ -186,6 +186,32 @@ Delete an app.
 }
 ```
 
+## Runtime Events
+
+`forgeui-action`: emitted for `custom` actions and component-level actions before host handling.
+
+```json
+{ "action": "actionId", "payload": {} }
+```
+
+`forgeui-action-result`: emitted after `callApi` succeeds or fails.
+
+```json
+{ "action": "save", "ok": true, "status": 201, "result": {} }
+```
+
+`forgeui-api-result`: emitted after a successful `callApi` fetch.
+
+```json
+{ "action": "save", "ok": true, "status": 201, "result": {} }
+```
+
+`forgeui-api-error`: emitted when `callApi` is blocked or fails.
+
+```json
+{ "action": "save", "ok": false, "error": "message" }
+```
+
 ## Manifest Schema
 
 ```jsonc
