@@ -166,8 +166,10 @@ happens to existing manifests when the format changes.
 
 ### Catalog: core vs extended
 
-The catalog today is **39 components** (19 core + 20 extended). For LLM
-reliability and testing discipline, we split it into two tiers:
+The manifest catalog today is **38 components**. The runtime registers 39
+custom elements because `forgeui-error` is an internal fallback element, not a
+manifest component. For LLM reliability and testing discipline, we split the
+catalog into two tiers:
 
 - **Core (19):** the components the LLM is told about by default in
   `catalog.prompt('core')`, and the components every release must pass full
@@ -614,9 +616,9 @@ Both under-counted reality. The numbers below are honest.
 
 ### Phase 1 — MVP (shipped)
 
-Core runtime, Ring 2 server, MCP connector, 39 components, validation
-pipeline, design tokens, benchmarks, A2UI ingest. Remaining cleanup: chart
-z-index bug, open CORS, auth middleware, body size limits.
+Core runtime, Ring 2 server, MCP connector, 38 manifest components plus the
+internal error element, validation pipeline, design tokens, benchmarks, A2UI
+ingest. Remaining cleanup: chart z-index bug.
 
 ### Phase 2 — sandbox, encryption, a11y depth (next)
 
