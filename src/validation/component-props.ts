@@ -21,6 +21,7 @@ const defs: Record<ComponentType, string[]> = {
   Avatar: [...SHARED, 'src', 'name', 'size'],
   EmptyState: [...SHARED, 'title', 'description', 'icon', 'actionLabel'],
   TextInput: [...SHARED, ...INPUT_BASE, 'placeholder', 'hint', 'error', 'multiline', 'required', 'maxLength', 'type', 'inputType'],
+  Textarea: [...SHARED, ...INPUT_BASE, 'placeholder', 'hint', 'error', 'required', 'maxLength', 'rows', 'disabled'],
   NumberInput: [...SHARED, ...INPUT_BASE, 'min', 'max', 'step', 'required'],
   Select: [...SHARED, ...INPUT_BASE, 'options', 'placeholder', 'required'],
   MultiSelect: [...SHARED, ...INPUT_BASE, 'options', 'maxSelections'],

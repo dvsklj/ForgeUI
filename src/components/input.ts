@@ -38,6 +38,41 @@ export class ForgeTextInput extends ForgeUIElement {
 }
 customElements.define('forgeui-text-input', ForgeTextInput);
 
+export class ForgeTextarea extends ForgeUIElement {
+  static get styles() { return css`
+    :host { display:block; flex:1 1 auto; min-width:0; max-width:100%; margin-bottom:var(--forgeui-space-sm); }
+    label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); color:var(--forgeui-color-text); overflow-wrap:break-word; }
+    textarea { width:100%; min-height:5rem; padding:var(--forgeui-space-xs) var(--forgeui-space-sm); border:1px solid var(--forgeui-color-border);
+      border-radius:var(--forgeui-radius-md); font:inherit; font-size:var(--forgeui-text-base); background:var(--forgeui-color-surface);
+      color:var(--forgeui-color-text); transition:border-color var(--forgeui-transition-fast); box-sizing:border-box; min-width:0; resize:vertical; }
+    textarea:focus { outline:none; border-color:var(--forgeui-color-primary); box-shadow:0 0 0 3px var(--forgeui-color-primary-subtle); }
+    textarea::placeholder { color:var(--forgeui-color-text-tertiary); }
+    .hint { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-text-tertiary); margin-top:var(--forgeui-space-2xs); }
+    .error { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-error); margin-top:var(--forgeui-space-2xs); }
+  `; }
+  render() {
+    const label = this.getString('label', '');
+    const placeholder = this.getString('placeholder', '');
+    const hint = this.getString('hint', '');
+    const error = this.getString('error', '');
+    const rows = Math.max(1, Math.floor(this.getNumber('rows', 4)));
+    const maxLength = this.getProp('maxLength') as number | undefined;
+    const required = this.getBool('required');
+    const disabled = this.getBool('disabled');
+    const val = String(this.getBoundProp('value', '') ?? '');
+    const inputId = this._instanceId;
+    return html`
+      ${label ? html`<label for="${inputId}">${label}</label>` : nothing}
+      <textarea id="${inputId}" rows=${rows} placeholder="${placeholder}" maxlength=${maxLength ?? nothing}
+        ?required=${required} ?disabled=${disabled} .value=${val}
+        @input=${(e: any) => this.dispatchAction('change', { value: e.target.value })}></textarea>
+      ${hint && !error ? html`<div class="hint">${hint}</div>` : nothing}
+      ${error ? html`<div class="error">${error}</div>` : nothing}
+    `;
+  }
+}
+customElements.define('forgeui-textarea', ForgeTextarea);
+
 export class ForgeNumberInput extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; flex:1 1 auto; min-width:0; max-width:100%; margin-bottom:var(--forgeui-space-sm); }

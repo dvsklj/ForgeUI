@@ -6,6 +6,7 @@ import '../src/components/index.js';
 describe('input components', () => {
   it('registers input primitives from the aggregate entrypoint', () => {
     expect(customElements.get('forgeui-text-input')).toBeDefined();
+    expect(customElements.get('forgeui-textarea')).toBeDefined();
     expect(customElements.get('forgeui-number-input')).toBeDefined();
     expect(customElements.get('forgeui-select')).toBeDefined();
     expect(customElements.get('forgeui-multi-select')).toBeDefined();
@@ -15,6 +16,21 @@ describe('input components', () => {
     expect(customElements.get('forgeui-date-picker')).toBeDefined();
     expect(customElements.get('forgeui-slider')).toBeDefined();
     expect(customElements.get('forgeui-file-upload')).toBeDefined();
+  });
+
+  it('dispatches textarea value changes', async () => {
+    const el = document.createElement('forgeui-textarea') as any;
+    const events: any[] = [];
+    el.props = { label: 'Notes', value: '', rows: 3 };
+    el.onAction = (action: string, payload: Record<string, unknown>) => events.push({ action, payload });
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    const textarea = el.shadowRoot!.querySelector('textarea') as HTMLTextAreaElement;
+    textarea.value = 'Ship it';
+    textarea.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+    expect(events).toEqual([{ action: 'change', payload: { value: 'Ship it' } }]);
   });
 
   it('dispatches selected radio value', async () => {

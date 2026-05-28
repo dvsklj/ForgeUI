@@ -76,8 +76,8 @@
       "props": { "label": "Last Name", "placeholder": "Doe", "required": true, "bind": "$state:profile/last" }
     },
     "input-bio": {
-      "type": "TextInput",
-      "props": { "label": "Short Bio", "placeholder": "Tell us about yourself...", "multiline": true, "bind": "$state:profile/bio" }
+      "type": "Textarea",
+      "props": { "label": "Short Bio", "placeholder": "Tell us about yourself...", "bind": "$state:profile/bio" }
     },
     "avatar-section": {
       "type": "Stack",

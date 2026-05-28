@@ -6,7 +6,7 @@
  * Flat structures enable clean incremental patches (JSON Merge Patch).
  */
 /** All component types in the Forge catalog */
-export type ComponentType = 'Stack' | 'Grid' | 'Card' | 'Container' | 'Tabs' | 'Accordion' | 'Divider' | 'Spacer' | 'Repeater' | 'Text' | 'Image' | 'Icon' | 'Badge' | 'Avatar' | 'EmptyState' | 'TextInput' | 'NumberInput' | 'Select' | 'MultiSelect' | 'RadioGroup' | 'Checkbox' | 'Toggle' | 'DatePicker' | 'Slider' | 'FileUpload' | 'Button' | 'ButtonGroup' | 'Link' | 'Table' | 'List' | 'Chart' | 'Metric' | 'Alert' | 'Dialog' | 'Progress' | 'Toast' | 'Breadcrumb' | 'Stepper' | 'Drawing';
+export type ComponentType = 'Stack' | 'Grid' | 'Card' | 'Container' | 'Tabs' | 'Accordion' | 'Divider' | 'Spacer' | 'Repeater' | 'Text' | 'Image' | 'Icon' | 'Badge' | 'Avatar' | 'EmptyState' | 'TextInput' | 'Textarea' | 'NumberInput' | 'Select' | 'MultiSelect' | 'RadioGroup' | 'Checkbox' | 'Toggle' | 'DatePicker' | 'Slider' | 'FileUpload' | 'Button' | 'ButtonGroup' | 'Link' | 'Table' | 'List' | 'Chart' | 'Metric' | 'Alert' | 'Dialog' | 'Progress' | 'Toast' | 'Breadcrumb' | 'Stepper' | 'Drawing';
 /** Component categories for grouping */
 export type ComponentCategory = 'layout' | 'content' | 'input' | 'action' | 'data' | 'feedback' | 'navigation' | 'drawing';
 /** The top-level Forge manifest structure */

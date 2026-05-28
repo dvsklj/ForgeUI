@@ -104,6 +104,7 @@ function buildDefaultPrompt(): string {
     '',
     'INPUT:',
     '  TextInput(label, placeholder?, bind: $state:path, multiline?, required?, maxLength?)',
+    '  Textarea(label, placeholder?, bind: $state:path, rows?, required?, maxLength?)',
     '  NumberInput(label, bind: $state:path, min?, max?, step?, required?)',
     '  Select(label, options: [{value, label}]|string[], bind: $state:path, placeholder?, required?)',
     '  MultiSelect(label, options: [{value, label}]|string[], bind: $state:path, maxSelections?)',
