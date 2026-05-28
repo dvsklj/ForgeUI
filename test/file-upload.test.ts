@@ -10,6 +10,15 @@ function setFiles(input: HTMLInputElement, files: File[]) {
   });
 }
 
+function dragEvent(type: string, files: File[] = []) {
+  const event = new Event(type, { bubbles: true, cancelable: true }) as DragEvent;
+  Object.defineProperty(event, 'dataTransfer', {
+    configurable: true,
+    value: { files },
+  });
+  return event;
+}
+
 async function renderFileUpload(props: Record<string, unknown>) {
   const element = document.createElement('forgeui-file-upload') as any;
   element.props = props;
@@ -150,5 +159,41 @@ describe('ForgeFileUpload', () => {
     dropzone.click();
 
     expect(click).toHaveBeenCalledOnce();
+  });
+
+  it('dispatches dropped files through the same metadata path', async () => {
+    const element = await renderFileUpload({ bind: '$state:upload' });
+    const onAction = vi.fn();
+    element.onAction = onAction;
+    const dropzone = element.shadowRoot!.querySelector<HTMLElement>('.dropzone')!;
+    const file = new File(['drop'], 'drop.txt', { type: 'text/plain', lastModified: 789 });
+
+    dropzone.dispatchEvent(dragEvent('drop', [file]));
+    await vi.waitFor(() => expect(onAction).toHaveBeenCalledOnce());
+
+    const [action, payload] = onAction.mock.calls[0];
+    expect(action).toBe('change');
+    expect(payload).toMatchObject({
+      bind: '$state:upload',
+      name: 'drop.txt',
+      size: 4,
+      type: 'text/plain',
+      lastModified: 789,
+      multiple: false,
+    });
+    expect(payload.value).toMatchObject({ name: 'drop.txt', accepted: true, storageKey: payload.id });
+  });
+
+  it('marks the dropzone while a file is dragged over it', async () => {
+    const element = await renderFileUpload({});
+    const dropzone = element.shadowRoot!.querySelector<HTMLElement>('.dropzone')!;
+
+    dropzone.dispatchEvent(dragEvent('dragover'));
+    await element.updateComplete;
+    expect(dropzone.classList.contains('dragging')).toBe(true);
+
+    dropzone.dispatchEvent(dragEvent('dragleave'));
+    await element.updateComplete;
+    expect(dropzone.classList.contains('dragging')).toBe(false);
   });
 });

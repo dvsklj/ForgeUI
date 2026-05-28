@@ -697,10 +697,11 @@ export class ForgeFileUpload extends ForgeUIElement {
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); }
     .dropzone { border:2px dashed var(--forgeui-color-border-strong); border-radius:var(--forgeui-radius-md);
       padding:var(--forgeui-space-xl); text-align:center; cursor:pointer; transition:border-color var(--forgeui-transition-fast); }
-    .dropzone:hover { border-color:var(--forgeui-color-primary); background:var(--forgeui-color-primary-subtle); }
+    .dropzone:hover, .dropzone.dragging { border-color:var(--forgeui-color-primary); background:var(--forgeui-color-primary-subtle); }
     .dropzone:focus-visible { outline:3px solid var(--forgeui-color-focus); outline-offset:2px; }
     .dropzone p { color:var(--forgeui-color-text-secondary); font-size:var(--forgeui-text-sm); }
   `; }
+  private _dragging = false;
 
   private _maxSizeBytes(): number | null {
     const raw = this.getProp('maxSize');
@@ -731,6 +732,30 @@ export class ForgeFileUpload extends ForgeUIElement {
 
   private _onFileChange = (event: Event) => {
     const selected = Array.from((event.target as HTMLInputElement).files ?? []);
+    this._processFiles(selected);
+  };
+
+  private _onDragOver = (event: DragEvent) => {
+    event.preventDefault();
+    if (this._dragging) return;
+    this._dragging = true;
+    this.requestUpdate();
+  };
+
+  private _onDragLeave = (event: DragEvent) => {
+    if (event.currentTarget !== event.target) return;
+    this._dragging = false;
+    this.requestUpdate();
+  };
+
+  private _onDrop = (event: DragEvent) => {
+    event.preventDefault();
+    this._dragging = false;
+    this.requestUpdate();
+    this._processFiles(Array.from(event.dataTransfer?.files ?? []));
+  };
+
+  private _processFiles(selected: File[]) {
     const multiple = this.getBool('multiple');
     const maxSize = this._maxSizeBytes();
     const files = (multiple ? selected : selected.slice(0, 1)).map((file) => {
@@ -771,7 +796,7 @@ export class ForgeFileUpload extends ForgeUIElement {
     });
 
     void storeFileBlobs(accepted.map(([file, payload]) => ({ file, id: payload.id })));
-  };
+  }
 
   render() {
     const label = this.getString('label', 'Upload file');
@@ -779,8 +804,9 @@ export class ForgeFileUpload extends ForgeUIElement {
     const multiple = this.getBool('multiple');
     return html`
       ${label ? html`<label>${label}</label>` : nothing}
-      <div class="dropzone" role="button" tabindex="0"
-        @click=${this._openFilePicker} @keydown=${this._onDropzoneKeydown}>
+      <div class="dropzone ${this._dragging ? 'dragging' : ''}" role="button" tabindex="0"
+        @click=${this._openFilePicker} @keydown=${this._onDropzoneKeydown}
+        @dragover=${this._onDragOver} @dragleave=${this._onDragLeave} @drop=${this._onDrop}>
         <p>Drop</p>
         <input type="file" accept="${accept}" ?multiple=${multiple} hidden @change=${this._onFileChange}>
       </div>
