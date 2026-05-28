@@ -502,18 +502,28 @@ import{LitElement as Ir,html as Q}from"lit";import{createStore as Gt}from"tinyba
         </option>`)}
       </select>
     `}};customElements.define("forgeui-select",Ge);var Je=class extends f{static get styles(){return $`
-    :host { display:block; margin-bottom:var(--forgeui-space-sm); }
-    label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); }
-    .tags { display:flex; flex-wrap:wrap; gap:var(--forgeui-space-2xs); padding:var(--forgeui-space-xs); border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md); min-height:var(--forgeui-input-height); }
+    :host { display:block; min-width:0; margin-bottom:var(--forgeui-space-sm); }
+    label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); overflow-wrap:break-word; }
+    select { width:100%; min-height:calc(var(--forgeui-input-height) * 2); padding:var(--forgeui-space-xs) var(--forgeui-space-sm);
+      border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md); font:inherit;
+      background:var(--forgeui-color-surface); color:var(--forgeui-color-text); box-sizing:border-box; }
+    select:focus { outline:none; border-color:var(--forgeui-color-primary); box-shadow:0 0 0 3px var(--forgeui-color-primary-subtle); }
+    .tags { display:flex; flex-wrap:wrap; gap:var(--forgeui-space-2xs); margin-top:var(--forgeui-space-xs); padding:var(--forgeui-space-xs); border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md); min-height:var(--forgeui-input-height); }
     .tag { display:inline-flex; align-items:center; gap:var(--forgeui-space-2xs); padding:var(--forgeui-space-2xs) var(--forgeui-space-xs);
       background:var(--forgeui-color-primary-subtle); color:var(--forgeui-color-primary); border-radius:var(--forgeui-radius-sm);
       font-size:var(--forgeui-text-xs); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .tag button { background:none; border:none; cursor:pointer; color:inherit; font:inherit; padding:0; border-radius:2px; }
     .tag button:focus-visible { outline:2px solid var(--forgeui-color-focus); outline-offset:1px; }
-  `}render(){let t=this.getString("label",""),e=this.getProp("selected")||[];return g`
-      ${t?g`<label>${t}</label>`:y}
+  `}render(){let t=this.getString("label",""),e=this.getProp("options")||[],o=this.getBoundProp("value",this.getProp("selected")??[]),i=Number(this.getProp("maxSelections")),r=Number.isFinite(i)&&i>=0?i:1/0,l=(Array.isArray(o)?o.map(c=>String(c)):[]).slice(0,r),n=this.getBool("disabled"),a=this._instanceId,u=c=>{let d=l.filter(p=>p!==c);this.dispatchAction("remove",{value:c}),this.dispatchAction("change",{value:d,selected:d})};return g`
+      ${t?g`<label for="${a}">${t}</label>`:y}
+      <select id="${a}" multiple ?disabled=${n}
+        @change=${c=>{let d=Array.from(c.target.selectedOptions).map(p=>p.value).slice(0,r);this.dispatchAction("change",{value:d,selected:d})}}>
+        ${e.map(c=>{let d=String(typeof c=="string"?c:c?.value??c?.label??"");return g`<option value=${d} ?selected=${l.includes(d)}>
+            ${typeof c=="string"?c:c?.label??d}
+          </option>`})}
+      </select>
       <div class="tags">
-        ${e.map(o=>g`<span class="tag">${String(o)}<button @click=${()=>this.dispatchAction("remove",{value:o})}>×</button></span>`)}
+        ${l.map(c=>g`<span class="tag">${c}<button type="button" aria-label=${`Remove ${c}`} @click=${()=>u(c)}>×</button></span>`)}
         <slot></slot>
       </div>
     `}};customElements.define("forgeui-multi-select",Je);var Ze=class extends f{static get styles(){return $`

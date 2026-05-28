@@ -5,7 +5,7 @@
 import { readFileSync, statSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 
-const BUDGET_BYTES = 55_000; // Runtime and validation features intentionally raise the IIFE ceiling.
+const BUDGET_BYTES = 55_500; // Covers runtime validation and interactive form controls.
 
 const path = 'dist/forgeui.js';
 let raw;
