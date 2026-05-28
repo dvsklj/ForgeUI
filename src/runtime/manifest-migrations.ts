@@ -5,10 +5,10 @@ type JsonObject = Record<string, unknown>;
 export function migrateManifestFormat(input: unknown): ForgeUIManifest {
   if (!isObject(input)) return input as ForgeUIManifest;
   const manifestVersion = typeof input.manifest === 'string' ? input.manifest : '';
-  const legacyVersion = /^0\.0(?:\.|$)/.test(manifestVersion);
+  const priorFormatVersion = /^0\.0(?:\.|$)/.test(manifestVersion);
   const missingVersion = !manifestVersion;
   const needsMigration =
-    legacyVersion ||
+    priorFormatVersion ||
     (missingVersion && (
       'version' in input ||
       'manifestVersion' in input ||
