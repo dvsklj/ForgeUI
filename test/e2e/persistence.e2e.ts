@@ -202,7 +202,9 @@ test.describe('Ring 2 — server', () => {
     });
   }
 
-  test('API round-trip: create, read, patch, reload', async () => {
+  test('API round-trip: create, read, patch, reload', async ({ browserName }) => {
+    test.skip(browserName !== 'chromium', 'Server API coverage is browser independent.');
+
     const dbPath = `/tmp/forgeui-e2e-ring2-${Date.now()}.db`;
     const scriptPath = `/tmp/forgeui-e2e-server-${Date.now()}.mts`;
     let serverProc: any;
@@ -226,20 +228,30 @@ console.log('SERVER_READY');
 
       // Wait for server to be ready
       await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error('Server start timeout')), 20000);
-        serverProc.stdout.on('data', (data: any) => {
-          if (data.toString().includes('SERVER_READY')) {
-            clearTimeout(timeout);
-            resolve();
-          }
-        });
-        serverProc.stderr.on('data', (data: any) => {
+        let settled = false;
+        let output = '';
+        const finish = (fn: () => void) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timeout);
+          serverProc.off('exit', onExit);
+          fn();
+        };
+        const onData = (data: any) => {
           const msg = data.toString();
-          if (msg.includes('SERVER_READY')) {
-            clearTimeout(timeout);
-            resolve();
-          }
-        });
+          output += msg;
+          if (msg.includes('SERVER_READY')) finish(resolve);
+        };
+        const onExit = (code: number | null, signal: string | null) => {
+          finish(() => reject(new Error(`Server exited before ready (code=${code}, signal=${signal}): ${output}`)));
+        };
+        const timeout = setTimeout(() => {
+          finish(() => reject(new Error(`Server start timeout: ${output}`)));
+        }, 20000);
+
+        serverProc.once('exit', onExit);
+        serverProc.stdout.on('data', onData);
+        serverProc.stderr.on('data', onData);
       });
 
       const base = `http://localhost:${port}`;
