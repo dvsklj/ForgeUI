@@ -335,16 +335,17 @@ const runtimeComponentEntrypoints = smokeRun('smoke-runtime-component-entrypoint
 console.log('index:', import.meta.resolve('@nedast/forgeui-runtime/components/index'));
 console.log('actions:', import.meta.resolve('@nedast/forgeui-runtime/components/actions'));
 console.log('chart:', import.meta.resolve('@nedast/forgeui-runtime/components/chart'));
+console.log('content:', import.meta.resolve('@nedast/forgeui-runtime/components/content'));
 console.log('layout:', import.meta.resolve('@nedast/forgeui-runtime/components/layout'));
 console.log('navigation:', import.meta.resolve('@nedast/forgeui-runtime/components/navigation'));
 console.log('table:', import.meta.resolve('@nedast/forgeui-runtime/components/table'));
 console.log('OK');
 `);
 if (runtimeComponentEntrypoints.ok) {
-  console.log(`  ✅ resolve '@nedast/forgeui-runtime/components/{index,actions,chart,layout,navigation,table}'`);
+  console.log(`  ✅ resolve '@nedast/forgeui-runtime/components/{index,actions,chart,content,layout,navigation,table}'`);
   console.log(`     ${runtimeComponentEntrypoints.stdout.replace(/\n/g, '; ')}`);
 } else {
-  console.log(`  ❌ resolve '@nedast/forgeui-runtime/components/{index,actions,chart,layout,navigation,table}' FAILED`);
+  console.log(`  ❌ resolve '@nedast/forgeui-runtime/components/{index,actions,chart,content,layout,navigation,table}' FAILED`);
   console.log(`     stderr: ${runtimeComponentEntrypoints.stderr.slice(0, 300)}`);
   smokeFindings.push('@nedast/forgeui-runtime: per-component entrypoint resolution failed');
 }
