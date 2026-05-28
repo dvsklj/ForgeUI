@@ -23,7 +23,7 @@
 
   <!-- Test 1: Dashboard -->
   <div class="section">
-    <h2>Test 1: Dashboard (43 components)</h2>
+    <h2>Test 1: Dashboard (45 components)</h2>
     <forgeui-app id="dashboard-app" surface="standalone"></forgeui-app>
   </div>
 
@@ -105,10 +105,10 @@
           root: { type: 'Stack', props: { gap: 'lg' }, children: ['header', 'tabs', 'metrics', 'content'] },
           header: { type: 'Text', props: { content: 'Sales Dashboard', variant: 'heading1', weight: 'bold' } },
           tabs: { type: 'Tabs', props: { items: ['Overview', 'Details', 'Settings'], bind: '$state:view/active' } },
-          metrics: { type: 'Stack', props: { direction: 'horizontal', gap: 'md' }, children: ['rev-metric', 'units-metric', 'trend-metric'] },
-          'rev-metric': { type: 'Metric', props: { label: 'Revenue', value: 42500, format: 'currency', prefix: '$', trend: 'up', goal: '$state:goals/revenue' } },
-          'units-metric': { type: 'Metric', props: { label: 'Units Sold', value: 1247, format: 'number', suffix: ' units' } },
-          'trend-metric': { type: 'Metric', props: { label: 'Growth', value: 12.5, format: 'percent', trend: 'up' } },
+          metrics: { type: 'KpiGrid', props: { columns: 3, gap: 'md' }, children: ['rev-metric', 'units-metric', 'trend-metric'] },
+          'rev-metric': { type: 'StatCard', props: { label: 'Revenue', value: '$42,500', trend: 'up', trendLabel: '+12%', subtitle: 'vs target' } },
+          'units-metric': { type: 'StatCard', props: { label: 'Units Sold', value: '1,247', unit: 'units' } },
+          'trend-metric': { type: 'StatCard', props: { label: 'Growth', value: '12.5%', trend: 'up', trendLabel: '+3.4%' } },
           content: { type: 'Stack', props: { gap: 'md' }, children: ['data-card', 'actions-card', 'alert-card'] },
           'data-card': { type: 'Card', props: { title: 'Recent Sales', variant: 'elevated' }, children: ['sales-table'] },
           'sales-table': { type: 'Table', props: {

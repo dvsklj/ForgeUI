@@ -19,8 +19,8 @@ export type ComponentType =
   | 'Toggle' | 'DatePicker' | 'Slider' | 'FileUpload'
   // Action (3)
   | 'Button' | 'ButtonGroup' | 'Link'
-  // Data Display (4)
-  | 'Table' | 'List' | 'Chart' | 'Metric'
+  // Data Display (6)
+  | 'Table' | 'List' | 'Chart' | 'Metric' | 'StatCard' | 'KpiGrid'
   // Feedback (4)
   | 'Alert' | 'Dialog' | 'Progress' | 'Toast'
   // Navigation (2)

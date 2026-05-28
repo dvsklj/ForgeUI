@@ -49,25 +49,25 @@
       "props": { "content": "Jan - Jun 2025", "variant": "muted" }
     },
     "kpi-row": {
-      "type": "Grid",
+      "type": "KpiGrid",
       "props": { "columns": 4 },
       "children": ["kpi-revenue", "kpi-users", "kpi-conversion", "kpi-churn"]
     },
     "kpi-revenue": {
-      "type": "Metric",
-      "props": { "label": "Total Revenue", "value": "$299K", "trend": "up", "subtitle": "+12% vs last period" }
+      "type": "StatCard",
+      "props": { "label": "Total Revenue", "value": "$299K", "trend": "up", "trendLabel": "+12%", "subtitle": "vs last period" }
     },
     "kpi-users": {
-      "type": "Metric",
-      "props": { "label": "Active Users", "value": "128K", "trend": "up", "subtitle": "+8.2% vs last period" }
+      "type": "StatCard",
+      "props": { "label": "Active Users", "value": "128K", "trend": "up", "trendLabel": "+8.2%", "subtitle": "vs last period" }
     },
     "kpi-conversion": {
-      "type": "Metric",
-      "props": { "label": "Conversion Rate", "value": "3.42%", "trend": "up", "subtitle": "+0.3% vs last period" }
+      "type": "StatCard",
+      "props": { "label": "Conversion Rate", "value": "3.42%", "trend": "up", "trendLabel": "+0.3%", "subtitle": "vs last period" }
     },
     "kpi-churn": {
-      "type": "Metric",
-      "props": { "label": "Churn Rate", "value": "1.8%", "trend": "down", "subtitle": "-0.2% vs last period" }
+      "type": "StatCard",
+      "props": { "label": "Churn Rate", "value": "1.8%", "trend": "down", "trendLabel": "-0.2%", "subtitle": "vs last period" }
     },
     "charts-row": {
       "type": "Grid",

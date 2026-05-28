@@ -75,6 +75,8 @@ export function renderElement(elementId: string, ctx: RenderContext): TemplateRe
       case 'List':     return html`<forgeui-list .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-list>`;
       case 'Chart':    return html`<forgeui-chart .props=${resolvedProps} .store=${ctx.store}></forgeui-chart>`;
       case 'Metric':   return html`<forgeui-metric .props=${resolvedProps} .store=${ctx.store}></forgeui-metric>`;
+      case 'StatCard': return html`<forgeui-stat-card .props=${resolvedProps} .store=${ctx.store}></forgeui-stat-card>`;
+      case 'KpiGrid':  return html`<forgeui-kpi-grid .props=${resolvedProps} .store=${ctx.store}>${children}</forgeui-kpi-grid>`;
       case 'Alert':    return html`<forgeui-alert .props=${resolvedProps} .store=${ctx.store}>${children}</forgeui-alert>`;
       case 'Dialog':   return html`<forgeui-dialog .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}>${children}</forgeui-dialog>`;
       case 'Progress': return html`<forgeui-progress .props=${resolvedProps} .store=${ctx.store}></forgeui-progress>`;
