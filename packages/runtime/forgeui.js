@@ -301,6 +301,51 @@ var ForgeUI=(()=>{var Oa=Object.create;var Nr=Object.defineProperty;var Ua=Objec
     a:hover { text-decoration:underline; }
     a:focus-visible { outline:3px solid var(--forgeui-color-focus); outline-offset:2px; border-radius:2px; }
   `}render(){let e=this.getString("label",""),t=this.getString("href","#");return h`<a href="${t}">${e}<slot></slot></a>`}};customElements.define("forgeui-link",ho);var mo=class extends K{static get properties(){return{props:{type:Object}}}static get styles(){return B`
+    :host { display:block; min-width:0; }
+    .heading1 { font-size:var(--forgeui-text-3xl); font-weight:var(--forgeui-weight-bold); line-height:var(--forgeui-leading-tight); letter-spacing:-0.02em; margin:0; overflow-wrap:break-word; }
+    .heading2 { font-size:var(--forgeui-text-2xl); font-weight:var(--forgeui-weight-bold); line-height:var(--forgeui-leading-tight); letter-spacing:-0.01em; margin:0; overflow-wrap:break-word; }
+    .heading3 { font-size:var(--forgeui-text-xl); font-weight:var(--forgeui-weight-semibold); line-height:var(--forgeui-leading-tight); margin:0; overflow-wrap:break-word; }
+    .heading { font-size:var(--forgeui-text-2xl); font-weight:var(--forgeui-weight-bold); line-height:var(--forgeui-leading-tight); margin:0; overflow-wrap:break-word; }
+    .subheading { font-size:var(--forgeui-text-lg); font-weight:var(--forgeui-weight-semibold); line-height:var(--forgeui-leading-tight); margin:0; overflow-wrap:break-word; }
+    .label { font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); color:var(--forgeui-color-text); margin:0; overflow-wrap:break-word; }
+    .body { font-size:var(--forgeui-text-base); line-height:var(--forgeui-leading-normal); margin:0; overflow-wrap:break-word; }
+    .caption { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-text-tertiary); margin:0; overflow-wrap:break-word; }
+    .muted { font-size:var(--forgeui-text-sm); color:var(--forgeui-color-text-secondary); margin:0; overflow-wrap:break-word; }
+    .code { font-family:var(--forgeui-font-mono); font-size:var(--forgeui-text-sm); background:var(--forgeui-color-surface-alt);
+      padding:var(--forgeui-space-2xs) var(--forgeui-space-xs); border-radius:var(--forgeui-radius-sm); display:inline-block; word-break:normal; overflow-wrap:break-word; }
+    .align-left { text-align:left; }
+    .align-center { text-align:center; }
+    .align-right { text-align:right; }
+  `}render(){let e=this.getString("content",""),t=this.getString("variant","body"),o={h1:"heading1",h2:"heading2",h3:"heading3",title:"heading2",subtitle:"subheading",paragraph:"body",text:"body",secondary:"muted",tertiary:"caption"}[t]||t,n=this.getString("colorScheme",""),a=this.getString("align",""),c=this.getString("weight",""),l={primary:"var(--forgeui-color-primary)",secondary:"var(--forgeui-color-text-secondary)",tertiary:"var(--forgeui-color-text-tertiary)",success:"var(--forgeui-color-success)",warning:"var(--forgeui-color-warning)",error:"var(--forgeui-color-error)",info:"var(--forgeui-color-info)"},d={normal:"var(--forgeui-weight-normal)",medium:"var(--forgeui-weight-medium)",semibold:"var(--forgeui-weight-semibold)",bold:"var(--forgeui-weight-bold)"},u=[];n&&l[n]&&u.push(`color:${l[n]}`),c&&d[c]&&u.push(`font-weight:${d[c]}`);let p=a?`align-${a}`:"",y=h`${e}<slot></slot>`;return o==="heading1"?h`<h1 class="${o} ${p}" style="${u.join(";")}">${y}</h1>`:o==="heading2"?h`<h2 class="${o} ${p}" style="${u.join(";")}">${y}</h2>`:o==="heading3"?h`<h3 class="${o} ${p}" style="${u.join(";")}">${y}</h3>`:h`<div class="${o} ${p}" style="${u.join(";")}">${e}<slot></slot></div>`}};customElements.define("forgeui-text",mo);var yo=class extends K{static get styles(){return B`
+    :host { display:block; }
+    img { max-width:100%; height:auto; display:block; border-radius:var(--forgeui-radius-md); }
+  `}render(){let e=this.getString("src",""),t=this.getString("alt",""),s=this.getString("fit","contain");return e?h`<img src="${e}" alt="${t}" style="object-fit:${s}" loading="lazy">`:h`${M}`}};customElements.define("forgeui-image",yo);var bo=class extends K{static get styles(){return B`
+    :host { display:inline-flex; align-items:center; justify-content:center; }
+    svg { width:var(--forgeui-icon-md); height:var(--forgeui-icon-md); fill:currentColor; }
+  `}render(){let e=this.getString("name","circle"),t={check:"M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",x:"M6 18L18 6M6 6l12 12",plus:"M12 4v16m8-8H4",minus:"M20 12H4",chevron:"M9 5l7 7-7 7",arrow:"M13 7l5 5m0 0l-5 5m5-5H6",star:"M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.96a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.96c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.96a1 1 0 00-.364-1.118L2.063 8.387c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.96z",circle:"M12 2a10 10 0 100 20 10 10 0 000-20z",alert:"M12 9v2m0 4h.01M4.93 4.93l14.14 14.14M12 2a10 10 0 100 20 10 10 0 000-20z"},s=t[e]||t.circle;return h`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${s}"/></svg>`}};customElements.define("forgeui-icon",bo);var vo=class extends K{static get styles(){return B`
+    :host { display:inline-flex; align-items:center; max-width:100%; }
+    .badge { display:inline-flex; align-items:center; min-height:1.5rem; padding:var(--forgeui-space-2xs) var(--forgeui-space-xs);
+      border-radius:var(--forgeui-radius-sm); font-size:var(--forgeui-text-xs); font-weight:var(--forgeui-weight-bold);
+      background:var(--forgeui-color-primary); color:var(--forgeui-color-text-inverse); letter-spacing:0.01em;
+      max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .badge[variant="success"] { background:var(--forgeui-color-success); color:var(--forgeui-color-text-inverse); }
+    .badge[variant="warning"] { background:var(--forgeui-color-warning); color:var(--forgeui-color-text-inverse); }
+    .badge[variant="error"] { background:var(--forgeui-color-error); color:var(--forgeui-color-text-inverse); }
+  `}render(){let e=this.getString("text","")||this.getString("label",""),t=this.getString("variant","");return h`<span class="badge" variant="${t}">${e}<slot></slot></span>`}};customElements.define("forgeui-badge",vo);var wo=class extends K{static get styles(){return B`
+    :host { display:inline-flex; }
+    .avatar { width:2.5rem; height:2.5rem; border-radius:var(--forgeui-radius-full); background:var(--forgeui-color-primary-subtle);
+      color:var(--forgeui-color-primary); display:flex; align-items:center; justify-content:center;
+      font-weight:var(--forgeui-weight-semibold); font-size:var(--forgeui-text-sm); overflow:hidden; }
+    img { width:100%; height:100%; object-fit:cover; }
+  `}render(){let e=this.getString("src",""),t=this.getString("name","?"),s=t.split(" ").map(o=>o[0]).join("").toUpperCase().slice(0,2);return h`<div class="avatar">${e?h`<img src="${e}" alt="${t}">`:s}<slot></slot></div>`}};customElements.define("forgeui-avatar",wo);var xo=class extends K{static get styles(){return B`
+    :host { display:block; text-align:center; padding:var(--forgeui-space-2xl) var(--forgeui-space-lg); }
+    .title { font-size:var(--forgeui-text-lg); font-weight:var(--forgeui-weight-semibold); margin-bottom:var(--forgeui-space-xs); overflow-wrap:break-word; }
+    .desc { font-size:var(--forgeui-text-sm); color:var(--forgeui-color-text-secondary); margin-bottom:var(--forgeui-space-md); overflow-wrap:break-word; }
+  `}render(){let e=this.getString("title","Nothing here"),t=this.getString("description","");return h`
+      <div class="title">${e}</div>
+      ${t?h`<div class="desc">${t}</div>`:M}
+      <slot></slot>
+    `}};customElements.define("forgeui-empty-state",xo);var $o=class extends K{static get properties(){return{props:{type:Object}}}static get styles(){return B`
     :host { display: flex; flex-direction: column; min-width: 0; }
     :host([direction="row"]) { flex-direction: row; flex-wrap: wrap; }
     :host([direction="column"]) { flex-direction: column; }
@@ -315,7 +360,7 @@ var ForgeUI=(()=>{var Oa=Object.create;var Nr=Object.defineProperty;var Ua=Objec
     :host([justify="around"]) { justify-content: space-around; }
     :host([wrap]) { flex-wrap: wrap; }
     :host([nowrap]) { flex-wrap: nowrap; }
-  `}render(){let e=this.getString("direction","column"),t=e==="horizontal"||e==="row"?"row":"column",s=this.getString("gap","")||this.getString("spacing","md"),o=this.getString("padding",""),n=this.getString("align",""),a=this.getString("justify",""),c=this.getBool("wrap"),l=this.gapValue(s),d=o?this.gapValue(o):"0";return this.setAttribute("direction",t),n&&this.setAttribute("align",n),a&&this.setAttribute("justify",a),c&&this.setAttribute("wrap",""),this.style.gap=l,this.style.padding=d,h`<slot></slot>`}};customElements.define("forgeui-stack",mo);var yo=class extends K{static get properties(){return{props:{type:Object}}}static get styles(){return B`
+  `}render(){let e=this.getString("direction","column"),t=e==="horizontal"||e==="row"?"row":"column",s=this.getString("gap","")||this.getString("spacing","md"),o=this.getString("padding",""),n=this.getString("align",""),a=this.getString("justify",""),c=this.getBool("wrap"),l=this.gapValue(s),d=o?this.gapValue(o):"0";return this.setAttribute("direction",t),n&&this.setAttribute("align",n),a&&this.setAttribute("justify",a),c&&this.setAttribute("wrap",""),this.style.gap=l,this.style.padding=d,h`<slot></slot>`}};customElements.define("forgeui-stack",$o);var So=class extends K{static get properties(){return{props:{type:Object}}}static get styles(){return B`
     :host { display: grid; min-width: 0; }
     @media (max-width: 900px) {
       :host([responsive]) { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
@@ -323,7 +368,7 @@ var ForgeUI=(()=>{var Oa=Object.create;var Nr=Object.defineProperty;var Ua=Objec
     @media (max-width: 640px) {
       :host([responsive]) { grid-template-columns: 1fr !important; }
     }
-  `}render(){let e=this.getProp("columns"),t;typeof e=="number"?t=String(e):typeof e=="string"&&e?t=e:t="1";let s=/^\d+$/.test(t)?`repeat(${t}, minmax(0, 1fr))`:t,o=this.getString("gap","md"),n=this.gapValue(o),a=this.getString("padding",""),c=a?this.gapValue(a):"0";return this.style.gridTemplateColumns=s,this.style.gap=n,this.style.padding=c,/^\d+$/.test(t)&&Number(t)>=2&&this.setAttribute("responsive",""),h`<slot></slot>`}};customElements.define("forgeui-grid",yo);var bo=class extends K{static get properties(){return{props:{type:Object}}}static get styles(){return B`
+  `}render(){let e=this.getProp("columns"),t;typeof e=="number"?t=String(e):typeof e=="string"&&e?t=e:t="1";let s=/^\d+$/.test(t)?`repeat(${t}, minmax(0, 1fr))`:t,o=this.getString("gap","md"),n=this.gapValue(o),a=this.getString("padding",""),c=a?this.gapValue(a):"0";return this.style.gridTemplateColumns=s,this.style.gap=n,this.style.padding=c,/^\d+$/.test(t)&&Number(t)>=2&&this.setAttribute("responsive",""),h`<slot></slot>`}};customElements.define("forgeui-grid",So);var ko=class extends K{static get properties(){return{props:{type:Object}}}static get styles(){return B`
     :host { display:block; background:var(--forgeui-color-surface); border:1px solid var(--forgeui-color-border);
       border-radius:var(--forgeui-radius-md); padding:var(--forgeui-space-md); min-width:0; }
     :host([variant="elevated"]) { box-shadow:var(--forgeui-shadow-md); border-color:transparent; }
@@ -342,7 +387,7 @@ var ForgeUI=(()=>{var Oa=Object.create;var Nr=Object.defineProperty;var Ua=Objec
         </div>
       `:M}
       <div class="body"><slot></slot></div>
-    `}};customElements.define("forgeui-card",bo);var vo=class extends K{static get properties(){return{props:{type:Object}}}static get styles(){return B`:host { display:block; margin-inline:auto; width:100%; box-sizing:border-box; }`}render(){let e=this.getString("maxWidth",""),t={sm:"640px",md:"768px",lg:"1024px",xl:"1280px","2xl":"1536px",full:"100%",none:"none","":""},s=e in t?t[e]:e,o=this.getString("padding","");return s&&s!=="none"?this.style.maxWidth=s:this.style.maxWidth="",this.style.padding=o?this.gapValue(o):"",h`<slot></slot>`}};customElements.define("forgeui-container",vo);var wo=class extends K{static get properties(){return{props:{type:Object}}}constructor(){super(),this._active=""}static get styles(){return B`
+    `}};customElements.define("forgeui-card",ko);var _o=class extends K{static get properties(){return{props:{type:Object}}}static get styles(){return B`:host { display:block; margin-inline:auto; width:100%; box-sizing:border-box; }`}render(){let e=this.getString("maxWidth",""),t={sm:"640px",md:"768px",lg:"1024px",xl:"1280px","2xl":"1536px",full:"100%",none:"none","":""},s=e in t?t[e]:e,o=this.getString("padding","");return s&&s!=="none"?this.style.maxWidth=s:this.style.maxWidth="",this.style.padding=o?this.gapValue(o):"",h`<slot></slot>`}};customElements.define("forgeui-container",_o);var Ao=class extends K{static get properties(){return{props:{type:Object}}}constructor(){super(),this._active=""}static get styles(){return B`
     :host { display:block; }
     .tabs { display:flex; border-bottom:2px solid var(--forgeui-color-border); gap:var(--forgeui-space-xs); overflow-x:auto; }
     .tab { padding:var(--forgeui-space-sm) var(--forgeui-space-md); cursor:pointer; border:none; background:none;
@@ -369,7 +414,7 @@ var ForgeUI=(()=>{var Oa=Object.create;var Nr=Object.defineProperty;var Ua=Objec
         `})}</div>
       <div class="panel" role="tabpanel" id="${this._instanceId}-panel"
         aria-labelledby="${this._instanceId}-tab-${o>=0?o:0}"><slot></slot></div>
-    `}};customElements.define("forgeui-tabs",wo);var xo=class extends K{static get properties(){return{props:{type:Object}}}static get styles(){return B`
+    `}};customElements.define("forgeui-tabs",Ao);var To=class extends K{static get properties(){return{props:{type:Object}}}static get styles(){return B`
     :host { display:block; }
     details { border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md); margin-bottom:var(--forgeui-space-2xs); }
     summary { padding:var(--forgeui-space-sm) var(--forgeui-space-md); cursor:pointer; font-weight:var(--forgeui-weight-medium);
@@ -381,14 +426,14 @@ var ForgeUI=(()=>{var Oa=Object.create;var Nr=Object.defineProperty;var Ua=Objec
     summary::after { content:'▸'; transition:transform var(--forgeui-transition-fast); }
     details[open] summary::after { transform:rotate(90deg); }
     .content { padding:var(--forgeui-space-sm) var(--forgeui-space-md); }
-  `}render(){let e=this.getString("title","Section");return h`<details><summary>${e}</summary><div class="content"><slot></slot></div></details>`}};customElements.define("forgeui-accordion",xo);var $o=class extends K{static get styles(){return B`
+  `}render(){let e=this.getString("title","Section");return h`<details><summary>${e}</summary><div class="content"><slot></slot></div></details>`}};customElements.define("forgeui-accordion",To);var Eo=class extends K{static get styles(){return B`
     :host { display:block; }
     hr { border:none; border-top:1px solid var(--forgeui-color-border); margin:var(--forgeui-space-sm) 0; }
-  `}render(){return h`<hr>`}};customElements.define("forgeui-divider",$o);var So=class extends K{static get styles(){return B`:host { display:block; }`}render(){let e=this.getString("size","md"),t=this.getString("height",""),s=this.getString("width",""),o=t?this.gapValue(t):this.gapValue(e),n=s?/^\d+(\.\d+)?%$/.test(s)?s:this.gapValue(s):"";return h`<div style="height:${o};${n?`width:${n}`:""}"></div>`}};customElements.define("forgeui-spacer",So);var ko=class extends K{static get properties(){return{props:{type:Object}}}static get styles(){return B`
+  `}render(){return h`<hr>`}};customElements.define("forgeui-divider",Eo);var Co=class extends K{static get styles(){return B`:host { display:block; }`}render(){let e=this.getString("size","md"),t=this.getString("height",""),s=this.getString("width",""),o=t?this.gapValue(t):this.gapValue(e),n=s?/^\d+(\.\d+)?%$/.test(s)?s:this.gapValue(s):"";return h`<div style="height:${o};${n?`width:${n}`:""}"></div>`}};customElements.define("forgeui-spacer",Co);var Po=class extends K{static get properties(){return{props:{type:Object}}}static get styles(){return B`
     :host { display:flex; flex-direction:column; gap:var(--forgeui-space-md); min-width:0; }
     :host([direction="row"]) { flex-direction:row; flex-wrap:wrap; }
     .empty { padding:var(--forgeui-space-lg); text-align:center; color:var(--forgeui-color-text-tertiary); font-size:var(--forgeui-text-sm); }
-  `}render(){let e=this.getArray("data"),t=this.getString("emptyMessage",""),s=this.getString("direction","column");(s==="row"||s==="horizontal")&&this.setAttribute("direction","row");let o=this.getString("gap","md");return this.style.gap=this.gapValue(o),e.length===0&&t?h`<div class="empty">${t}</div>`:h`<slot></slot>`}};customElements.define("forgeui-repeater",ko);var _o=class extends K{static get styles(){return B`
+  `}render(){let e=this.getArray("data"),t=this.getString("emptyMessage",""),s=this.getString("direction","column");(s==="row"||s==="horizontal")&&this.setAttribute("direction","row");let o=this.getString("gap","md");return this.style.gap=this.gapValue(o),e.length===0&&t?h`<div class="empty">${t}</div>`:h`<slot></slot>`}};customElements.define("forgeui-repeater",Po);var Lo=class extends K{static get styles(){return B`
     :host { display:flex; align-items:center; gap:var(--forgeui-space-xs); font-size:var(--forgeui-text-sm); }
     .sep { color:var(--forgeui-color-text-tertiary); }
     a { color:var(--forgeui-color-primary); text-decoration:none; }
@@ -397,7 +442,7 @@ var ForgeUI=(()=>{var Oa=Object.create;var Nr=Object.defineProperty;var Ua=Objec
   `}render(){let e=this.getProp("items")||[];return h`${e.map((t,s)=>{let o=s===e.length-1,n=typeof t=="string"?t:t.label,a=typeof t=="string"?"#":t.href;return h`
         ${s>0?h`<span class="sep">/</span>`:M}
         ${o?h`<span class="current">${n}</span>`:h`<a href="${a}">${n}</a>`}
-      `})}`}};customElements.define("forgeui-breadcrumb",_o);var Ao=class extends K{static get styles(){return B`
+      `})}`}};customElements.define("forgeui-breadcrumb",Lo);var Mo=class extends K{static get styles(){return B`
     :host { display:flex; width:100%; gap:0; }
     .step { flex:1; display:flex; flex-direction:column; align-items:center; position:relative; min-width:0; }
     .step:not(:last-child)::after { content:''; position:absolute; top:0.75rem;
@@ -416,52 +461,7 @@ var ForgeUI=(()=>{var Oa=Object.create;var Nr=Object.defineProperty;var Ua=Objec
   `}render(){let e=this.getProp("steps")||[],t=this.getBoundProp("active",this.getProp("activeStep")??0),s=Number(t)||0;return h`${e.map((o,n)=>{let a=typeof o=="string"?o:o.label||o.title||`Step ${n+1}`,c=n===s,l=n<s;return h`<div class="step" ?active=${c} ?completed=${l}>
         <div class="circle">${l?"\u2713":n+1}</div>
         <div class="label">${a}</div>
-      </div>`})}`}};customElements.define("forgeui-stepper",Ao);var To=class extends K{static get properties(){return{props:{type:Object}}}static get styles(){return B`
-    :host { display:block; min-width:0; }
-    .heading1 { font-size:var(--forgeui-text-3xl); font-weight:var(--forgeui-weight-bold); line-height:var(--forgeui-leading-tight); letter-spacing:-0.02em; margin:0; overflow-wrap:break-word; }
-    .heading2 { font-size:var(--forgeui-text-2xl); font-weight:var(--forgeui-weight-bold); line-height:var(--forgeui-leading-tight); letter-spacing:-0.01em; margin:0; overflow-wrap:break-word; }
-    .heading3 { font-size:var(--forgeui-text-xl); font-weight:var(--forgeui-weight-semibold); line-height:var(--forgeui-leading-tight); margin:0; overflow-wrap:break-word; }
-    .heading { font-size:var(--forgeui-text-2xl); font-weight:var(--forgeui-weight-bold); line-height:var(--forgeui-leading-tight); margin:0; overflow-wrap:break-word; }
-    .subheading { font-size:var(--forgeui-text-lg); font-weight:var(--forgeui-weight-semibold); line-height:var(--forgeui-leading-tight); margin:0; overflow-wrap:break-word; }
-    .label { font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); color:var(--forgeui-color-text); margin:0; overflow-wrap:break-word; }
-    .body { font-size:var(--forgeui-text-base); line-height:var(--forgeui-leading-normal); margin:0; overflow-wrap:break-word; }
-    .caption { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-text-tertiary); margin:0; overflow-wrap:break-word; }
-    .muted { font-size:var(--forgeui-text-sm); color:var(--forgeui-color-text-secondary); margin:0; overflow-wrap:break-word; }
-    .code { font-family:var(--forgeui-font-mono); font-size:var(--forgeui-text-sm); background:var(--forgeui-color-surface-alt);
-      padding:var(--forgeui-space-2xs) var(--forgeui-space-xs); border-radius:var(--forgeui-radius-sm); display:inline-block; word-break:normal; overflow-wrap:break-word; }
-    .align-left { text-align:left; }
-    .align-center { text-align:center; }
-    .align-right { text-align:right; }
-  `}render(){let e=this.getString("content",""),t=this.getString("variant","body"),o={h1:"heading1",h2:"heading2",h3:"heading3",title:"heading2",subtitle:"subheading",paragraph:"body",text:"body",secondary:"muted",tertiary:"caption"}[t]||t,n=this.getString("colorScheme",""),a=this.getString("align",""),c=this.getString("weight",""),l={primary:"var(--forgeui-color-primary)",secondary:"var(--forgeui-color-text-secondary)",tertiary:"var(--forgeui-color-text-tertiary)",success:"var(--forgeui-color-success)",warning:"var(--forgeui-color-warning)",error:"var(--forgeui-color-error)",info:"var(--forgeui-color-info)"},d={normal:"var(--forgeui-weight-normal)",medium:"var(--forgeui-weight-medium)",semibold:"var(--forgeui-weight-semibold)",bold:"var(--forgeui-weight-bold)"},u=[];n&&l[n]&&u.push(`color:${l[n]}`),c&&d[c]&&u.push(`font-weight:${d[c]}`);let p=a?`align-${a}`:"",y=h`${e}<slot></slot>`;return o==="heading1"?h`<h1 class="${o} ${p}" style="${u.join(";")}">${y}</h1>`:o==="heading2"?h`<h2 class="${o} ${p}" style="${u.join(";")}">${y}</h2>`:o==="heading3"?h`<h3 class="${o} ${p}" style="${u.join(";")}">${y}</h3>`:h`<div class="${o} ${p}" style="${u.join(";")}">${e}<slot></slot></div>`}};customElements.define("forgeui-text",To);var Eo=class extends K{static get styles(){return B`
-    :host { display:block; }
-    img { max-width:100%; height:auto; display:block; border-radius:var(--forgeui-radius-md); }
-  `}render(){let e=this.getString("src",""),t=this.getString("alt",""),s=this.getString("fit","contain");return e?h`<img src="${e}" alt="${t}" style="object-fit:${s}" loading="lazy">`:h`${M}`}};customElements.define("forgeui-image",Eo);var Co=class extends K{static get styles(){return B`
-    :host { display:inline-flex; align-items:center; justify-content:center; }
-    svg { width:var(--forgeui-icon-md); height:var(--forgeui-icon-md); fill:currentColor; }
-  `}render(){let e=this.getString("name","circle"),t={check:"M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",x:"M6 18L18 6M6 6l12 12",plus:"M12 4v16m8-8H4",minus:"M20 12H4",chevron:"M9 5l7 7-7 7",arrow:"M13 7l5 5m0 0l-5 5m5-5H6",star:"M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.96a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.96c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.96a1 1 0 00-.364-1.118L2.063 8.387c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.96z",circle:"M12 2a10 10 0 100 20 10 10 0 000-20z",alert:"M12 9v2m0 4h.01M4.93 4.93l14.14 14.14M12 2a10 10 0 100 20 10 10 0 000-20z"},s=t[e]||t.circle;return h`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${s}"/></svg>`}};customElements.define("forgeui-icon",Co);var Po=class extends K{static get styles(){return B`
-    :host { display:inline-flex; align-items:center; max-width:100%; }
-    .badge { display:inline-flex; align-items:center; min-height:1.5rem; padding:var(--forgeui-space-2xs) var(--forgeui-space-xs);
-      border-radius:var(--forgeui-radius-sm); font-size:var(--forgeui-text-xs); font-weight:var(--forgeui-weight-bold);
-      background:var(--forgeui-color-primary); color:var(--forgeui-color-text-inverse); letter-spacing:0.01em;
-      max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .badge[variant="success"] { background:var(--forgeui-color-success); color:var(--forgeui-color-text-inverse); }
-    .badge[variant="warning"] { background:var(--forgeui-color-warning); color:var(--forgeui-color-text-inverse); }
-    .badge[variant="error"] { background:var(--forgeui-color-error); color:var(--forgeui-color-text-inverse); }
-  `}render(){let e=this.getString("text","")||this.getString("label",""),t=this.getString("variant","");return h`<span class="badge" variant="${t}">${e}<slot></slot></span>`}};customElements.define("forgeui-badge",Po);var Lo=class extends K{static get styles(){return B`
-    :host { display:inline-flex; }
-    .avatar { width:2.5rem; height:2.5rem; border-radius:var(--forgeui-radius-full); background:var(--forgeui-color-primary-subtle);
-      color:var(--forgeui-color-primary); display:flex; align-items:center; justify-content:center;
-      font-weight:var(--forgeui-weight-semibold); font-size:var(--forgeui-text-sm); overflow:hidden; }
-    img { width:100%; height:100%; object-fit:cover; }
-  `}render(){let e=this.getString("src",""),t=this.getString("name","?"),s=t.split(" ").map(o=>o[0]).join("").toUpperCase().slice(0,2);return h`<div class="avatar">${e?h`<img src="${e}" alt="${t}">`:s}<slot></slot></div>`}};customElements.define("forgeui-avatar",Lo);var Mo=class extends K{static get styles(){return B`
-    :host { display:block; text-align:center; padding:var(--forgeui-space-2xl) var(--forgeui-space-lg); }
-    .title { font-size:var(--forgeui-text-lg); font-weight:var(--forgeui-weight-semibold); margin-bottom:var(--forgeui-space-xs); overflow-wrap:break-word; }
-    .desc { font-size:var(--forgeui-text-sm); color:var(--forgeui-color-text-secondary); margin-bottom:var(--forgeui-space-md); overflow-wrap:break-word; }
-  `}render(){let e=this.getString("title","Nothing here"),t=this.getString("description","");return h`
-      <div class="title">${e}</div>
-      ${t?h`<div class="desc">${t}</div>`:M}
-      <slot></slot>
-    `}};customElements.define("forgeui-empty-state",Mo);var Ro=class extends K{static get styles(){return B`
+      </div>`})}`}};customElements.define("forgeui-stepper",Mo);var Ro=class extends K{static get styles(){return B`
     :host { display:block; flex:1 1 auto; min-width:0; max-width:100%; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); color:var(--forgeui-color-text); overflow-wrap:break-word; }
     input, textarea { width:100%; padding:var(--forgeui-space-xs) var(--forgeui-space-sm); border:1px solid var(--forgeui-color-border);
