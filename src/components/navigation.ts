@@ -89,6 +89,56 @@ export class ForgeSearchBox extends ForgeUIElement {
 }
 customElements.define('forgeui-search-box', ForgeSearchBox);
 
+export class ForgeSegmentedControl extends ForgeUIElement {
+  static get styles() { return css`
+    :host { display:inline-flex; min-width:0; max-width:100%; }
+    .group { display:inline-flex; align-items:center; flex-wrap:wrap; gap:2px; max-width:100%;
+      padding:2px; border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md);
+      background:var(--forgeui-color-surface-muted); }
+    button { min-height:var(--forgeui-touch-target); max-width:100%; padding:0 var(--forgeui-space-md);
+      border:0; border-radius:calc(var(--forgeui-radius-md) - 2px); background:transparent; color:var(--forgeui-color-text-secondary);
+      cursor:pointer; font:inherit; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium);
+      overflow-wrap:anywhere; }
+    button[aria-checked="true"] { background:var(--forgeui-color-surface); color:var(--forgeui-color-text);
+      box-shadow:var(--forgeui-shadow-xs); }
+    button:hover:not(:disabled) { color:var(--forgeui-color-text); background:var(--forgeui-color-surface-hover); }
+    button:focus-visible { outline:2px solid var(--forgeui-color-primary); outline-offset:2px; }
+    button:disabled { opacity:0.5; cursor:not-allowed; }
+  `; }
+  render() {
+    const options = this.getArray('options');
+    const value = String(this.getBoundProp('value', this.getProp('value') ?? this._optionValue(options[0])) ?? '');
+    const disabled = this.getBool('disabled');
+    const action = this.getString('action', 'change');
+    return html`
+      <div class="group" role="radiogroup" aria-label=${this.getString('label', 'Options')}>
+        ${options.map((option: unknown) => {
+          const optionValue = this._optionValue(option);
+          const label = this._optionLabel(option, optionValue);
+          const selected = optionValue === value;
+          return html`<button type="button" role="radio" aria-checked=${selected ? 'true' : 'false'} ?disabled=${disabled}
+            @click=${() => this.dispatchAction(action, { value: optionValue, selected: optionValue })}>${label}</button>`;
+        })}
+      </div>
+    `;
+  }
+  private _optionValue(option: unknown): string {
+    if (option && typeof option === 'object') {
+      const item = option as Record<string, unknown>;
+      return String(item.value ?? item.label ?? '');
+    }
+    return String(option ?? '');
+  }
+  private _optionLabel(option: unknown, fallback: string): string {
+    if (option && typeof option === 'object') {
+      const item = option as Record<string, unknown>;
+      return String(item.label ?? item.value ?? fallback);
+    }
+    return fallback;
+  }
+}
+customElements.define('forgeui-segmented-control', ForgeSegmentedControl);
+
 export class ForgePagination extends ForgeUIElement {
   static get styles() { return css`
     :host { display:flex; align-items:center; justify-content:space-between; gap:var(--forgeui-space-sm); min-width:0; }

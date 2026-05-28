@@ -83,7 +83,7 @@ describe('validateManifest — schema validation', () => {
       'Button', 'ButtonGroup', 'Link',
       'Table', 'List', 'Chart', 'Metric', 'StatCard', 'KpiGrid',
       'Alert', 'Dialog', 'Progress', 'Toast',
-      'Breadcrumb', 'Stepper', 'SearchBox', 'Pagination',
+      'Breadcrumb', 'Stepper', 'SearchBox', 'SegmentedControl', 'Pagination',
       'Drawing',
     ];
     for (const type of types) {
@@ -641,6 +641,7 @@ describe('validateManifest — per-component prop validation', () => {
         statCard: { type: 'StatCard', props: { label: 'Revenue', value: '$299K', trend: 'up', trendLabel: '+12%', unit: 'USD', subtitle: 'vs last period' } },
         kpiGrid: { type: 'KpiGrid', props: { columns: 4, gap: 'md' } },
         searchBox: { type: 'SearchBox', props: { label: 'Search', value: 'bug', placeholder: 'Find', disabled: false } },
+        segmented: { type: 'SegmentedControl', props: { label: 'View', value: 'list', options: ['List', { value: 'board', label: 'Board' }] } },
         pagination: { type: 'Pagination', props: { page: 2, totalPages: 5, label: 'Page 2 of 5' } },
         form: { type: 'Form', props: { action: 'saveForm' } },
         fieldGroup: { type: 'FieldGroup', props: { label: 'Contact', description: 'Primary details', error: 'Required' } },

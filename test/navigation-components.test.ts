@@ -65,6 +65,24 @@ describe('navigation components', () => {
     expect(onAction).toHaveBeenCalledWith('page-change', { value: 3, page: 3, totalPages: 4 });
   });
 
+  it('registers SegmentedControl and dispatches selected values', async () => {
+    expect(customElements.get('forgeui-segmented-control')).toBeDefined();
+    const el = await mount('forgeui-segmented-control', {
+      label: 'Status',
+      value: 'open',
+      options: [{ value: 'open', label: 'Open' }, { value: 'closed', label: 'Closed' }],
+    });
+    const onAction = vi.fn();
+    el.onAction = onAction;
+
+    const buttons = el.shadowRoot!.querySelectorAll('button');
+    expect(buttons[0].getAttribute('aria-checked')).toBe('true');
+
+    buttons[1].click();
+
+    expect(onAction).toHaveBeenCalledWith('change', { value: 'closed', selected: 'closed' });
+  });
+
   it('disables pagination at range edges', async () => {
     const el = await mount('forgeui-pagination', { page: 1, totalPages: 1 });
     const buttons = el.shadowRoot!.querySelectorAll('button');

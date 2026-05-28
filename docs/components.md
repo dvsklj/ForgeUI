@@ -1,6 +1,6 @@
 # Component Catalog
 
-All 47 manifest components available in Forge, organized by category.
+All 48 manifest components available in Forge, organized by category.
 
 ---
 
@@ -594,6 +594,33 @@ Search input for filtering lists, tables, and app navigation.
 | `placeholder` | string | `"Search"` | Placeholder text |
 | `value` | string | — | Current query |
 | `bind` | string | — | State binding updated on input |
+| `disabled` | boolean | `false` | Disabled state |
+
+### SegmentedControl
+
+Compact single-choice control for switching views, filters, or modes.
+
+```json
+{
+  "type": "SegmentedControl",
+  "props": {
+    "label": "View",
+    "value": "list",
+    "options": [
+      { "value": "list", "label": "List" },
+      { "value": "board", "label": "Board" }
+    ],
+    "bind": "$state:view"
+  }
+}
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `label` | string | `"Options"` | Accessible group label |
+| `options` | array | `[]` | Strings or `{value, label}` options |
+| `value` | string | first option | Selected value |
+| `bind` | string | — | State binding updated when selection changes |
 | `disabled` | boolean | `false` | Disabled state |
 
 ### Pagination
