@@ -9,7 +9,7 @@
  */
 
 import type { ErrorObject, ValidateFunction } from 'ajv';
-import type { ForgeUIManifest } from '../types/index.js';
+import type { ComponentType, ForgeUIManifest } from '../types/index.js';
 import { isValidComponentType } from '../catalog/registry.js';
 import { COMPONENT_PROP_ALLOWLIST } from './component-props.js';
 import _validate from './manifest-validator.generated.js';
@@ -19,15 +19,9 @@ const validate = _validate as ValidateFunction;
 /** Dangerous URL schemes that must be rejected */
 const DANGEROUS_SCHEMES = ['javascript:', 'data:text/html', 'data:text/javascript', 'data:application/javascript', 'vbscript:', 'file:'];
 
-/** Allowed URL schemes (everything else is rejected) */
-const ALLOWED_SCHEMES = [
-  'https:', 'http:',            // standard web
-  'data:image/',                // inline images (PNG, JPEG, SVG, WebP, GIF)
-  'data:font/',                 // inline fonts
-  'data:application/octet-stream', // generic binary (for download links)
-  'mailto:', 'tel:',            // communication
-  '#',                          // fragment-only links
-];
+const IMAGE_URLS = ['https:', 'http:', 'data:image/', 'blob:'];
+const LINK_URLS = ['https:', 'http:', 'mailto:', 'tel:', '#'];
+const API_URLS = ['https:', 'http:'];
 
 /** Event handler patterns that must be stripped */
 const EVENT_HANDLER_RE = /^on[a-z]+$/i;
@@ -131,33 +125,7 @@ function validateUrls(manifest: ForgeUIManifest, errors: ValidationError[]) {
         }
       }
 
-      // URL-specific checks
-      if (looksLikeUrl(value)) {
-        const lower = value.toLowerCase().trim();
-
-        // Blacklist check — reject known dangerous schemes
-        for (const scheme of DANGEROUS_SCHEMES) {
-          if (lower.startsWith(scheme)) {
-            errors.push({
-              path: `/elements/${id}/props/${key}`,
-              message: `Dangerous URL scheme rejected: ${scheme}`,
-              severity: 'error',
-            });
-          }
-        }
-
-        // Allowlist check — reject schemes not explicitly allowed
-        if (!ALLOWED_SCHEMES.some(s => lower.startsWith(s))) {
-          // Check if it's a data: URL that isn't in the allowlist
-          if (lower.startsWith('data:')) {
-            errors.push({
-              path: `/elements/${id}/props/${key}`,
-              message: `Data URL scheme not in allowlist: ${lower.split(';')[0]}`,
-              severity: 'warning',
-            });
-          }
-        }
-      }
+      validateUrlValue(value, `/elements/${id}/props/${key}`, errors, urlPolicy(element.type, key));
 
       // Event handler property names
       if (EVENT_HANDLER_RE.test(key)) {
@@ -167,6 +135,17 @@ function validateUrls(manifest: ForgeUIManifest, errors: ValidationError[]) {
           severity: 'error',
         });
       }
+    }
+    if (element.type === 'Breadcrumb' && Array.isArray(element.props.items)) {
+      element.props.items.forEach((item, index) => {
+        if (!item || typeof item !== 'object' || Array.isArray(item)) return;
+        validateUrlValue(
+          (item as Record<string, unknown>).href,
+          `/elements/${id}/props/items/${index}/href`,
+          errors,
+          LINK_URLS,
+        );
+      });
     }
 
     // Check children array for injected content
@@ -190,23 +169,37 @@ function validateUrls(manifest: ForgeUIManifest, errors: ValidationError[]) {
   // Also check action definitions for URL safety
   if (manifest.actions) {
     for (const [actionId, action] of Object.entries(manifest.actions)) {
-      if (action.data) {
-        for (const [key, value] of Object.entries(action.data)) {
-          if (typeof value === 'string' && looksLikeUrl(value)) {
-            const lower = value.toLowerCase().trim();
-            for (const scheme of DANGEROUS_SCHEMES) {
-              if (lower.startsWith(scheme)) {
-                errors.push({
-                  path: `/actions/${actionId}/data/${key}`,
-                  message: `Dangerous URL scheme in action data: ${scheme}`,
-                  severity: 'error',
-                });
-              }
-            }
-          }
-        }
-      }
+      validateUrlValue(action.url, `/actions/${actionId}/url`, errors, action.type === 'callApi' ? API_URLS : undefined);
     }
+  }
+}
+
+function urlPolicy(type: ComponentType, prop: string): readonly string[] | undefined {
+  if (prop === 'src' && (type === 'Image' || type === 'Avatar')) return IMAGE_URLS;
+  if (prop === 'href' && type === 'Link') return LINK_URLS;
+}
+
+function validateUrlValue(value: unknown, path: string, errors: ValidationError[], allowedSchemes?: readonly string[]) {
+  if (typeof value !== 'string' || !looksLikeUrl(value)) return;
+  const lower = value.toLowerCase().trim();
+
+  for (const scheme of DANGEROUS_SCHEMES) {
+    if (lower.startsWith(scheme)) {
+      errors.push({
+        path,
+        message: `Dangerous URL scheme rejected: ${scheme}`,
+        severity: 'error',
+      });
+      return;
+    }
+  }
+
+  if (allowedSchemes && !allowedSchemes.some(s => lower.startsWith(s))) {
+    errors.push({
+      path,
+      message: 'URL not allowed',
+      severity: 'error',
+    });
   }
 }
 
@@ -447,4 +440,3 @@ function validateComponentProps(manifest: ForgeUIManifest, errors: ValidationErr
     }
   }
 }
-

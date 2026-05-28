@@ -262,7 +262,7 @@ async function main() {
       console.log(`  ${file}: ${kb} KB`);
     } catch {}
   }
-  console.log(`\nBudget: 50 KB gzip for dist/forgeui.js (enforced via scripts/check-size.mjs).`);
+  console.log(`\nBudget: 55 KB gzip for dist/forgeui.js (enforced via scripts/check-size.mjs).`);
 }
 
 main().catch(err => {
