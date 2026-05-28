@@ -1,0 +1,35 @@
+import { nothing } from 'lit';
+import { ForgeUIElement } from './base.js';
+export declare class ForgeAlert extends ForgeUIElement {
+    static get styles(): import("lit").CSSResult;
+    render(): import("lit-html").TemplateResult<1>;
+}
+export declare class ForgeDialog extends ForgeUIElement {
+    static get styles(): import("lit").CSSResult;
+    private _priorFocus;
+    private _keydownHandler;
+    render(): import("lit-html").TemplateResult<1> | typeof nothing;
+    updated(changed: Map<string, unknown>): void;
+    private _onOpen;
+    private _onClose;
+    disconnectedCallback(): void;
+    private _onKeydown;
+    private _trapFocus;
+    private _firstFocusableInDialog;
+    private _allFocusableInDialog;
+    private _dialogContains;
+    private _close;
+}
+export declare class ForgeProgress extends ForgeUIElement {
+    static get styles(): import("lit").CSSResult;
+    render(): import("lit-html").TemplateResult<1>;
+}
+export declare class ForgeToast extends ForgeUIElement {
+    static get styles(): import("lit").CSSResult;
+    render(): import("lit-html").TemplateResult<1>;
+}
+export declare class ForgeUIError extends ForgeUIElement {
+    static get styles(): import("lit").CSSResult;
+    render(): import("lit-html").TemplateResult<1>;
+}
+//# sourceMappingURL=feedback.d.ts.map
