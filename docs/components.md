@@ -631,6 +631,8 @@ Dialog overlay.
 | `title` | string | — | Modal heading |
 | `open` | boolean | `false` | Visibility state |
 
+Dialogs opened with `openDialog` close on Escape or backdrop click without a separate `close` action definition.
+
 ### Alert
 
 Notification banner.
