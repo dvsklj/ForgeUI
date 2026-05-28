@@ -1,7 +1,7 @@
 {
   "name": "@nedast/forgeui-catalog",
   "version": "0.1.0",
-  "description": "Forge UI component catalog — 38 manifest components for Forge apps.",
+  "description": "Forge UI component catalog — 39 manifest components for Forge apps.",
   "main": "forgeui-catalog.js",
   "types": "forgeui-catalog.d.ts",
   "exports": {

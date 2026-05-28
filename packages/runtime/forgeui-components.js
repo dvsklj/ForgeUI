@@ -1,4 +1,4 @@
-import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from"lit";import{createStore as $t}from"tinybase";var at=new Set(["__proto__","prototype","constructor"]);function q(n){if(n.length===0||n.length>256)return!1;for(let t of n.normalize("NFC").split("."))if(at.has(t))return!1;return!0}function ee(n,t){if(t.includes("/")){let e=t.split("/");if(e.length===3){let[r,o,i]=e;return n.getCell(r,o,i)}if(e.length===2){let[r,o]=e,i=n.getValue(t);if(i!==void 0)return i;let s=n.getCellIds(r,o);if(s.length>0){let a={};for(let l of s)a[l]=n.getCell(r,o,l);return a}}}return n.getValue(t)}function lt(n,t){if(t.startsWith("count:")){let e=t.slice(6);return n.getRowCount(e)}if(t.startsWith("sum:")){let[e,r]=t.split(":"),[o,i]=r.split("/"),s=0,a=n.getRowIds(o);for(let l of a){let u=n.getCell(o,l,i);typeof u=="number"&&(s+=u)}return s}if(t.startsWith("avg:")){let[e,r]=t.split(":"),[o,i]=r.split("/"),s=0,a=0,l=n.getRowIds(o);for(let u of l){let g=n.getCell(o,u,i);typeof g=="number"&&(s+=g,a++)}return a>0?s/a:0}return ee(n,t)}var J=null;function te(n){J=n}function ct(n,t){if(t.length>1024)return;let e="(state\\.[a-zA-Z_][a-zA-Z0-9_.]*|-?\\d+(?:\\.\\d+)?)",r=t.trim().match(new RegExp(`^${e}\\s*(>=|<=|[+\\-*/><])\\s*${e}$`));if(!r)return;let o=Qe(n,r[1]),i=Qe(n,r[3]);if(!(typeof o!="number"||typeof i!="number"))switch(r[2]){case"+":return o+i;case"-":return o-i;case"*":return o*i;case"/":return i===0?void 0:o/i;case">":return o>i;case"<":return o<i;case">=":return o>=i;case"<=":return o<=i}}function Qe(n,t){if(/^-?\d/.test(t))return Number(t);if(!t.startsWith("state."))return;let e=t.slice(6);return q(e)?Ye(n,e):void 0}function re(n,t){let e=t.trim();if(e==="")return;if(e.startsWith('"')&&e.endsWith('"')||e.startsWith("'")&&e.endsWith("'"))return e.slice(1,-1);if(e.startsWith('"')&&!e.endsWith('"')||e.startsWith("'")&&!e.endsWith("'"))return;if(e==="true")return!0;if(e==="false")return!1;if(e==="null")return null;if(/^-?\d+(\.\d+)?$/.test(e))return Number(e);if(/(?:[+\-*/%]|===?|!==?|>=?|<=?|\&\&|\|\|)/.test(e)&&!e.includes("|"))return ct(n,e);if(e.includes("|")){let[o,...i]=e.split("|").map(l=>l.trim()),a=re(n,o);for(let l of i){let[u,...g]=l.split(/\s+/);a=ut(a,u,g)}return a}if(e.startsWith("item.")||e==="item"){if(e==="item")return J;let o=e.slice(5);return F(J,o)}if(e.startsWith("state.")||e==="state"){if(e==="state")return;let o=e.slice(6);return Ye(n,o)}return ee(n,e)}function ut(n,t,e){switch(t){case"values":return Array.isArray(n)?n:n&&typeof n=="object"?Object.values(n):[];case"keys":return n&&typeof n=="object"?Object.keys(n):[];case"count":case"length":return Array.isArray(n)?n.length:n&&typeof n=="object"?Object.keys(n).length:typeof n=="string"?n.length:0;case"sum":return Array.isArray(n)?n.reduce((r,o)=>r+(typeof o=="number"?o:0),0):0;case"first":return Array.isArray(n)?n[0]:void 0;case"last":return Array.isArray(n)?n[n.length-1]:void 0;default:return n}}function F(n,t){if(!n||typeof n!="object"||!t||!q(t))return;let e=t.split(".");if(e.length>32)return;let r=n;for(let o of e){if(r==null)return;r=r[o]}return r}function Ye(n,t){if(!q(t))return;let e=n.getValue(t);if(e!==void 0){if(typeof e=="string")try{return JSON.parse(e)}catch{}return e}let r=t.split(".");if(r.length>=3){let[i,s,a,...l]=r;if(n.hasTable(i)&&n.hasRow(i,s)){let u=n.getCell(i,s,a);if(l.length===0)return u;if(typeof u=="string")try{let g=JSON.parse(u);return F(g,l.join("."))}catch{}return}}if(r.length>=2){let[i,s,...a]=r;if(n.hasTable(i)&&n.hasRow(i,s)){let l=n.getRow(i,s);return a.length===0?l:F(l,a.join("."))}}if(r.length>=1){let[i,...s]=r;if(n.hasTable(i)){let a=n.getRowIds(i),l={};for(let u of a)l[u]=n.getRow(i,u);return s.length===0?l:F(l,s.join("."))}}let o=n.getValue(r[0]);if(typeof o=="string"&&r.length>1)try{let i=JSON.parse(o);return F(i,r.slice(1).join("."))}catch{}}function K(n,t){if(typeof t!="string"){if(t!==null&&typeof t=="object"){let e=t;if("$expr"in e)return K(n,`$expr:${e.$expr}`);if("$state"in e)return K(n,`$state:${e.$state}`);if("$computed"in e)return K(n,`$computed:${e.$computed}`);if("$item"in e)return K(n,`$item:${e.$item}`)}return t}if(t.startsWith("$state:")){let e=t.slice(7);return q(e)?ee(n,e):void 0}if(t.startsWith("$computed:")){let e=t.slice(10);return e.length>1024?void 0:lt(n,e)}if(t.startsWith("$item:")){let e=t.slice(6);return q(e)?e.includes(".")?F(J,e):J?.[e]:void 0}if(t.startsWith("$expr:")){let e=t.slice(6);return e.length>1024?void 0:re(n,e)}return t.length>4096?t:t.includes("{{")&&t.includes("}}")?gt(t,n):t}function gt(n,t){let e="",r=0;for(;r<n.length;)if(n[r]==="{"&&n[r+1]==="{"){let o=r+2,i=1,s=o;for(;s<n.length-1&&i>0;){let a=n[s],l=n[s+1];a==="{"&&l==="{"?(i++,s+=2):a==="}"&&l==="}"?(i--,s+=2):s++}if(i)e+=n[r++];else{let a=n.slice(o,s-2);if(a.length<=256){let l=a.trim(),u=l.startsWith("$")?K(t,l):re(t,l);e+=u==null?"":String(u)}else e+=n.slice(r,s);r=s}}else e+=n[r++];return e}import{css as oe}from"lit";var Pt=oe`
+import{html as le,css as ce,nothing as pt}from"lit";import{LitElement as ft}from"lit";import{createStore as kt}from"tinybase";var lt=new Set(["__proto__","prototype","constructor"]);function q(n){if(n.length===0||n.length>256)return!1;for(let t of n.normalize("NFC").split("."))if(lt.has(t))return!1;return!0}function ee(n,t){if(t.includes("/")){let e=t.split("/");if(e.length===3){let[r,o,i]=e;return n.getCell(r,o,i)}if(e.length===2){let[r,o]=e,i=n.getValue(t);if(i!==void 0)return i;let s=n.getCellIds(r,o);if(s.length>0){let a={};for(let l of s)a[l]=n.getCell(r,o,l);return a}}}return n.getValue(t)}function ct(n,t){if(t.startsWith("count:")){let e=t.slice(6);return n.getRowCount(e)}if(t.startsWith("sum:")){let[e,r]=t.split(":"),[o,i]=r.split("/"),s=0,a=n.getRowIds(o);for(let l of a){let u=n.getCell(o,l,i);typeof u=="number"&&(s+=u)}return s}if(t.startsWith("avg:")){let[e,r]=t.split(":"),[o,i]=r.split("/"),s=0,a=0,l=n.getRowIds(o);for(let u of l){let g=n.getCell(o,u,i);typeof g=="number"&&(s+=g,a++)}return a>0?s/a:0}return ee(n,t)}var J=null;function te(n){J=n}function ut(n,t){if(t.length>1024)return;let e="(state\\.[a-zA-Z_][a-zA-Z0-9_.]*|-?\\d+(?:\\.\\d+)?)",r=t.trim().match(new RegExp(`^${e}\\s*(>=|<=|[+\\-*/><])\\s*${e}$`));if(!r)return;let o=Ye(n,r[1]),i=Ye(n,r[3]);if(!(typeof o!="number"||typeof i!="number"))switch(r[2]){case"+":return o+i;case"-":return o-i;case"*":return o*i;case"/":return i===0?void 0:o/i;case">":return o>i;case"<":return o<i;case">=":return o>=i;case"<=":return o<=i}}function Ye(n,t){if(/^-?\d/.test(t))return Number(t);if(!t.startsWith("state."))return;let e=t.slice(6);return q(e)?Ge(n,e):void 0}function re(n,t){let e=t.trim();if(e==="")return;if(e.startsWith('"')&&e.endsWith('"')||e.startsWith("'")&&e.endsWith("'"))return e.slice(1,-1);if(e.startsWith('"')&&!e.endsWith('"')||e.startsWith("'")&&!e.endsWith("'"))return;if(e==="true")return!0;if(e==="false")return!1;if(e==="null")return null;if(/^-?\d+(\.\d+)?$/.test(e))return Number(e);if(/(?:[+\-*/%]|===?|!==?|>=?|<=?|\&\&|\|\|)/.test(e)&&!e.includes("|"))return ut(n,e);if(e.includes("|")){let[o,...i]=e.split("|").map(l=>l.trim()),a=re(n,o);for(let l of i){let[u,...g]=l.split(/\s+/);a=gt(a,u,g)}return a}if(e.startsWith("item.")||e==="item"){if(e==="item")return J;let o=e.slice(5);return H(J,o)}if(e.startsWith("state.")||e==="state"){if(e==="state")return;let o=e.slice(6);return Ge(n,o)}return ee(n,e)}function gt(n,t,e){switch(t){case"values":return Array.isArray(n)?n:n&&typeof n=="object"?Object.values(n):[];case"keys":return n&&typeof n=="object"?Object.keys(n):[];case"count":case"length":return Array.isArray(n)?n.length:n&&typeof n=="object"?Object.keys(n).length:typeof n=="string"?n.length:0;case"sum":return Array.isArray(n)?n.reduce((r,o)=>r+(typeof o=="number"?o:0),0):0;case"first":return Array.isArray(n)?n[0]:void 0;case"last":return Array.isArray(n)?n[n.length-1]:void 0;default:return n}}function H(n,t){if(!n||typeof n!="object"||!t||!q(t))return;let e=t.split(".");if(e.length>32)return;let r=n;for(let o of e){if(r==null)return;r=r[o]}return r}function Ge(n,t){if(!q(t))return;let e=n.getValue(t);if(e!==void 0){if(typeof e=="string")try{return JSON.parse(e)}catch{}return e}let r=t.split(".");if(r.length>=3){let[i,s,a,...l]=r;if(n.hasTable(i)&&n.hasRow(i,s)){let u=n.getCell(i,s,a);if(l.length===0)return u;if(typeof u=="string")try{let g=JSON.parse(u);return H(g,l.join("."))}catch{}return}}if(r.length>=2){let[i,s,...a]=r;if(n.hasTable(i)&&n.hasRow(i,s)){let l=n.getRow(i,s);return a.length===0?l:H(l,a.join("."))}}if(r.length>=1){let[i,...s]=r;if(n.hasTable(i)){let a=n.getRowIds(i),l={};for(let u of a)l[u]=n.getRow(i,u);return s.length===0?l:H(l,s.join("."))}}let o=n.getValue(r[0]);if(typeof o=="string"&&r.length>1)try{let i=JSON.parse(o);return H(i,r.slice(1).join("."))}catch{}}function K(n,t){if(typeof t!="string"){if(t!==null&&typeof t=="object"){let e=t;if("$expr"in e)return K(n,`$expr:${e.$expr}`);if("$state"in e)return K(n,`$state:${e.$state}`);if("$computed"in e)return K(n,`$computed:${e.$computed}`);if("$item"in e)return K(n,`$item:${e.$item}`)}return t}if(t.startsWith("$state:")){let e=t.slice(7);return q(e)?ee(n,e):void 0}if(t.startsWith("$computed:")){let e=t.slice(10);return e.length>1024?void 0:ct(n,e)}if(t.startsWith("$item:")){let e=t.slice(6);return q(e)?e.includes(".")?H(J,e):J?.[e]:void 0}if(t.startsWith("$expr:")){let e=t.slice(6);return e.length>1024?void 0:re(n,e)}return t.length>4096?t:t.includes("{{")&&t.includes("}}")?dt(t,n):t}function dt(n,t){let e="",r=0;for(;r<n.length;)if(n[r]==="{"&&n[r+1]==="{"){let o=r+2,i=1,s=o;for(;s<n.length-1&&i>0;){let a=n[s],l=n[s+1];a==="{"&&l==="{"?(i++,s+=2):a==="}"&&l==="}"?(i--,s+=2):s++}if(i)e+=n[r++];else{let a=n.slice(o,s-2);if(a.length<=256){let l=a.trim(),u=l.startsWith("$")?K(t,l):re(t,l);e+=u==null?"":String(u)}else e+=n.slice(r,s);r=s}}else e+=n[r++];return e}import{css as oe}from"lit";var At=oe`
   @layer tokens {
     :host {
       /* ─── Primary (deep teal — distinctive, calm, professional) ─── */
@@ -225,7 +225,7 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
     /* Preserve normal word-breaking for code/math contexts */
     code, pre, kbd, samp { word-break: normal; }
   }
-`,At=oe`
+`,It=oe`
   @layer surfaces {
     /* Chat: compact spacing, constrained width */
     :host([surface="chat"]) {
@@ -262,7 +262,7 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
   input:focus-visible, textarea:focus-visible, select:focus-visible {
     outline: none;
   }
-`;var Q=class Q extends dt{constructor(){super(...arguments);this._instanceId=`forge-${++Q._instanceCounter}`;this.props={};this.store=null;this.onAction=null;this.itemContext=null}static get properties(){return{props:{type:Object}}}connectedCallback(){super.connectedCallback()}resolve(e){if(!this.store)return e;this.itemContext&&te(this.itemContext);try{return K(this.store,e)}finally{te(null)}}getProp(e){let r=this.props?.[e];return typeof r=="string"&&(r.startsWith("$state:")||r.startsWith("$computed:")||r.startsWith("$item:")||r.startsWith("$expr:")||r.includes("{{")&&r.includes("}}"))?this.resolve(r):r}getArray(e){let r=this.getProp(e);return Array.isArray(r)?r:r&&typeof r=="object"?Object.values(r):[]}getString(e,r=""){let o=this.getProp(e);return typeof o=="string"?o:String(o??r)}getNumber(e,r=0){let o=this.getProp(e);return typeof o=="number"?o:Number(o)||r}getBool(e,r=!1){let o=this.getProp(e);return typeof o=="boolean"?o:r}getBoundProp(e,r){let o=typeof this.props?.bind=="string"?this.props.bind:"";if(o){let s=this.resolve(o);if(s!==void 0)return s}let i=this.getProp(e);return i===void 0?r:i}dispatchAction(e,r){let o=typeof this.props?.bind=="string"?this.props.bind:"",i=o?{...r||{},bind:o}:r;this.onAction&&this.onAction(e,i),this.dispatchEvent(new CustomEvent("forgeui-action",{detail:{action:e,payload:i},bubbles:!0,composed:!0}))}handleAction(e){let r=this.getString("action");r&&this.dispatchAction(r,this.props)}prop(e){return this.getProp(e)}static get sharedStyles(){return[ie]}gapValue(e){let r={none:"0",0:"0","3xs":"var(--forgeui-space-3xs)","2xs":"var(--forgeui-space-2xs)",xs:"var(--forgeui-space-xs)",sm:"var(--forgeui-space-sm)",md:"var(--forgeui-space-md)",lg:"var(--forgeui-space-lg)",xl:"var(--forgeui-space-xl)","2xl":"var(--forgeui-space-2xl)"};if(e==null||e==="")return"var(--forgeui-space-md)";let o=String(e);return o in r?r[o]:/^\d+(\.\d+)?$/.test(o)?`${o}px`:/^\d+(\.\d+)?(px|rem|em|%|vw|vh|ch)$/.test(o)?o:"var(--forgeui-space-md)"}static get styles(){return[ie]}};Q._instanceCounter=0;var d=Q;var ne=class extends d{static get styles(){return ce`
+`;var Q=class Q extends ft{constructor(){super(...arguments);this._instanceId=`forge-${++Q._instanceCounter}`;this.props={};this.store=null;this.onAction=null;this.itemContext=null}static get properties(){return{props:{type:Object}}}connectedCallback(){super.connectedCallback()}resolve(e){if(!this.store)return e;this.itemContext&&te(this.itemContext);try{return K(this.store,e)}finally{te(null)}}getProp(e){let r=this.props?.[e];return typeof r=="string"&&(r.startsWith("$state:")||r.startsWith("$computed:")||r.startsWith("$item:")||r.startsWith("$expr:")||r.includes("{{")&&r.includes("}}"))?this.resolve(r):r}getArray(e){let r=this.getProp(e);return Array.isArray(r)?r:r&&typeof r=="object"?Object.values(r):[]}getString(e,r=""){let o=this.getProp(e);return typeof o=="string"?o:String(o??r)}getNumber(e,r=0){let o=this.getProp(e);return typeof o=="number"?o:Number(o)||r}getBool(e,r=!1){let o=this.getProp(e);return typeof o=="boolean"?o:r}getBoundProp(e,r){let o=typeof this.props?.bind=="string"?this.props.bind:"";if(o){let s=this.resolve(o);if(s!==void 0)return s}let i=this.getProp(e);return i===void 0?r:i}dispatchAction(e,r){let o=typeof this.props?.bind=="string"?this.props.bind:"",i=o?{...r||{},bind:o}:r;this.onAction&&this.onAction(e,i),this.dispatchEvent(new CustomEvent("forgeui-action",{detail:{action:e,payload:i},bubbles:!0,composed:!0}))}handleAction(e){let r=this.getString("action");r&&this.dispatchAction(r,this.props)}prop(e){return this.getProp(e)}static get sharedStyles(){return[ie]}gapValue(e){let r={none:"0",0:"0","3xs":"var(--forgeui-space-3xs)","2xs":"var(--forgeui-space-2xs)",xs:"var(--forgeui-space-xs)",sm:"var(--forgeui-space-sm)",md:"var(--forgeui-space-md)",lg:"var(--forgeui-space-lg)",xl:"var(--forgeui-space-xl)","2xl":"var(--forgeui-space-2xl)"};if(e==null||e==="")return"var(--forgeui-space-md)";let o=String(e);return o in r?r[o]:/^\d+(\.\d+)?$/.test(o)?`${o}px`:/^\d+(\.\d+)?(px|rem|em|%|vw|vh|ch)$/.test(o)?o:"var(--forgeui-space-md)"}static get styles(){return[ie]}};Q._instanceCounter=0;var d=Q;var ne=class extends d{static get styles(){return ce`
     :host { display:inline-flex; }
     button { display:inline-flex; align-items:center; justify-content:center; gap:var(--forgeui-space-xs);
       padding:0 var(--forgeui-space-md); height:var(--forgeui-button-height); border:1px solid transparent;
@@ -285,7 +285,7 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
       button { transition:none; }
     }
   `}render(){let t=this.getString("label","Button"),e=this.getString("variant","primary"),r=this.getString("size",""),o=this.getBool("disabled"),i=this.getProp("pressed");return le`<button class="${e} ${r}" ?disabled=${o}
-      aria-pressed=${i==null?ft:String(!!i)}
+      aria-pressed=${i==null?pt:String(!!i)}
       @click=${s=>this.handleAction(s)}>${t}<slot></slot></button>`}};customElements.define("forgeui-button",ne);var se=class extends d{static get styles(){return ce`
     :host { display:flex; gap:var(--forgeui-space-xs); }
   `}render(){return le`<slot></slot>`}};customElements.define("forgeui-button-group",se);var ae=class extends d{static get styles(){return ce`
@@ -294,7 +294,7 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
       text-decoration-thickness:1px; text-underline-offset:2px; }
     a:hover { text-decoration:underline; }
     a:focus-visible { outline:3px solid var(--forgeui-color-focus); outline-offset:2px; border-radius:2px; }
-  `}render(){let t=this.getString("label",""),e=this.getString("href","#");return le`<a href="${e}">${t}<slot></slot></a>`}};customElements.define("forgeui-link",ae);import{html as I,css as H,nothing as Ge}from"lit";var ue=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return H`
+  `}render(){let t=this.getString("label",""),e=this.getString("href","#");return le`<a href="${e}">${t}<slot></slot></a>`}};customElements.define("forgeui-link",ae);import{html as I,css as F,nothing as et}from"lit";var ue=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return F`
     :host { display:block; min-width:0; }
     .heading1 { font-size:var(--forgeui-text-3xl); font-weight:var(--forgeui-weight-bold); line-height:var(--forgeui-leading-tight); letter-spacing:-0.02em; margin:0; overflow-wrap:break-word; }
     .heading2 { font-size:var(--forgeui-text-2xl); font-weight:var(--forgeui-weight-bold); line-height:var(--forgeui-leading-tight); letter-spacing:-0.01em; margin:0; overflow-wrap:break-word; }
@@ -310,13 +310,13 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
     .align-left { text-align:left; }
     .align-center { text-align:center; }
     .align-right { text-align:right; }
-  `}render(){let t=this.getString("content",""),e=this.getString("variant","body"),o={h1:"heading1",h2:"heading2",h3:"heading3",title:"heading2",subtitle:"subheading",paragraph:"body",text:"body",secondary:"muted",tertiary:"caption"}[e]||e,i=this.getString("colorScheme",""),s=this.getString("align",""),a=this.getString("weight",""),l={primary:"var(--forgeui-color-primary)",secondary:"var(--forgeui-color-text-secondary)",tertiary:"var(--forgeui-color-text-tertiary)",success:"var(--forgeui-color-success)",warning:"var(--forgeui-color-warning)",error:"var(--forgeui-color-error)",info:"var(--forgeui-color-info)"},u={normal:"var(--forgeui-weight-normal)",medium:"var(--forgeui-weight-medium)",semibold:"var(--forgeui-weight-semibold)",bold:"var(--forgeui-weight-bold)"},g=[];i&&l[i]&&g.push(`color:${l[i]}`),a&&u[a]&&g.push(`font-weight:${u[a]}`);let c=s?`align-${s}`:"",h=I`${t}<slot></slot>`;return o==="heading1"?I`<h1 class="${o} ${c}" style="${g.join(";")}">${h}</h1>`:o==="heading2"?I`<h2 class="${o} ${c}" style="${g.join(";")}">${h}</h2>`:o==="heading3"?I`<h3 class="${o} ${c}" style="${g.join(";")}">${h}</h3>`:I`<div class="${o} ${c}" style="${g.join(";")}">${t}<slot></slot></div>`}};customElements.define("forgeui-text",ue);var ge=class extends d{static get styles(){return H`
+  `}render(){let t=this.getString("content",""),e=this.getString("variant","body"),o={h1:"heading1",h2:"heading2",h3:"heading3",title:"heading2",subtitle:"subheading",paragraph:"body",text:"body",secondary:"muted",tertiary:"caption"}[e]||e,i=this.getString("colorScheme",""),s=this.getString("align",""),a=this.getString("weight",""),l={primary:"var(--forgeui-color-primary)",secondary:"var(--forgeui-color-text-secondary)",tertiary:"var(--forgeui-color-text-tertiary)",success:"var(--forgeui-color-success)",warning:"var(--forgeui-color-warning)",error:"var(--forgeui-color-error)",info:"var(--forgeui-color-info)"},u={normal:"var(--forgeui-weight-normal)",medium:"var(--forgeui-weight-medium)",semibold:"var(--forgeui-weight-semibold)",bold:"var(--forgeui-weight-bold)"},g=[];i&&l[i]&&g.push(`color:${l[i]}`),a&&u[a]&&g.push(`font-weight:${u[a]}`);let c=s?`align-${s}`:"",h=I`${t}<slot></slot>`;return o==="heading1"?I`<h1 class="${o} ${c}" style="${g.join(";")}">${h}</h1>`:o==="heading2"?I`<h2 class="${o} ${c}" style="${g.join(";")}">${h}</h2>`:o==="heading3"?I`<h3 class="${o} ${c}" style="${g.join(";")}">${h}</h3>`:I`<div class="${o} ${c}" style="${g.join(";")}">${t}<slot></slot></div>`}};customElements.define("forgeui-text",ue);var ge=class extends d{static get styles(){return F`
     :host { display:block; }
     img { max-width:100%; height:auto; display:block; border-radius:var(--forgeui-radius-md); }
-  `}render(){let t=this.getString("src",""),e=this.getString("alt",""),r=this.getString("fit","contain");return t?I`<img src="${t}" alt="${e}" style="object-fit:${r}" loading="lazy">`:I`${Ge}`}};customElements.define("forgeui-image",ge);var de=class extends d{static get styles(){return H`
+  `}render(){let t=this.getString("src",""),e=this.getString("alt",""),r=this.getString("fit","contain");return t?I`<img src="${t}" alt="${e}" style="object-fit:${r}" loading="lazy">`:I`${et}`}};customElements.define("forgeui-image",ge);var de=class extends d{static get styles(){return F`
     :host { display:inline-flex; align-items:center; justify-content:center; }
     svg { width:var(--forgeui-icon-md); height:var(--forgeui-icon-md); fill:currentColor; }
-  `}render(){let t=this.getString("name","circle"),e={check:"M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",x:"M6 18L18 6M6 6l12 12",plus:"M12 4v16m8-8H4",minus:"M20 12H4",chevron:"M9 5l7 7-7 7",arrow:"M13 7l5 5m0 0l-5 5m5-5H6",star:"M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.96a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.96c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.96a1 1 0 00-.364-1.118L2.063 8.387c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.96z",circle:"M12 2a10 10 0 100 20 10 10 0 000-20z",alert:"M12 9v2m0 4h.01M4.93 4.93l14.14 14.14M12 2a10 10 0 100 20 10 10 0 000-20z"},r=e[t]||e.circle;return I`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${r}"/></svg>`}};customElements.define("forgeui-icon",de);var fe=class extends d{static get styles(){return H`
+  `}render(){let t=this.getString("name","circle"),e={check:"M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",x:"M6 18L18 6M6 6l12 12",plus:"M12 4v16m8-8H4",minus:"M20 12H4",chevron:"M9 5l7 7-7 7",arrow:"M13 7l5 5m0 0l-5 5m5-5H6",star:"M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.96a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.96c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.96a1 1 0 00-.364-1.118L2.063 8.387c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.96z",circle:"M12 2a10 10 0 100 20 10 10 0 000-20z",alert:"M12 9v2m0 4h.01M4.93 4.93l14.14 14.14M12 2a10 10 0 100 20 10 10 0 000-20z"},r=e[t]||e.circle;return I`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${r}"/></svg>`}};customElements.define("forgeui-icon",de);var fe=class extends d{static get styles(){return F`
     :host { display:inline-flex; align-items:center; max-width:100%; }
     .badge { display:inline-flex; align-items:center; min-height:1.5rem; padding:var(--forgeui-space-2xs) var(--forgeui-space-xs);
       border-radius:var(--forgeui-radius-sm); font-size:var(--forgeui-text-xs); font-weight:var(--forgeui-weight-bold);
@@ -325,21 +325,21 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
     .badge[variant="success"] { background:var(--forgeui-color-success); color:var(--forgeui-color-text-inverse); }
     .badge[variant="warning"] { background:var(--forgeui-color-warning); color:var(--forgeui-color-text-inverse); }
     .badge[variant="error"] { background:var(--forgeui-color-error); color:var(--forgeui-color-text-inverse); }
-  `}render(){let t=this.getString("text","")||this.getString("label",""),e=this.getString("variant","");return I`<span class="badge" variant="${e}">${t}<slot></slot></span>`}};customElements.define("forgeui-badge",fe);var pe=class extends d{static get styles(){return H`
+  `}render(){let t=this.getString("text","")||this.getString("label",""),e=this.getString("variant","");return I`<span class="badge" variant="${e}">${t}<slot></slot></span>`}};customElements.define("forgeui-badge",fe);var pe=class extends d{static get styles(){return F`
     :host { display:inline-flex; }
     .avatar { width:2.5rem; height:2.5rem; border-radius:var(--forgeui-radius-full); background:var(--forgeui-color-primary-subtle);
       color:var(--forgeui-color-primary); display:flex; align-items:center; justify-content:center;
       font-weight:var(--forgeui-weight-semibold); font-size:var(--forgeui-text-sm); overflow:hidden; }
     img { width:100%; height:100%; object-fit:cover; }
-  `}render(){let t=this.getString("src",""),e=this.getString("name","?"),r=e.split(" ").map(o=>o[0]).join("").toUpperCase().slice(0,2);return I`<div class="avatar">${t?I`<img src="${t}" alt="${e}">`:r}<slot></slot></div>`}};customElements.define("forgeui-avatar",pe);var he=class extends d{static get styles(){return H`
+  `}render(){let t=this.getString("src",""),e=this.getString("name","?"),r=e.split(" ").map(o=>o[0]).join("").toUpperCase().slice(0,2);return I`<div class="avatar">${t?I`<img src="${t}" alt="${e}">`:r}<slot></slot></div>`}};customElements.define("forgeui-avatar",pe);var he=class extends d{static get styles(){return F`
     :host { display:block; text-align:center; padding:var(--forgeui-space-2xl) var(--forgeui-space-lg); }
     .title { font-size:var(--forgeui-text-lg); font-weight:var(--forgeui-weight-semibold); margin-bottom:var(--forgeui-space-xs); overflow-wrap:break-word; }
     .desc { font-size:var(--forgeui-text-sm); color:var(--forgeui-color-text-secondary); margin-bottom:var(--forgeui-space-md); overflow-wrap:break-word; }
   `}render(){let t=this.getString("title","Nothing here"),e=this.getString("description","");return I`
       <div class="title">${t}</div>
-      ${e?I`<div class="desc">${e}</div>`:Ge}
+      ${e?I`<div class="desc">${e}</div>`:et}
       <slot></slot>
-    `}};customElements.define("forgeui-empty-state",he);import{html as f,css as Y,svg as D,nothing as w}from"lit";var me=class extends d{constructor(){super(...arguments);this._query="";this._sortKey="";this._sortDir="asc";this._page=0}static get styles(){return Y`
+    `}};customElements.define("forgeui-empty-state",he);import{html as f,css as Y,svg as B,nothing as w}from"lit";var me=class extends d{constructor(){super(...arguments);this._query="";this._sortKey="";this._sortDir="asc";this._page=0}static get styles(){return Y`
     :host { display:block; overflow-x:auto; min-width:0; width:100%; }
     .search-input { width:100%; max-width:18rem; border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-sm); margin-bottom:var(--forgeui-space-sm);
       padding:var(--forgeui-space-xs) var(--forgeui-space-sm);
@@ -377,7 +377,7 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
     .pager button { border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-sm);
       padding:var(--forgeui-space-2xs) var(--forgeui-space-sm); cursor:pointer; }
     .pager button:disabled { opacity:0.5; cursor:not-allowed; }
-  `}_colKey(e){return typeof e=="string"?e:String(e?.key??"")}_colLabel(e){return typeof e=="string"?e:String(e?.label??e?.key??"")}_statusClass(e){let r=String(e??"").toLowerCase().trim();return["done","complete","completed","success","active","ok","approved","paid"].includes(r)?"success":["in progress","in-progress","pending","warning","waiting","review"].includes(r)?"warning":["to do","to-do","todo","backlog","draft","new","inactive"].includes(r)?"neutral":["high","urgent","critical"].includes(r)?"error":["medium","med"].includes(r)?"warning":["low"].includes(r)?"info":["failed","error","rejected","blocked","overdue"].includes(r)?"error":"neutral"}_renderCell(e,r){let o=this._colKey(e),i=r[o],s=e&&typeof e=="object"?e.type:void 0;if(i==null||i==="")return f`<span style="color:var(--forgeui-color-text-tertiary)">—</span>`;if(s==="badge"||s==="status"){let a=(e.variant&&typeof e.variant=="object"?e.variant[String(i).toLowerCase()]:null)||this._statusClass(i);return f`<span class="badge ${a}">${String(i)}</span>`}if(s==="number")return typeof i=="number"?i.toLocaleString():String(i);if(s==="date"){let a=typeof i=="string"||typeof i=="number"?new Date(i):i;return a instanceof Date&&!isNaN(a.getTime())?a.toLocaleDateString():String(i)}if(s==="currency"){let a=Number(i);return isNaN(a)?String(i):a.toLocaleString(void 0,{style:"currency",currency:e.currency||"USD"})}return s==="boolean"?i?"\u2713":"\u2717":String(i)}_sortBy(e){e&&(this._sortKey===e?this._sortDir=this._sortDir==="asc"?"desc":"asc":(this._sortKey=e,this._sortDir="asc"),this._page=0,this.requestUpdate())}_setQuery(e){this._query=e,this._page=0,this.requestUpdate()}_filteredRows(e,r){let o=this._query.trim().toLowerCase();return o?e.filter(i=>r.some(s=>String(i[this._colKey(s)]??"").toLowerCase().includes(o))):e}_sortedRows(e){if(!this._sortKey)return e;let r=this._sortDir==="asc"?1:-1;return[...e].sort((o,i)=>{let s=o?.[this._sortKey],a=i?.[this._sortKey];if(typeof s=="number"&&typeof a=="number")return(s-a)*r;let l=String(s??"").toLowerCase(),u=String(a??"").toLowerCase();return(l>u?1:l<u?-1:0)*r})}_setPage(e,r){this._page=Math.max(0,Math.min(e,Math.max(0,r-1))),this.requestUpdate()}render(){let e=this.getProp("data"),r=this.getProp("columns")||[],o=this.getString("emptyMessage","No data yet"),i=this.getString("rowAction",""),s=this.getString("caption",""),a=this.getBool("searchable",!1),l=Math.max(0,Math.floor(this.getNumber("pageSize",0)));if(!Array.isArray(e))return f`<div class="empty">${o}</div>`;let u=r.length>0?r:e.length>0?Object.keys(e[0]):[];if(u.length===0)return f`<div class="empty">${o}</div>`;let g=this._filteredRows(e,u),c=this._sortedRows(g),h=l>0?Math.max(1,Math.ceil(c.length/l)):1,b=Math.min(this._page,h-1);b!==this._page&&(this._page=b);let R=l>0?c.slice(b*l,b*l+l):c;return f`
+  `}_colKey(e){return typeof e=="string"?e:String(e?.key??"")}_colLabel(e){return typeof e=="string"?e:String(e?.label??e?.key??"")}_statusClass(e){let r=String(e??"").toLowerCase().trim();return["done","complete","completed","success","active","ok","approved","paid"].includes(r)?"success":["in progress","in-progress","pending","warning","waiting","review"].includes(r)?"warning":["to do","to-do","todo","backlog","draft","new","inactive"].includes(r)?"neutral":["high","urgent","critical"].includes(r)?"error":["medium","med"].includes(r)?"warning":["low"].includes(r)?"info":["failed","error","rejected","blocked","overdue"].includes(r)?"error":"neutral"}_renderCell(e,r){let o=this._colKey(e),i=r[o],s=e&&typeof e=="object"?e.type:void 0;if(i==null||i==="")return f`<span style="color:var(--forgeui-color-text-tertiary)">—</span>`;if(s==="badge"||s==="status"){let a=(e.variant&&typeof e.variant=="object"?e.variant[String(i).toLowerCase()]:null)||this._statusClass(i);return f`<span class="badge ${a}">${String(i)}</span>`}if(s==="number")return typeof i=="number"?i.toLocaleString():String(i);if(s==="date"){let a=typeof i=="string"||typeof i=="number"?new Date(i):i;return a instanceof Date&&!isNaN(a.getTime())?a.toLocaleDateString():String(i)}if(s==="currency"){let a=Number(i);return isNaN(a)?String(i):a.toLocaleString(void 0,{style:"currency",currency:e.currency||"USD"})}return s==="boolean"?i?"\u2713":"\u2717":String(i)}_sortBy(e){e&&(this._sortKey===e?this._sortDir=this._sortDir==="asc"?"desc":"asc":(this._sortKey=e,this._sortDir="asc"),this._page=0,this.requestUpdate())}_setQuery(e){this._query=e,this._page=0,this.requestUpdate()}_filteredRows(e,r){let o=this._query.trim().toLowerCase();return o?e.filter(i=>r.some(s=>String(i[this._colKey(s)]??"").toLowerCase().includes(o))):e}_sortedRows(e){if(!this._sortKey)return e;let r=this._sortDir==="asc"?1:-1;return[...e].sort((o,i)=>{let s=o?.[this._sortKey],a=i?.[this._sortKey];if(typeof s=="number"&&typeof a=="number")return(s-a)*r;let l=String(s??"").toLowerCase(),u=String(a??"").toLowerCase();return(l>u?1:l<u?-1:0)*r})}_setPage(e,r){this._page=Math.max(0,Math.min(e,Math.max(0,r-1))),this.requestUpdate()}render(){let e=this.getProp("data"),r=this.getProp("columns")||[],o=this.getString("emptyMessage","No data yet"),i=this.getString("rowAction",""),s=this.getString("caption",""),a=this.getBool("searchable",!1),l=Math.max(0,Math.floor(this.getNumber("pageSize",0)));if(!Array.isArray(e))return f`<div class="empty">${o}</div>`;let u=r.length>0?r:e.length>0?Object.keys(e[0]):[];if(u.length===0)return f`<div class="empty">${o}</div>`;let g=this._filteredRows(e,u),c=this._sortedRows(g),h=l>0?Math.max(1,Math.ceil(c.length/l)):1,b=Math.min(this._page,h-1);b!==this._page&&(this._page=b);let D=l>0?c.slice(b*l,b*l+l):c;return f`
       ${a?f`
         <input class="search-input" .value=${this._query} aria-label="Search"
           @input=${$=>this._setQuery($.target.value)} />
@@ -391,7 +391,7 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
               </button>
             `:m}
           </th>`})}</tr></thead>
-        <tbody>${R.length===0?f`<tr><td colspan=${u.length} class="empty">${o}</td></tr>`:R.map(($,m)=>{let M=l>0?b*l+m:m,y=!!i,k=y?String($[typeof u[0]=="string"?u[0]:u[0]?.key]??`Row ${m+1}`):"";return f`<tr class="${y?"row-action":""}"
+        <tbody>${D.length===0?f`<tr><td colspan=${u.length} class="empty">${o}</td></tr>`:D.map(($,m)=>{let M=l>0?b*l+m:m,y=!!i,k=y?String($[typeof u[0]=="string"?u[0]:u[0]?.key]??`Row ${m+1}`):"";return f`<tr class="${y?"row-action":""}"
                 tabindex=${y?0:w}
                 role=${y?"button":w}
                 aria-label=${y?k:w}
@@ -439,25 +439,25 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
   `}_niceMax(e){if(e<=0)return 1;let r=Math.pow(10,Math.floor(Math.log10(e))),o=e/r;return(o<=1?1:o<=2?2:o<=5?5:10)*r}render(){let e=this.getString("chartType","bar"),r=this.getProp("data")||[],o=this.getString("title",""),i=this.getString("xKey","label")||this.getString("labelKey","label"),s=this.getString("yKey","value")||this.getString("valueKey","value"),a=this.getString("color","");if(!r||r.length===0)return f`
         ${o?f`<div class="title">${o}</div>`:w}
         <div class="empty">No data to display</div>
-      `;let l=r.map(m=>typeof m=="number"?{label:"",value:m}:m&&typeof m=="object"?{label:String(m[i]??m.label??m.name??m.x??""),value:Number(m[s]??m.value??m.y??0)||0,color:m.color}:{label:String(m),value:0}),u=600,g=260,c={top:8,right:16,bottom:36,left:48},h=u-c.left-c.right,b=g-c.top-c.bottom,R,$=w;if(e==="pie"||e==="donut"){let m=l.reduce((E,_)=>E+Math.max(0,_.value),0)||1,M=u/2,y=g/2,k=Math.min(h,b)/2-8,v=e==="donut"?k*.55:0,x=-Math.PI/2,S=[],C=[];l.forEach((E,_)=>{let O=Math.max(0,E.value)/m,P=x,A=x+O*Math.PI*2;x=A;let U=A-P>Math.PI?1:0,X=M+k*Math.cos(P),Je=y+k*Math.sin(P),Ze=M+k*Math.cos(A),Xe=y+k*Math.sin(A),G=E.color||this._palette[_%this._palette.length];if(C.push(G),v>0){let rt=M+v*Math.cos(P),ot=y+v*Math.sin(P),it=M+v*Math.cos(A),nt=y+v*Math.sin(A);S.push(D`<path class="slice" fill="${G}" d="M ${X} ${Je} A ${k} ${k} 0 ${U} 1 ${Ze} ${Xe} L ${it} ${nt} A ${v} ${v} 0 ${U} 0 ${rt} ${ot} Z"/>`)}else S.push(D`<path class="slice" fill="${G}" d="M ${M} ${y} L ${X} ${Je} A ${k} ${k} 0 ${U} 1 ${Ze} ${Xe} Z"/>`)}),R=D`<g>${S}</g>`,$=f`<div class="legend">${l.map((E,_)=>f`
-        <span class="legend-item"><span class="swatch" style="background:${C[_]}"></span>${E.label} (${E.value})</span>
-      `)}</div>`}else{let m=Math.max(...l.map(x=>x.value),0),M=this._niceMax(m),y=x=>c.top+b-x/M*b,k=4,v=[];for(let x=0;x<=k;x++){let S=M*x/k,C=y(S);v.push(D`<line class="grid" x1="${c.left}" x2="${c.left+h}" y1="${C}" y2="${C}"/>`),v.push(D`<text class="tick-label" x="${c.left-6}" y="${C+3}" text-anchor="end">${S.toLocaleString()}</text>`)}if(e==="line"||e==="area"){let x=h/Math.max(1,l.length-1),S=l.map((_,O)=>{let P=c.left+O*x,A=y(_.value);return`${O===0?"M":"L"} ${P} ${A}`}).join(" "),C=e==="area"?S+` L ${c.left+h} ${c.top+b} L ${c.left} ${c.top+b} Z`:"",E=a||"var(--forgeui-color-primary)";R=f`
+      `;let l=r.map(m=>typeof m=="number"?{label:"",value:m}:m&&typeof m=="object"?{label:String(m[i]??m.label??m.name??m.x??""),value:Number(m[s]??m.value??m.y??0)||0,color:m.color}:{label:String(m),value:0}),u=600,g=260,c={top:8,right:16,bottom:36,left:48},h=u-c.left-c.right,b=g-c.top-c.bottom,D,$=w;if(e==="pie"||e==="donut"){let m=l.reduce((E,_)=>E+Math.max(0,_.value),0)||1,M=u/2,y=g/2,k=Math.min(h,b)/2-8,v=e==="donut"?k*.55:0,x=-Math.PI/2,S=[],j=[];l.forEach((E,_)=>{let O=Math.max(0,E.value)/m,P=x,A=x+O*Math.PI*2;x=A;let U=A-P>Math.PI?1:0,X=M+k*Math.cos(P),Ze=y+k*Math.sin(P),Xe=M+k*Math.cos(A),Qe=y+k*Math.sin(A),G=E.color||this._palette[_%this._palette.length];if(j.push(G),v>0){let ot=M+v*Math.cos(P),it=y+v*Math.sin(P),nt=M+v*Math.cos(A),st=y+v*Math.sin(A);S.push(B`<path class="slice" fill="${G}" d="M ${X} ${Ze} A ${k} ${k} 0 ${U} 1 ${Xe} ${Qe} L ${nt} ${st} A ${v} ${v} 0 ${U} 0 ${ot} ${it} Z"/>`)}else S.push(B`<path class="slice" fill="${G}" d="M ${M} ${y} L ${X} ${Ze} A ${k} ${k} 0 ${U} 1 ${Xe} ${Qe} Z"/>`)}),D=B`<g>${S}</g>`,$=f`<div class="legend">${l.map((E,_)=>f`
+        <span class="legend-item"><span class="swatch" style="background:${j[_]}"></span>${E.label} (${E.value})</span>
+      `)}</div>`}else{let m=Math.max(...l.map(x=>x.value),0),M=this._niceMax(m),y=x=>c.top+b-x/M*b,k=4,v=[];for(let x=0;x<=k;x++){let S=M*x/k,j=y(S);v.push(B`<line class="grid" x1="${c.left}" x2="${c.left+h}" y1="${j}" y2="${j}"/>`),v.push(B`<text class="tick-label" x="${c.left-6}" y="${j+3}" text-anchor="end">${S.toLocaleString()}</text>`)}if(e==="line"||e==="area"){let x=h/Math.max(1,l.length-1),S=l.map((_,O)=>{let P=c.left+O*x,A=y(_.value);return`${O===0?"M":"L"} ${P} ${A}`}).join(" "),j=e==="area"?S+` L ${c.left+h} ${c.top+b} L ${c.left} ${c.top+b} Z`:"",E=a||"var(--forgeui-color-primary)";D=f`
           <g>${v}</g>
-          ${e==="area"?D`<path class="area" d="${C}" style="fill:${E};opacity:0.15"/>`:w}
-          ${D`<path class="line" d="${S}" style="stroke:${E}"/>`}
-          ${l.map((_,O)=>{let P=c.left+O*x,A=y(_.value);return D`<circle class="point" cx="${P}" cy="${A}" r="3" style="fill:${E}"/>
+          ${e==="area"?B`<path class="area" d="${j}" style="fill:${E};opacity:0.15"/>`:w}
+          ${B`<path class="line" d="${S}" style="stroke:${E}"/>`}
+          ${l.map((_,O)=>{let P=c.left+O*x,A=y(_.value);return B`<circle class="point" cx="${P}" cy="${A}" r="3" style="fill:${E}"/>
               <text class="tick-label" x="${P}" y="${c.top+b+14}" text-anchor="middle">${_.label}</text>`})}
-        `}else{let x=l.length,S=h/x,C=Math.max(2,S*.7),E=S-C;R=f`
+        `}else{let x=l.length,S=h/x,j=Math.max(2,S*.7),E=S-j;D=f`
           <g>${v}</g>
-          ${l.map((_,O)=>{let P=c.left+O*S+E/2,A=y(_.value),U=Math.max(0,c.top+b-A),X=_.color||a||"var(--forgeui-color-primary)";return D`<rect class="bar" x="${P}" y="${A}" width="${C}" height="${U}" rx="2" style="fill:${X}">
+          ${l.map((_,O)=>{let P=c.left+O*S+E/2,A=y(_.value),U=Math.max(0,c.top+b-A),X=_.color||a||"var(--forgeui-color-primary)";return B`<rect class="bar" x="${P}" y="${A}" width="${j}" height="${U}" rx="2" style="fill:${X}">
                 <title>${_.label}: ${_.value}</title>
               </rect>
-              <text class="tick-label" x="${P+C/2}" y="${c.top+b+14}" text-anchor="middle">${_.label}</text>`})}
+              <text class="tick-label" x="${P+j/2}" y="${c.top+b+14}" text-anchor="middle">${_.label}</text>`})}
         `}}return f`
       ${o?f`<div class="title">${o}</div>`:w}
       <div class="wrap">
         <svg viewBox="0 0 ${u} ${g}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${o||e+" chart"}">
-          ${R}
+          ${D}
         </svg>
         ${$}
       </div>
@@ -488,7 +488,7 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
       </div>
       ${l?f`<div class="subtitle">${l}</div>`:w}
       ${i!=null&&i!==""?f`<div class="goal">Goal: ${typeof i=="number"?i.toLocaleString():i}</div>`:w}
-    `}};customElements.define("forgeui-metric",ye);import{css as pt,svg as V}from"lit";var xe=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return pt`
+    `}};customElements.define("forgeui-metric",ye);import{css as ht,svg as V}from"lit";var xe=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return ht`
     :host { display:block; }
     svg { display:block; }
   `}render(){let t=this.getNumber("width",400),e=this.getNumber("height",300),r=this.getString("background","transparent"),o=this.getProp("shapes")||[];return V`
@@ -548,7 +548,7 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
           opacity="${e.opacity??1}"
           style="${o}"
           @click=${r}
-        />`;default:return V``}}};customElements.define("forgeui-drawing",xe);import{html as j,css as Z,nothing as T}from"lit";var we=class extends d{static get styles(){return Z`
+        />`;default:return V``}}};customElements.define("forgeui-drawing",xe);import{html as L,css as Z,nothing as T}from"lit";var we=class extends d{static get styles(){return Z`
     :host { display:block; margin-bottom:var(--forgeui-space-sm); }
     .alert { padding:var(--forgeui-space-sm) var(--forgeui-space-md); border-radius:var(--forgeui-radius-md);
       border-left:4px solid; font-size:var(--forgeui-text-sm); color:var(--forgeui-color-text); line-height:var(--forgeui-leading-normal); overflow-wrap:break-word; }
@@ -560,8 +560,8 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
     .warning strong { color:var(--forgeui-color-warning); }
     .error { background:var(--forgeui-color-error-subtle); border-color:var(--forgeui-color-error); }
     .error strong { color:var(--forgeui-color-error); }
-  `}render(){let t=this.getString("variant","info"),e=this.getString("title",""),r=this.getString("message","");return j`<div class="alert ${t}" role=${t==="error"||t==="warning"?"alert":"status"}>
-      ${e?j`<strong>${e}</strong> `:T}${r}<slot></slot>
+  `}render(){let t=this.getString("variant","info"),e=this.getString("title",""),r=this.getString("message","");return L`<div class="alert ${t}" role=${t==="error"||t==="warning"?"alert":"status"}>
+      ${e?L`<strong>${e}</strong> `:T}${r}<slot></slot>
     </div>`}};customElements.define("forgeui-alert",we);var $e=class extends d{constructor(){super(...arguments);this._priorFocus=null;this._keydownHandler=e=>this._onKeydown(e);this._close=()=>{this.dispatchAction("close")}}static get styles(){return Z`
     :host { display:none; }
     :host([open]) { display:flex; position:fixed; inset:0; z-index:50; align-items:center; justify-content:center; }
@@ -572,7 +572,7 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
       box-shadow:var(--forgeui-shadow-lg); z-index:1; word-break:break-word; }
     .title { font-size:var(--forgeui-text-lg); font-weight:var(--forgeui-weight-semibold); margin-bottom:var(--forgeui-space-md); }
     .actions { display:flex; justify-content:flex-end; gap:var(--forgeui-space-xs); margin-top:var(--forgeui-space-lg); }
-  `}render(){let e=this.getString("title",""),r=this.getBool("open"),o=`${this._instanceId}-title`;return r?this.setAttribute("open",""):this.removeAttribute("open"),r?j`
+  `}render(){let e=this.getString("title",""),r=this.getBool("open"),o=`${this._instanceId}-title`;return r?this.setAttribute("open",""):this.removeAttribute("open"),r?L`
       <div class="backdrop" @click=${this._close}></div>
       <div
         class="dialog"
@@ -582,7 +582,7 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
         tabindex="-1"
         @click=${i=>i.stopPropagation()}
       >
-        ${e?j`<h2 id="${o}" class="title">${e}</h2>`:T}
+        ${e?L`<h2 id="${o}" class="title">${e}</h2>`:T}
         <slot></slot>
       </div>
     `:T}updated(e){if(super.updated?.(e),e.has("props")){let r=this.getBool("open"),i=e.get("props")?.open??!1;r&&!i?this._onOpen():!r&&i&&this._onClose()}}_onOpen(){this._priorFocus=document.activeElement instanceof HTMLElement?document.activeElement:null,document.addEventListener("keydown",this._keydownHandler),requestAnimationFrame(()=>{let e=this.shadowRoot?.querySelector(".dialog");(this._firstFocusableInDialog()??e)?.focus()})}_onClose(){document.removeEventListener("keydown",this._keydownHandler),this._priorFocus instanceof HTMLElement&&this._priorFocus.focus(),this._priorFocus=null}disconnectedCallback(){super.disconnectedCallback?.(),document.removeEventListener("keydown",this._keydownHandler)}_onKeydown(e){if(e.key==="Escape"){e.preventDefault(),this._close();return}e.key==="Tab"&&this._trapFocus(e)}_trapFocus(e){let r=this._allFocusableInDialog();if(r.length===0){e.preventDefault();return}let o=r[0],i=r[r.length-1],s=this.shadowRoot?.activeElement??document.activeElement;e.shiftKey?(s===o||!this._dialogContains(s))&&(e.preventDefault(),i.focus()):(s===i||!this._dialogContains(s))&&(e.preventDefault(),o.focus())}_firstFocusableInDialog(){return this._allFocusableInDialog()[0]??null}_allFocusableInDialog(){let e=this.shadowRoot?.querySelector(".dialog");if(!e)return[];let r='button, [href], input:not([type="hidden"]), select, textarea, [tabindex]:not([tabindex="-1"])',o=Array.from(e.querySelectorAll(r)),i=e.querySelector("slot"),s=i instanceof HTMLSlotElement?i.assignedElements({flatten:!0}).flatMap(a=>[a,...Array.from(a.querySelectorAll(r))].filter(u=>u instanceof HTMLElement&&u.matches(r))):[];return[...o,...s].filter(a=>!a.disabled)}_dialogContains(e){return e?this.shadowRoot?.querySelector(".dialog")?.contains(e)??!1:!1}};customElements.define("forgeui-dialog",$e);var ke=class extends d{static get styles(){return Z`
@@ -597,11 +597,11 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
     @media (prefers-reduced-motion: reduce) {
       .bar { transition:none; animation:none; }
     }
-  `}render(){let t=this.getProp("value"),e=this.getNumber("max",100),r=t==null,o=r?0:Math.max(0,Math.min(Number(t),e)),i=r?0:o/e*100,s=this.getString("label",""),a=this.getBool("showValue");return j`
-      ${s||a?j`
+  `}render(){let t=this.getProp("value"),e=this.getNumber("max",100),r=t==null,o=r?0:Math.max(0,Math.min(Number(t),e)),i=r?0:o/e*100,s=this.getString("label",""),a=this.getBool("showValue");return L`
+      ${s||a?L`
         <div class="meta">
-          ${s?j`<span>${s}</span>`:j`<span></span>`}
-          ${a?j`<span class="value">${Math.round(i)}%</span>`:T}
+          ${s?L`<span>${s}</span>`:L`<span></span>`}
+          ${a?L`<span class="value">${Math.round(i)}%</span>`:T}
         </div>
       `:T}
       <div
@@ -620,11 +620,11 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
     .toast { padding:var(--forgeui-space-sm) var(--forgeui-space-md); border-radius:var(--forgeui-radius-md);
       background:var(--forgeui-color-text); color:var(--forgeui-color-text-inverse); font-size:var(--forgeui-text-sm);
       box-shadow:var(--forgeui-shadow-lg); max-width:20rem; overflow-wrap:break-word; }
-  `}render(){let t=this.getString("message","");return t?j`<div class="toast">${t}</div>`:j`${T}`}};customElements.define("forgeui-toast",Se);var _e=class extends d{static get styles(){return Z`
+  `}render(){let t=this.getString("message","");return t?L`<div class="toast">${t}</div>`:L`${T}`}};customElements.define("forgeui-toast",Se);var _e=class extends d{static get styles(){return Z`
     :host { display:block; }
     .error { padding:var(--forgeui-space-sm); background:var(--forgeui-color-error-subtle); color:var(--forgeui-color-error);
       border:1px solid var(--forgeui-color-error); border-radius:var(--forgeui-radius-md); font-size:var(--forgeui-text-sm); }
-  `}render(){let t=this.getString("msg","Unknown error");return j`<div class="error" role="alert">⚠ ${t}</div>`}};customElements.define("forgeui-error",_e);import{html as p,css as B,nothing as L}from"lit";function ht(n){return`forgeui_${(n||"global").replace(/[^a-zA-Z0-9-]/g,"_")}`}var Me="f";function mt(n){return new Promise((t,e)=>{let r=i=>e(i??new Error("IDB"));if(!globalThis.indexedDB)return r();let o=indexedDB.open(`${ht(n)}_f`,1);o.onupgradeneeded=()=>{o.result.createObjectStore(Me)},o.onsuccess=()=>t(o.result),o.onerror=o.onblocked=()=>r(o.error)})}async function et(n,t){if(n.length===0)return;let e=null;try{e=await mt(t),await new Promise((r,o)=>{let i=e.transaction(Me,"readwrite"),s=i.objectStore(Me);for(let{file:a,id:l}of n)s.put(a,l);i.oncomplete=()=>r(),i.onerror=i.onabort=()=>o(i.error)})}catch{return}finally{e?.close()}}var ze=class extends d{static get styles(){return B`
+  `}render(){let t=this.getString("msg","Unknown error");return L`<div class="error" role="alert">⚠ ${t}</div>`}};customElements.define("forgeui-error",_e);import{html as p,css as R,nothing as C}from"lit";function mt(n){return`forgeui_${(n||"global").replace(/[^a-zA-Z0-9-]/g,"_")}`}var Me="f";function bt(n){return new Promise((t,e)=>{let r=i=>e(i??new Error("IDB"));if(!globalThis.indexedDB)return r();let o=indexedDB.open(`${mt(n)}_f`,1);o.onupgradeneeded=()=>{o.result.createObjectStore(Me)},o.onsuccess=()=>t(o.result),o.onerror=o.onblocked=()=>r(o.error)})}async function tt(n,t){if(n.length===0)return;let e=null;try{e=await bt(t),await new Promise((r,o)=>{let i=e.transaction(Me,"readwrite"),s=i.objectStore(Me);for(let{file:a,id:l}of n)s.put(a,l);i.oncomplete=()=>r(),i.onerror=i.onabort=()=>o(i.error)})}catch{return}finally{e?.close()}}var ze=class extends d{static get styles(){return R`
     :host { display:block; flex:1 1 auto; min-width:0; max-width:100%; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); color:var(--forgeui-color-text); overflow-wrap:break-word; }
     input, textarea { width:100%; padding:var(--forgeui-space-xs) var(--forgeui-space-sm); border:1px solid var(--forgeui-color-border);
@@ -637,11 +637,11 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
     .hint { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-text-tertiary); margin-top:var(--forgeui-space-2xs); }
     .error { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-error); margin-top:var(--forgeui-space-2xs); }
   `}render(){let t=this.getString("label",""),e=this.getString("placeholder",""),r=this.getString("hint",""),o=this.getString("error",""),i=this.getString("inputType","")||this.getString("type","text"),s=this.getBool("multiline"),a=String(this.getBoundProp("value","")??""),l=this._instanceId;return p`
-      ${t?p`<label for="${l}">${t}</label>`:L}
+      ${t?p`<label for="${l}">${t}</label>`:C}
       ${s?p`<textarea id="${l}" placeholder="${e}" .value=${a} @input=${u=>this.dispatchAction("change",{value:u.target.value})}></textarea>`:p`<input id="${l}" type="${i}" placeholder="${e}" .value=${a} @input=${u=>this.dispatchAction("change",{value:u.target.value})}>`}
-      ${r&&!o?p`<div class="hint">${r}</div>`:L}
-      ${o?p`<div class="error">${o}</div>`:L}
-    `}};customElements.define("forgeui-text-input",ze);var Ee=class extends d{static get styles(){return B`
+      ${r&&!o?p`<div class="hint">${r}</div>`:C}
+      ${o?p`<div class="error">${o}</div>`:C}
+    `}};customElements.define("forgeui-text-input",ze);var Ee=class extends d{static get styles(){return R`
     :host { display:block; flex:1 1 auto; min-width:0; max-width:100%; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); overflow-wrap:break-word; }
     input { width:100%; padding:var(--forgeui-space-xs) var(--forgeui-space-sm); border:1px solid var(--forgeui-color-border);
@@ -649,10 +649,10 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
       background:var(--forgeui-color-surface); color:var(--forgeui-color-text); box-sizing:border-box; min-width:0; }
     input:focus { outline:none; border-color:var(--forgeui-color-primary); box-shadow:0 0 0 3px var(--forgeui-color-primary-subtle); }
   `}render(){let t=this.getString("label",""),e=this.getProp("min"),r=this.getProp("max"),o=this.getProp("step"),i=this.getBoundProp("value"),s=this._instanceId;return p`
-      ${t?p`<label for="${s}">${t}</label>`:L}
+      ${t?p`<label for="${s}">${t}</label>`:C}
       <input id="${s}" type="number" min=${e} max=${r} step=${o} .value=${i??""}
         @input=${a=>this.dispatchAction("change",{value:Number(a.target.value)})}>
-    `}};customElements.define("forgeui-number-input",Ee);var Pe=class extends d{static get styles(){return B`
+    `}};customElements.define("forgeui-number-input",Ee);var Pe=class extends d{static get styles(){return R`
     :host { display:block; flex:1 1 auto; min-width:0; max-width:100%; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); overflow-wrap:break-word; }
     select { width:100%; padding:var(--forgeui-space-xs) var(--forgeui-space-sm); border:1px solid var(--forgeui-color-border);
@@ -660,13 +660,13 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
       background:var(--forgeui-color-surface); color:var(--forgeui-color-text); box-sizing:border-box; min-width:0; }
     select:focus { outline:none; border-color:var(--forgeui-color-primary); box-shadow:0 0 0 3px var(--forgeui-color-primary-subtle); }
   `}render(){let t=this.getString("label",""),e=this.getProp("options")||[],r=String(this.getBoundProp("value","")??""),o=this._instanceId;return p`
-      ${t?p`<label for="${o}">${t}</label>`:L}
+      ${t?p`<label for="${o}">${t}</label>`:C}
       <select id="${o}" .value=${r} @change=${i=>this.dispatchAction("change",{value:i.target.value})}>
         ${e.map(i=>p`<option value=${typeof i=="string"?i:i.value} ?selected=${(typeof i=="string"?i:i.value)===r}>
           ${typeof i=="string"?i:i.label||i.value}
         </option>`)}
       </select>
-    `}};customElements.define("forgeui-select",Pe);var Ae=class extends d{static get styles(){return B`
+    `}};customElements.define("forgeui-select",Pe);var Ae=class extends d{static get styles(){return R`
     :host { display:block; min-width:0; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); overflow-wrap:break-word; }
     select { width:100%; min-height:calc(var(--forgeui-input-height) * 2); padding:var(--forgeui-space-xs) var(--forgeui-space-sm);
@@ -680,7 +680,7 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
     .tag button { background:none; border:none; cursor:pointer; color:inherit; font:inherit; padding:0; border-radius:2px; }
     .tag button:focus-visible { outline:2px solid var(--forgeui-color-focus); outline-offset:1px; }
   `}render(){let t=this.getString("label",""),e=this.getProp("options")||[],r=this.getBoundProp("value",this.getProp("selected")??[]),o=Number(this.getProp("maxSelections")),i=Number.isFinite(o)&&o>=0?o:1/0,s=(Array.isArray(r)?r.map(g=>String(g)):[]).slice(0,i),a=this.getBool("disabled"),l=this._instanceId,u=g=>{let c=s.filter(h=>h!==g);this.dispatchAction("remove",{value:g}),this.dispatchAction("change",{value:c,selected:c})};return p`
-      ${t?p`<label for="${l}">${t}</label>`:L}
+      ${t?p`<label for="${l}">${t}</label>`:C}
       <select id="${l}" multiple ?disabled=${a}
         @change=${g=>{let c=Array.from(g.target.selectedOptions).map(h=>h.value).slice(0,i);this.dispatchAction("change",{value:c,selected:c})}}>
         ${e.map(g=>{let c=String(typeof g=="string"?g:g?.value??g?.label??"");return p`<option value=${c} ?selected=${s.includes(c)}>
@@ -691,15 +691,35 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
         ${s.map(g=>p`<span class="tag">${g}<button type="button" aria-label=${`Remove ${g}`} @click=${()=>u(g)}>×</button></span>`)}
         <slot></slot>
       </div>
-    `}};customElements.define("forgeui-multi-select",Ae);var Ie=class extends d{static get styles(){return B`
+    `}};customElements.define("forgeui-multi-select",Ae);var Ie=class extends d{static get styles(){return R`
+    :host { display:block; margin-bottom:var(--forgeui-space-sm); }
+    fieldset { border:0; padding:0; margin:0; min-width:0; }
+    legend { font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); color:var(--forgeui-color-text); }
+    .options { display:flex; flex-direction:column; gap:var(--forgeui-space-xs); }
+    label { display:flex; align-items:center; gap:var(--forgeui-space-xs); font-size:var(--forgeui-text-sm); color:var(--forgeui-color-text); cursor:pointer; overflow-wrap:anywhere; }
+    input { width:1.125rem; height:1.125rem; accent-color:var(--forgeui-color-primary); flex:0 0 auto; }
+    .hint { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-text-tertiary); margin-top:var(--forgeui-space-2xs); }
+  `}render(){let t=this.getString("label",""),e=this.getString("hint",""),r=this.getProp("options")||[],o=String(this.getBoundProp("value","")??""),i=this.getBool("disabled"),s=this._instanceId;return p`
+      <fieldset ?disabled=${i}>
+        ${t?p`<legend>${t}</legend>`:C}
+        <div class="options">
+          ${r.map((a,l)=>{let u=String(typeof a=="string"?a:a?.value??a?.label??""),g=String(typeof a=="string"?a:a?.label??u),c=`${s}-${l}`;return p`<label for=${c}>
+              <input id=${c} type="radio" name=${s} value=${u} ?checked=${u===o}
+                @change=${h=>this.dispatchAction("change",{value:h.target.value})}>
+              <span>${g}</span>
+            </label>`})}
+        </div>
+      </fieldset>
+      ${e?p`<div class="hint">${e}</div>`:C}
+    `}};customElements.define("forgeui-radio-group",Ie);var Ce=class extends d{static get styles(){return R`
     :host { display:flex; align-items:center; gap:var(--forgeui-space-xs); margin-bottom:var(--forgeui-space-xs); cursor:pointer; }
     input { width:1.125rem; height:1.125rem; accent-color:var(--forgeui-color-primary); cursor:pointer; }
     label { font-size:var(--forgeui-text-sm); cursor:pointer; }
     :focus-within label { text-decoration:underline; }
   `}render(){let t=this.getString("label",""),e=!!this.getBoundProp("checked",this.getProp("value")??!1),r=this._instanceId;return p`
       <input id="${r}" type="checkbox" ?checked=${e} @change=${o=>this.dispatchAction("change",{checked:o.target.checked})}>
-      ${t?p`<label for="${r}">${t}</label>`:L}
-    `}};customElements.define("forgeui-checkbox",Ie);var Ce=class extends d{constructor(){super(...arguments);this._toggle=()=>{if(this.getBool("disabled"))return;let e=!!this.getBoundProp("on",this.getProp("value")??!1);this.dispatchAction("change",{value:!e,checked:!e})};this._onKeydown=e=>{(e.key==="Enter"||e.key===" "||e.key==="Spacebar")&&(e.preventDefault(),this._toggle())}}static get styles(){return B`
+      ${t?p`<label for="${r}">${t}</label>`:C}
+    `}};customElements.define("forgeui-checkbox",Ce);var je=class extends d{constructor(){super(...arguments);this._toggle=()=>{if(this.getBool("disabled"))return;let e=!!this.getBoundProp("on",this.getProp("value")??!1);this.dispatchAction("change",{value:!e,checked:!e})};this._onKeydown=e=>{(e.key==="Enter"||e.key===" "||e.key==="Spacebar")&&(e.preventDefault(),this._toggle())}}static get styles(){return R`
     :host { display:flex; align-items:center; gap:var(--forgeui-space-sm); margin-bottom:var(--forgeui-space-xs); }
     .switch { position:relative; width:2.75rem; height:1.5rem; background:var(--forgeui-color-border-strong);
       border-radius:var(--forgeui-radius-full); cursor:pointer; border:none; padding:0;
@@ -727,9 +747,9 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
           @click="${this._toggle}"
           @keydown="${this._onKeydown}"
         ></button>
-        ${r?p`<span class="toggle-text">${r}</span>`:L}
+        ${r?p`<span class="toggle-text">${r}</span>`:C}
       </label>
-    `}};customElements.define("forgeui-toggle",Ce);var je=class extends d{static get styles(){return B`
+    `}};customElements.define("forgeui-toggle",je);var Le=class extends d{static get styles(){return R`
     :host { display:block; flex:1 1 auto; min-width:0; max-width:100%; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); overflow-wrap:break-word; }
     input { width:100%; padding:var(--forgeui-space-xs) var(--forgeui-space-sm); border:1px solid var(--forgeui-color-border);
@@ -737,19 +757,19 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
       background:var(--forgeui-color-surface); color:var(--forgeui-color-text); box-sizing:border-box; min-width:0; }
     input:focus { outline:none; border-color:var(--forgeui-color-primary); box-shadow:0 0 0 3px var(--forgeui-color-primary-subtle); }
   `}render(){let t=this.getString("label",""),e=this.getString("value",""),r=this._instanceId;return p`
-      ${t?p`<label for="${r}">${t}</label>`:L}
+      ${t?p`<label for="${r}">${t}</label>`:C}
       <input id="${r}" type="date" .value=${e} @change=${o=>this.dispatchAction("change",{value:o.target.value})}>
-    `}};customElements.define("forgeui-date-picker",je);var Le=class extends d{static get styles(){return B`
+    `}};customElements.define("forgeui-date-picker",Le);var De=class extends d{static get styles(){return R`
     :host { display:block; flex:1 1 auto; min-width:0; max-width:100%; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); overflow-wrap:break-word; }
     input[type=range] { width:100%; accent-color:var(--forgeui-color-primary); min-width:0; }
     .value { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-text-secondary); }
   `}render(){let t=this.getString("label",""),e=this.getNumber("min",0),r=this.getNumber("max",100),o=this.getNumber("step",1),i=this.getBoundProp("value",e),s=Number(i);Number.isFinite(s)||(s=e);let a=this._instanceId;return p`
-      ${t?p`<label for="${a}">${t}</label>`:L}
+      ${t?p`<label for="${a}">${t}</label>`:C}
       <input id="${a}" type="range" min=${e} max=${r} step=${o} .value=${s}
         @input=${l=>this.dispatchAction("change",{value:Number(l.target.value)})}>
       <div class="value">${s}</div>
-    `}};customElements.define("forgeui-slider",Le);var Re=class extends d{constructor(){super(...arguments);this._dragging=!1;this._openFilePicker=()=>{this.shadowRoot?.querySelector('input[type="file"]')?.click()};this._onDropzoneKeydown=e=>{e.key!=="Enter"&&e.key!==" "||(e.preventDefault(),this._openFilePicker())};this._onFileChange=e=>{let r=Array.from(e.target.files??[]);this._processFiles(r)};this._onDragOver=e=>{e.preventDefault(),!this._dragging&&(this._dragging=!0,this.requestUpdate())};this._onDragLeave=e=>{e.currentTarget===e.target&&(this._dragging=!1,this.requestUpdate())};this._onDrop=e=>{e.preventDefault(),this._dragging=!1,this.requestUpdate(),this._processFiles(Array.from(e.dataTransfer?.files??[]))}}static get styles(){return B`
+    `}};customElements.define("forgeui-slider",De);var Re=class extends d{constructor(){super(...arguments);this._dragging=!1;this._openFilePicker=()=>{this.shadowRoot?.querySelector('input[type="file"]')?.click()};this._onDropzoneKeydown=e=>{e.key!=="Enter"&&e.key!==" "||(e.preventDefault(),this._openFilePicker())};this._onFileChange=e=>{let r=Array.from(e.target.files??[]);this._processFiles(r)};this._onDragOver=e=>{e.preventDefault(),!this._dragging&&(this._dragging=!0,this.requestUpdate())};this._onDragLeave=e=>{e.currentTarget===e.target&&(this._dragging=!1,this.requestUpdate())};this._onDrop=e=>{e.preventDefault(),this._dragging=!1,this.requestUpdate(),this._processFiles(Array.from(e.dataTransfer?.files??[]))}}static get styles(){return R`
     :host { display:block; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); }
     .dropzone { border:2px dashed var(--forgeui-color-border-strong); border-radius:var(--forgeui-radius-md);
@@ -757,15 +777,15 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
     .dropzone:hover, .dropzone.dragging { border-color:var(--forgeui-color-primary); background:var(--forgeui-color-primary-subtle); }
     .dropzone:focus-visible { outline:3px solid var(--forgeui-color-focus); outline-offset:2px; }
     .dropzone p { color:var(--forgeui-color-text-secondary); font-size:var(--forgeui-text-sm); }
-  `}_maxSizeBytes(){let e=this.getProp("maxSize");if(typeof e=="number"&&Number.isFinite(e)&&e>=0)return Math.floor(e);if(typeof e!="string")return null;let r=e.trim().match(/^(\d+(?:\.\d+)?)\s*(b|kb|mb|gb)?$/i);if(!r)return null;let o=Number(r[1]),i=(r[2]||"b").toLowerCase(),s=i==="gb"?1<<30:i==="mb"?1<<20:i==="kb"?1024:1,a=o*s;return Number.isFinite(a)?Math.floor(a):null}_newFileId(){return globalThis.crypto?.randomUUID?.()??`${Date.now()}_${Math.random().toString(36).slice(2)}`}_processFiles(e){let r=this.getBool("multiple"),o=this._maxSizeBytes(),i=(r?e:e.slice(0,1)).map(c=>{let h=this._newFileId(),b=o==null||c.size<=o,R={id:h,name:c.name,size:c.size,type:c.type,lastModified:c.lastModified,accepted:b,storageKey:b?h:null};return b||(R.error="maxSize"),[c,R]}),s=i.filter(([,c])=>c.accepted),a=i.map(([,c])=>c),l=s.map(([,c])=>c),u=r?l:l[0]??null,g=l[0]??null;this.dispatchAction("change",{id:g?.id??null,uuid:g?.id??null,name:g?.name??null,size:g?.size??null,type:g?.type??null,lastModified:g?.lastModified??null,storageKey:g?.storageKey??null,value:u,files:a,rejected:a.filter(c=>!c.accepted),multiple:r,maxSize:o}),et(s.map(([c,h])=>({file:c,id:h.id})))}render(){let e=this.getString("label","Upload file"),r=this.getString("accept","*"),o=this.getBool("multiple");return p`
-      ${e?p`<label>${e}</label>`:L}
+  `}_maxSizeBytes(){let e=this.getProp("maxSize");if(typeof e=="number"&&Number.isFinite(e)&&e>=0)return Math.floor(e);if(typeof e!="string")return null;let r=e.trim().match(/^(\d+(?:\.\d+)?)\s*(b|kb|mb|gb)?$/i);if(!r)return null;let o=Number(r[1]),i=(r[2]||"b").toLowerCase(),s=i==="gb"?1<<30:i==="mb"?1<<20:i==="kb"?1024:1,a=o*s;return Number.isFinite(a)?Math.floor(a):null}_newFileId(){return globalThis.crypto?.randomUUID?.()??`${Date.now()}_${Math.random().toString(36).slice(2)}`}_processFiles(e){let r=this.getBool("multiple"),o=this._maxSizeBytes(),i=(r?e:e.slice(0,1)).map(c=>{let h=this._newFileId(),b=o==null||c.size<=o,D={id:h,name:c.name,size:c.size,type:c.type,lastModified:c.lastModified,accepted:b,storageKey:b?h:null};return b||(D.error="maxSize"),[c,D]}),s=i.filter(([,c])=>c.accepted),a=i.map(([,c])=>c),l=s.map(([,c])=>c),u=r?l:l[0]??null,g=l[0]??null;this.dispatchAction("change",{id:g?.id??null,uuid:g?.id??null,name:g?.name??null,size:g?.size??null,type:g?.type??null,lastModified:g?.lastModified??null,storageKey:g?.storageKey??null,value:u,files:a,rejected:a.filter(c=>!c.accepted),multiple:r,maxSize:o}),tt(s.map(([c,h])=>({file:c,id:h.id})))}render(){let e=this.getString("label","Upload file"),r=this.getString("accept","*"),o=this.getBool("multiple");return p`
+      ${e?p`<label>${e}</label>`:C}
       <div class="dropzone ${this._dragging?"dragging":""}" role="button" tabindex="0"
         @click=${this._openFilePicker} @keydown=${this._onDropzoneKeydown}
         @dragover=${this._onDragOver} @dragleave=${this._onDragLeave} @drop=${this._onDrop}>
         <p>Drop</p>
         <input type="file" accept="${r}" ?multiple=${o} hidden @change=${this._onFileChange}>
       </div>
-    `}};customElements.define("forgeui-file-upload",Re);import{html as z,css as N,nothing as De}from"lit";var Be=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return N`
+    `}};customElements.define("forgeui-file-upload",Re);import{html as z,css as N,nothing as Be}from"lit";var Ne=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return N`
     :host { display: flex; flex-direction: column; min-width: 0; }
     :host([direction="row"]) { flex-direction: row; flex-wrap: wrap; }
     :host([direction="column"]) { flex-direction: column; }
@@ -780,7 +800,7 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
     :host([justify="around"]) { justify-content: space-around; }
     :host([wrap]) { flex-wrap: wrap; }
     :host([nowrap]) { flex-wrap: nowrap; }
-  `}render(){let t=this.getString("direction","column"),e=t==="horizontal"||t==="row"?"row":"column",r=this.getString("gap","")||this.getString("spacing","md"),o=this.getString("padding",""),i=this.getString("align",""),s=this.getString("justify",""),a=this.getBool("wrap"),l=this.gapValue(r),u=o?this.gapValue(o):"0";return this.setAttribute("direction",e),i&&this.setAttribute("align",i),s&&this.setAttribute("justify",s),a&&this.setAttribute("wrap",""),this.style.gap=l,this.style.padding=u,z`<slot></slot>`}};customElements.define("forgeui-stack",Be);var Ne=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return N`
+  `}render(){let t=this.getString("direction","column"),e=t==="horizontal"||t==="row"?"row":"column",r=this.getString("gap","")||this.getString("spacing","md"),o=this.getString("padding",""),i=this.getString("align",""),s=this.getString("justify",""),a=this.getBool("wrap"),l=this.gapValue(r),u=o?this.gapValue(o):"0";return this.setAttribute("direction",e),i&&this.setAttribute("align",i),s&&this.setAttribute("justify",s),a&&this.setAttribute("wrap",""),this.style.gap=l,this.style.padding=u,z`<slot></slot>`}};customElements.define("forgeui-stack",Ne);var Oe=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return N`
     :host { display: grid; min-width: 0; }
     @media (max-width: 900px) {
       :host([responsive]) { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
@@ -788,7 +808,7 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
     @media (max-width: 640px) {
       :host([responsive]) { grid-template-columns: 1fr !important; }
     }
-  `}render(){let t=this.getProp("columns"),e;typeof t=="number"?e=String(t):typeof t=="string"&&t?e=t:e="1";let r=/^\d+$/.test(e)?`repeat(${e}, minmax(0, 1fr))`:e,o=this.getString("gap","md"),i=this.gapValue(o),s=this.getString("padding",""),a=s?this.gapValue(s):"0";return this.style.gridTemplateColumns=r,this.style.gap=i,this.style.padding=a,/^\d+$/.test(e)&&Number(e)>=2&&this.setAttribute("responsive",""),z`<slot></slot>`}};customElements.define("forgeui-grid",Ne);var Oe=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return N`
+  `}render(){let t=this.getProp("columns"),e;typeof t=="number"?e=String(t):typeof t=="string"&&t?e=t:e="1";let r=/^\d+$/.test(e)?`repeat(${e}, minmax(0, 1fr))`:e,o=this.getString("gap","md"),i=this.gapValue(o),s=this.getString("padding",""),a=s?this.gapValue(s):"0";return this.style.gridTemplateColumns=r,this.style.gap=i,this.style.padding=a,/^\d+$/.test(e)&&Number(e)>=2&&this.setAttribute("responsive",""),z`<slot></slot>`}};customElements.define("forgeui-grid",Oe);var Ve=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return N`
     :host { display:block; background:var(--forgeui-color-surface); border:1px solid var(--forgeui-color-border);
       border-radius:var(--forgeui-radius-md); padding:var(--forgeui-space-md); min-width:0; }
     :host([variant="elevated"]) { box-shadow:var(--forgeui-shadow-md); border-color:transparent; }
@@ -802,12 +822,12 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
   `}render(){let t=this.getString("variant",""),e=this.getString("title",""),r=this.getString("subtitle","");return t&&this.setAttribute("variant",t),z`
       ${e||r?z`
         <div class="header">
-          ${e?z`<div class="title">${e}</div>`:De}
-          ${r?z`<div class="subtitle">${r}</div>`:De}
+          ${e?z`<div class="title">${e}</div>`:Be}
+          ${r?z`<div class="subtitle">${r}</div>`:Be}
         </div>
-      `:De}
+      `:Be}
       <div class="body"><slot></slot></div>
-    `}};customElements.define("forgeui-card",Oe);var Ve=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return N`:host { display:block; margin-inline:auto; width:100%; box-sizing:border-box; }`}render(){let t=this.getString("maxWidth",""),e={sm:"640px",md:"768px",lg:"1024px",xl:"1280px","2xl":"1536px",full:"100%",none:"none","":""},r=t in e?e[t]:t,o=this.getString("padding","");return r&&r!=="none"?this.style.maxWidth=r:this.style.maxWidth="",this.style.padding=o?this.gapValue(o):"",z`<slot></slot>`}};customElements.define("forgeui-container",Ve);var Te=class extends d{static get properties(){return{props:{type:Object}}}constructor(){super(),this._active=""}static get styles(){return N`
+    `}};customElements.define("forgeui-card",Ve);var Te=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return N`:host { display:block; margin-inline:auto; width:100%; box-sizing:border-box; }`}render(){let t=this.getString("maxWidth",""),e={sm:"640px",md:"768px",lg:"1024px",xl:"1280px","2xl":"1536px",full:"100%",none:"none","":""},r=t in e?e[t]:t,o=this.getString("padding","");return r&&r!=="none"?this.style.maxWidth=r:this.style.maxWidth="",this.style.padding=o?this.gapValue(o):"",z`<slot></slot>`}};customElements.define("forgeui-container",Te);var Ke=class extends d{static get properties(){return{props:{type:Object}}}constructor(){super(),this._active=""}static get styles(){return N`
     :host { display:block; }
     .tabs { display:flex; border-bottom:2px solid var(--forgeui-color-border); gap:var(--forgeui-space-xs); overflow-x:auto; }
     .tab { padding:var(--forgeui-space-sm) var(--forgeui-space-md); cursor:pointer; border:none; background:none;
@@ -834,7 +854,7 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
         `})}</div>
       <div class="panel" role="tabpanel" id="${this._instanceId}-panel"
         aria-labelledby="${this._instanceId}-tab-${o>=0?o:0}"><slot></slot></div>
-    `}};customElements.define("forgeui-tabs",Te);var Ke=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return N`
+    `}};customElements.define("forgeui-tabs",Ke);var We=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return N`
     :host { display:block; }
     details { border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md); margin-bottom:var(--forgeui-space-2xs); }
     summary { padding:var(--forgeui-space-sm) var(--forgeui-space-md); cursor:pointer; font-weight:var(--forgeui-weight-medium);
@@ -846,23 +866,23 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
     summary::after { content:'▸'; transition:transform var(--forgeui-transition-fast); }
     details[open] summary::after { transform:rotate(90deg); }
     .content { padding:var(--forgeui-space-sm) var(--forgeui-space-md); }
-  `}render(){let t=this.getString("title","Section");return z`<details><summary>${t}</summary><div class="content"><slot></slot></div></details>`}};customElements.define("forgeui-accordion",Ke);var We=class extends d{static get styles(){return N`
+  `}render(){let t=this.getString("title","Section");return z`<details><summary>${t}</summary><div class="content"><slot></slot></div></details>`}};customElements.define("forgeui-accordion",We);var He=class extends d{static get styles(){return N`
     :host { display:block; }
     hr { border:none; border-top:1px solid var(--forgeui-color-border); margin:var(--forgeui-space-sm) 0; }
-  `}render(){return z`<hr>`}};customElements.define("forgeui-divider",We);var Fe=class extends d{static get styles(){return N`:host { display:block; }`}render(){let t=this.getString("size","md"),e=this.getString("height",""),r=this.getString("width",""),o=e?this.gapValue(e):this.gapValue(t),i=r?/^\d+(\.\d+)?%$/.test(r)?r:this.gapValue(r):"";return z`<div style="height:${o};${i?`width:${i}`:""}"></div>`}};customElements.define("forgeui-spacer",Fe);var He=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return N`
+  `}render(){return z`<hr>`}};customElements.define("forgeui-divider",He);var Fe=class extends d{static get styles(){return N`:host { display:block; }`}render(){let t=this.getString("size","md"),e=this.getString("height",""),r=this.getString("width",""),o=e?this.gapValue(e):this.gapValue(t),i=r?/^\d+(\.\d+)?%$/.test(r)?r:this.gapValue(r):"";return z`<div style="height:${o};${i?`width:${i}`:""}"></div>`}};customElements.define("forgeui-spacer",Fe);var Ue=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return N`
     :host { display:flex; flex-direction:column; gap:var(--forgeui-space-md); min-width:0; }
     :host([direction="row"]) { flex-direction:row; flex-wrap:wrap; }
     .empty { padding:var(--forgeui-space-lg); text-align:center; color:var(--forgeui-color-text-tertiary); font-size:var(--forgeui-text-sm); }
-  `}render(){let t=this.getArray("data"),e=this.getString("emptyMessage",""),r=this.getString("direction","column");(r==="row"||r==="horizontal")&&this.setAttribute("direction","row");let o=this.getString("gap","md");return this.style.gap=this.gapValue(o),t.length===0&&e?z`<div class="empty">${e}</div>`:z`<slot></slot>`}};customElements.define("forgeui-repeater",He);import{html as W,css as tt,nothing as bt}from"lit";var Ue=class extends d{static get styles(){return tt`
+  `}render(){let t=this.getArray("data"),e=this.getString("emptyMessage",""),r=this.getString("direction","column");(r==="row"||r==="horizontal")&&this.setAttribute("direction","row");let o=this.getString("gap","md");return this.style.gap=this.gapValue(o),t.length===0&&e?z`<div class="empty">${e}</div>`:z`<slot></slot>`}};customElements.define("forgeui-repeater",Ue);import{html as W,css as rt,nothing as vt}from"lit";var qe=class extends d{static get styles(){return rt`
     :host { display:flex; align-items:center; gap:var(--forgeui-space-xs); font-size:var(--forgeui-text-sm); }
     .sep { color:var(--forgeui-color-text-tertiary); }
     a { color:var(--forgeui-color-primary); text-decoration:none; }
     a:hover { text-decoration:underline; }
     .current { color:var(--forgeui-color-text); font-weight:var(--forgeui-weight-medium); }
   `}render(){let t=this.getProp("items")||[];return W`${t.map((e,r)=>{let o=r===t.length-1,i=typeof e=="string"?e:e.label,s=typeof e=="string"?"#":e.href;return W`
-        ${r>0?W`<span class="sep">/</span>`:bt}
+        ${r>0?W`<span class="sep">/</span>`:vt}
         ${o?W`<span class="current">${i}</span>`:W`<a href="${s}">${i}</a>`}
-      `})}`}};customElements.define("forgeui-breadcrumb",Ue);var qe=class extends d{static get styles(){return tt`
+      `})}`}};customElements.define("forgeui-breadcrumb",qe);var Je=class extends d{static get styles(){return rt`
     :host { display:flex; width:100%; gap:0; }
     .step { flex:1; display:flex; flex-direction:column; align-items:center; position:relative; min-width:0; }
     .step:not(:last-child)::after { content:''; position:absolute; top:0.75rem;
@@ -881,4 +901,4 @@ import{html as le,css as ce,nothing as ft}from"lit";import{LitElement as dt}from
   `}render(){let t=this.getProp("steps")||[],e=this.getBoundProp("active",this.getProp("activeStep")??0),r=Number(e)||0;return W`${t.map((o,i)=>{let s=typeof o=="string"?o:o.label||o.title||`Step ${i+1}`,a=i===r,l=i<r;return W`<div class="step" ?active=${a} ?completed=${l}>
         <div class="circle">${l?"\u2713":i+1}</div>
         <div class="label">${s}</div>
-      </div>`})}`}};customElements.define("forgeui-stepper",qe);export{Ke as ForgeAccordion,we as ForgeAlert,pe as ForgeAvatar,fe as ForgeBadge,Ue as ForgeBreadcrumb,ne as ForgeButton,se as ForgeButtonGroup,Oe as ForgeCard,ve as ForgeChart,Ie as ForgeCheckbox,Ve as ForgeContainer,je as ForgeDatePicker,$e as ForgeDialog,We as ForgeDivider,xe as ForgeDrawing,he as ForgeEmptyState,Re as ForgeFileUpload,Ne as ForgeGrid,de as ForgeIcon,ge as ForgeImage,ae as ForgeLink,be as ForgeList,ye as ForgeMetric,Ae as ForgeMultiSelect,Ee as ForgeNumberInput,ke as ForgeProgress,He as ForgeRepeater,Pe as ForgeSelect,Le as ForgeSlider,Fe as ForgeSpacer,Be as ForgeStack,qe as ForgeStepper,me as ForgeTable,Te as ForgeTabs,ue as ForgeText,ze as ForgeTextInput,Se as ForgeToast,Ce as ForgeToggle,_e as ForgeUIError};
+      </div>`})}`}};customElements.define("forgeui-stepper",Je);export{We as ForgeAccordion,we as ForgeAlert,pe as ForgeAvatar,fe as ForgeBadge,qe as ForgeBreadcrumb,ne as ForgeButton,se as ForgeButtonGroup,Ve as ForgeCard,ve as ForgeChart,Ce as ForgeCheckbox,Te as ForgeContainer,Le as ForgeDatePicker,$e as ForgeDialog,He as ForgeDivider,xe as ForgeDrawing,he as ForgeEmptyState,Re as ForgeFileUpload,Oe as ForgeGrid,de as ForgeIcon,ge as ForgeImage,ae as ForgeLink,be as ForgeList,ye as ForgeMetric,Ae as ForgeMultiSelect,Ee as ForgeNumberInput,ke as ForgeProgress,Ie as ForgeRadioGroup,Ue as ForgeRepeater,Pe as ForgeSelect,De as ForgeSlider,Fe as ForgeSpacer,Ne as ForgeStack,Je as ForgeStepper,me as ForgeTable,Ke as ForgeTabs,ue as ForgeText,ze as ForgeTextInput,Se as ForgeToast,je as ForgeToggle,_e as ForgeUIError};

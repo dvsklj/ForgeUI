@@ -15,6 +15,10 @@ export declare class ForgeMultiSelect extends ForgeUIElement {
     static get styles(): import("lit").CSSResult;
     render(): import("lit-html").TemplateResult<1>;
 }
+export declare class ForgeRadioGroup extends ForgeUIElement {
+    static get styles(): import("lit").CSSResult;
+    render(): import("lit-html").TemplateResult<1>;
+}
 export declare class ForgeCheckbox extends ForgeUIElement {
     static get styles(): import("lit").CSSResult;
     render(): import("lit-html").TemplateResult<1>;

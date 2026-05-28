@@ -1,6 +1,6 @@
 # Component Catalog
 
-All 39 components available in the Forge runtime, organized by category.
+All 39 manifest components available in Forge, organized by category.
 
 ---
 
@@ -317,6 +317,31 @@ Dropdown select.
 | `label` | string | — | Field label |
 | `options` | array | `[]` | `[{value, label}]` pairs |
 | `value` | string | — | Selected value |
+
+### RadioGroup
+
+Single-choice radio group.
+
+```json
+{
+  "type": "RadioGroup",
+  "props": {
+    "label": "Priority",
+    "options": [
+      { "value": "low", "label": "Low" },
+      { "value": "high", "label": "High" }
+    ],
+    "value": "low"
+  }
+}
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `label` | string | — | Group label |
+| `options` | array | `[]` | `[{value, label}]` pairs or strings |
+| `value` | string | — | Selected value |
+| `hint` | string | — | Help text |
 
 ### Toggle
 

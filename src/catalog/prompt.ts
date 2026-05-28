@@ -107,6 +107,7 @@ function buildDefaultPrompt(): string {
     '  NumberInput(label, bind: $state:path, min?, max?, step?, required?)',
     '  Select(label, options: [{value, label}]|string[], bind: $state:path, placeholder?, required?)',
     '  MultiSelect(label, options: [{value, label}]|string[], bind: $state:path, maxSelections?)',
+    '  RadioGroup(label, options: [{value, label}]|string[], bind: $state:path, hint?)',
     '  Checkbox(label, bind: $state:path, description?)',
     '  Toggle(label, bind: $state:path, description?)',
     '  DatePicker(label, bind: $state:path, format: "date"|"datetime"|"time", min?, max?)',

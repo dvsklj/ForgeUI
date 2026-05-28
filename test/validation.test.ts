@@ -589,6 +589,7 @@ describe('validateManifest — per-component prop validation', () => {
         chart: { type: 'Chart', props: { title: 'Revenue', data: [], chartType: 'bar', color: '#2563eb', yFormat: '$', labelKey: 'month', valueKey: 'revenue' } },
         metric: { type: 'Metric', props: { label: 'Revenue', value: '$299K', trend: 'up', trendLabel: 'QoQ', unit: 'USD', subtitle: '+12%' } },
         textInput: { type: 'TextInput', props: { label: 'Email', hint: 'Use work email', error: 'Required', type: 'email', inputType: 'email' } },
+        radioGroup: { type: 'RadioGroup', props: { label: 'Priority', options: ['Low', 'High'], value: 'Low', hint: 'Pick one' } },
         slider: { type: 'Slider', props: { label: 'Score', min: 0, max: 10, unit: 'pts' } },
         dialog: { type: 'Dialog', props: { title: 'Details', open: false } },
         progress: { type: 'Progress', props: { value: 40, max: 100, showValue: true } },

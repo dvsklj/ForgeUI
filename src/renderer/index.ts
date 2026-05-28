@@ -58,6 +58,7 @@ export function renderElement(elementId: string, ctx: RenderContext): TemplateRe
       case 'NumberInput':return html`<forgeui-number-input .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-number-input>`;
       case 'Select':   return html`<forgeui-select .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-select>`;
       case 'MultiSelect':return html`<forgeui-multi-select .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-multi-select>`;
+      case 'RadioGroup':return html`<forgeui-radio-group .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-radio-group>`;
       case 'Checkbox': return html`<forgeui-checkbox .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-checkbox>`;
       case 'Toggle':   return html`<forgeui-toggle .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-toggle>`;
       case 'DatePicker':return html`<forgeui-date-picker .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-date-picker>`;
