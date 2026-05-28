@@ -632,7 +632,7 @@ ingest. Remaining cleanup: chart z-index bug.
 - JSON Merge Patch for incremental updates
 - WebSocket sync for multi-device persistence
 - Declarative schema migration execution
-- Component a11y deep audit (WCAG 2.2 AA on all 39)
+- Component a11y deep audit (WCAG 2.2 AA on all 49)
 - Expression-language formal parser + fuzz harness
 
 ### Phase 3 — data read channel (specced, see §9)
