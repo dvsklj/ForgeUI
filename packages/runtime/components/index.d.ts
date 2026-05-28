@@ -1,96 +1,11 @@
 /**
- * Forge Components — All 37 Lit Web Components
- *
- * Each component extends ForgeUIElement, uses design tokens,
- * dispatches forgeui-action events for declarative bindings.
+ * Forge Components aggregate entrypoint.
  */
 import { nothing } from 'lit';
 import { ForgeUIElement } from './base.js';
 export * from './actions.js';
+export * from './layout.js';
 export * from './navigation.js';
-export declare class ForgeStack extends ForgeUIElement {
-    static get properties(): {
-        props: {
-            type: ObjectConstructor;
-        };
-    };
-    static get styles(): import("lit").CSSResult;
-    render(): import("lit-html").TemplateResult<1>;
-}
-export declare class ForgeGrid extends ForgeUIElement {
-    static get properties(): {
-        props: {
-            type: ObjectConstructor;
-        };
-    };
-    static get styles(): import("lit").CSSResult;
-    render(): import("lit-html").TemplateResult<1>;
-}
-export declare class ForgeCard extends ForgeUIElement {
-    static get properties(): {
-        props: {
-            type: ObjectConstructor;
-        };
-    };
-    static get styles(): import("lit").CSSResult;
-    render(): import("lit-html").TemplateResult<1>;
-}
-export declare class ForgeContainer extends ForgeUIElement {
-    static get properties(): {
-        props: {
-            type: ObjectConstructor;
-        };
-    };
-    static get styles(): import("lit").CSSResult;
-    render(): import("lit-html").TemplateResult<1>;
-}
-export declare class ForgeTabs extends ForgeUIElement {
-    static get properties(): {
-        props: {
-            type: ObjectConstructor;
-        };
-    };
-    _active: string;
-    constructor();
-    static get styles(): import("lit").CSSResult;
-    _itemKey(item: any): string;
-    _itemLabel(item: any): string;
-    updated(): void;
-    _moveTo(newIndex: number, arr: any[]): void;
-    render(): import("lit-html").TemplateResult<1>;
-}
-export declare class ForgeAccordion extends ForgeUIElement {
-    static get properties(): {
-        props: {
-            type: ObjectConstructor;
-        };
-    };
-    static get styles(): import("lit").CSSResult;
-    render(): import("lit-html").TemplateResult<1>;
-}
-export declare class ForgeDivider extends ForgeUIElement {
-    static get styles(): import("lit").CSSResult;
-    render(): import("lit-html").TemplateResult<1>;
-}
-export declare class ForgeSpacer extends ForgeUIElement {
-    static get styles(): import("lit").CSSResult;
-    render(): import("lit-html").TemplateResult<1>;
-}
-/**
- * Repeater: renders a child element once per item in a data array.
- * The renderer (not this component) handles the iteration — this element
- * exists only so the type validates and so a clear empty state shows when
- * the data is empty. The actual iteration lives in renderer/index.ts.
- */
-export declare class ForgeRepeater extends ForgeUIElement {
-    static get properties(): {
-        props: {
-            type: ObjectConstructor;
-        };
-    };
-    static get styles(): import("lit").CSSResult;
-    render(): import("lit-html").TemplateResult<1>;
-}
 export declare class ForgeText extends ForgeUIElement {
     static get properties(): {
         props: {
