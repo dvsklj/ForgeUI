@@ -3,6 +3,9 @@
  * Extracted so both the generator (scripts/gen-validator.mjs) and
  * src/validation/index.ts can import it without circular deps.
  */
+export declare const ACTION_TYPES: readonly ["mutateState", "navigate", "openDialog", "closeDialog", "callApi", "toast", "custom"];
+export declare const MUTATION_OPERATIONS: readonly ["set", "append", "update", "delete", "increment", "decrement", "toggle"];
+export declare const API_METHODS: readonly ["GET", "POST", "PUT", "PATCH", "DELETE", "get", "post", "put", "patch", "delete"];
 export declare const MANIFEST_SCHEMA: {
     readonly type: "object";
     readonly required: readonly ["manifest", "id", "root", "elements"];
@@ -72,6 +75,59 @@ export declare const MANIFEST_SCHEMA: {
         };
         readonly actions: {
             readonly type: "object";
+            readonly additionalProperties: {
+                readonly type: "object";
+                readonly required: readonly ["type"];
+                readonly properties: {
+                    readonly type: {
+                        readonly type: "string";
+                        readonly enum: readonly ["mutateState", "navigate", "openDialog", "closeDialog", "callApi", "toast", "custom"];
+                    };
+                    readonly path: {
+                        readonly type: "string";
+                    };
+                    readonly value: {};
+                    readonly operation: {
+                        readonly type: "string";
+                        readonly enum: readonly ["set", "append", "update", "delete", "increment", "decrement", "toggle"];
+                    };
+                    readonly set: {
+                        readonly type: "object";
+                    };
+                    readonly data: {
+                        readonly type: "object";
+                    };
+                    readonly key: {
+                        readonly type: "string";
+                    };
+                    readonly formId: {
+                        readonly type: "string";
+                    };
+                    readonly action: {
+                        readonly type: "string";
+                    };
+                    readonly target: {
+                        readonly type: "string";
+                    };
+                    readonly url: {
+                        readonly type: "string";
+                    };
+                    readonly method: {
+                        readonly type: "string";
+                        readonly enum: readonly ["GET", "POST", "PUT", "PATCH", "DELETE", "get", "post", "put", "patch", "delete"];
+                    };
+                    readonly body: {
+                        readonly type: "object";
+                    };
+                    readonly message: {
+                        readonly type: "string";
+                    };
+                    readonly duration: {
+                        readonly type: "number";
+                        readonly minimum: 0;
+                    };
+                };
+            };
         };
         readonly meta: {
             readonly type: "object";

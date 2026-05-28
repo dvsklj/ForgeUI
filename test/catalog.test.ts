@@ -180,6 +180,9 @@ describe('catalogToJsonSchema', () => {
       'decrement',
       'toggle',
     ]);
+    expect(actionProps.method.enum).toEqual(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'get', 'post', 'put', 'patch', 'delete']);
+    expect(actionProps.message.type).toBe('string');
+    expect(actionProps.duration.type).toBe('number');
     expect(actionProps.set).toBeDefined();
   });
 });
