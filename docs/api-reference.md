@@ -186,36 +186,116 @@ Delete an app.
 }
 ```
 
-## Runtime Events
+## Manifest Actions
 
-`forgeui-action`: emitted for `custom` actions and component-level actions before host handling.
+Manifest actions live under `actions` and are referenced by component props such
+as `action`, `rowAction`, and form submit actions.
 
 ```json
-{ "action": "actionId", "payload": {} }
+{
+  "actions": {
+    "save": {
+      "type": "callApi",
+      "url": "/api/save",
+      "method": "POST",
+      "body": { "name": "$state:form/name" }
+    }
+  }
+}
+```
+
+| Type | Required fields | Effect |
+|------|-----------------|--------|
+| `mutateState` | `path` or `set` | Updates TinyBase state. `operation` may be `set`, `append`, `update`, `delete`, `increment`, `decrement`, or `toggle`. |
+| `navigate` | `target` | Switches the active root view to another element ID. |
+| `openDialog` | `target` | Opens a `Dialog` element by ID. |
+| `closeDialog` | — | Closes `target`, or the most recently opened dialog when `target` is omitted. |
+| `toast` | `message` or `data.message` | Renders a transient `Toast`. `duration` is milliseconds; `0` keeps it visible. |
+| `callApi` | `url` | Calls an HTTP(S) endpoint. `method` may be `GET`, `POST`, `PUT`, `PATCH`, or `DELETE`; non-GET bodies are JSON encoded. |
+| `custom` | — | Emits `forgeui-action` for the host app to handle. Extra fields are preserved in `definition`. |
+
+For `mutateState`, `set` writes multiple state paths, `path` writes one state
+path, and `append`/`update`/`delete` use `path` as the table path with `key` as
+the row ID. `increment` and `decrement` operate on numeric values; `toggle`
+operates on boolean values. `path` and `key` may include `{{id}}`, replaced from
+the action payload.
+
+Controls with `bind: "$state:..."` update state directly from
+`payload.value`, `payload.checked`, or `payload.active`; no manifest action is
+required for simple input binding.
+
+Action string values may reference state with `$state:path` or computed values
+with `$expr: ...` where the runtime resolves action values. `callApi.body` is
+resolved recursively.
+
+## Runtime Events
+
+`forgeui-action`: emitted by components when they dispatch an action. Custom
+runtime actions also emit it with the action `definition`.
+
+```json
+{
+  "action": "export",
+  "payload": { "id": "row-1" },
+  "definition": { "type": "custom", "action": "export" }
+}
 ```
 
 `forgeui-action-result`: emitted after `callApi` succeeds or fails.
 
 ```json
-{ "action": "save", "ok": true, "status": 201, "result": {} }
+{
+  "action": "save",
+  "payload": { "id": "row-1" },
+  "ok": true,
+  "status": 201,
+  "result": {}
+}
 ```
 
-`forgeui-api-result`: emitted after a successful `callApi` fetch.
+`forgeui-api-result`: emitted after a completed `callApi` fetch. Check `ok` for
+HTTP success.
 
 ```json
-{ "action": "save", "ok": true, "status": 201, "result": {} }
+{
+  "action": "save",
+  "payload": { "id": "row-1" },
+  "ok": true,
+  "status": 201,
+  "result": {}
+}
 ```
 
 `forgeui-api-error`: emitted when `callApi` is blocked or fails.
 
 ```json
-{ "action": "save", "ok": false, "error": "message" }
+{
+  "action": "save",
+  "payload": { "id": "row-1" },
+  "ok": false,
+  "error": "Blocked unsafe callApi URL: javascript:alert(1)"
+}
 ```
 
 `forgeui-persistence`: emitted when persistence is disabled, loading, ready, or failed.
 
 ```json
-{ "state": "ready", "status": { "mode": "indexeddb", "isPersisting": true } }
+{
+  "state": "ready",
+  "status": { "mode": "indexeddb", "isPersisting": true }
+}
+```
+
+`forgeui-ready`: emitted after manifest initialization.
+
+```json
+{ "appId": "nutrition-tracker" }
+```
+
+`forgeui-submit`: emitted by `Form` submit.
+
+```json
+{ "submitted": true }
 ```
 
 ## Manifest Schema

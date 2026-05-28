@@ -248,11 +248,12 @@ export type SurfaceMode = 'chat' | 'standalone' | 'embed';
 
 /** Custom event names used by Forge */
 export interface ForgeEvents {
-  'forgeui-action': CustomEvent<{ action: string; payload?: Record<string, unknown> }>;
+  'forgeui-action': CustomEvent<{ action: string; payload?: Record<string, unknown>; definition?: ForgeUIAction }>;
   'forgeui-action-result': CustomEvent<{ action: string; payload?: Record<string, unknown>; ok: boolean; status?: number; result?: unknown; error?: string }>;
   'forgeui-api-result': CustomEvent<{ action: string; payload?: Record<string, unknown>; ok: boolean; status: number; result: unknown }>;
   'forgeui-api-error': CustomEvent<{ action: string; payload?: Record<string, unknown>; ok: false; error: string }>;
   'forgeui-persistence': CustomEvent<{ state: 'disabled' | 'loading' | 'ready' | 'failed'; status: unknown; error?: string }>;
+  'forgeui-submit': CustomEvent<{ submitted: true }>;
   'forgeui-state-change': CustomEvent<{ path: string; value: unknown }>;
   'forgeui-error': CustomEvent<{ message: string; element?: string }>;
   'forgeui-ready': CustomEvent<{ appId: string }>;
