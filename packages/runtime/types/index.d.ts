@@ -144,6 +144,14 @@ export interface ForgeUIAction {
     method?: string;
     /** Request body for API calls */
     body?: Record<string, unknown>;
+    /** Toast or result message text */
+    message?: string;
+    /** Toast duration in milliseconds */
+    duration?: number;
+    /** Form element ID for host-provided form actions */
+    formId?: string;
+    /** Host-provided action name */
+    action?: string;
     /** Arbitrary data payload */
     data?: Record<string, unknown>;
 }

@@ -6,6 +6,10 @@
 
 import { ALL_COMPONENT_TYPES } from '../catalog/registry.js';
 
+export const ACTION_TYPES = ['mutateState', 'navigate', 'openDialog', 'closeDialog', 'callApi', 'toast', 'custom'] as const;
+export const MUTATION_OPERATIONS = ['set', 'append', 'update', 'delete', 'increment', 'decrement', 'toggle'] as const;
+export const API_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'get', 'post', 'put', 'patch', 'delete'] as const;
+
 export const MANIFEST_SCHEMA = {
   type: 'object',
   required: ['manifest', 'id', 'root', 'elements'],
@@ -56,8 +60,28 @@ export const MANIFEST_SCHEMA = {
       },
     },
     actions: {
-      // Open — action definitions with user-defined data shapes
       type: 'object',
+      additionalProperties: {
+        type: 'object',
+        required: ['type'],
+        properties: {
+          type: { type: 'string', enum: ACTION_TYPES },
+          path: { type: 'string' },
+          value: {},
+          operation: { type: 'string', enum: MUTATION_OPERATIONS },
+          set: { type: 'object' },
+          data: { type: 'object' },
+          key: { type: 'string' },
+          formId: { type: 'string' },
+          action: { type: 'string' },
+          target: { type: 'string' },
+          url: { type: 'string' },
+          method: { type: 'string', enum: API_METHODS },
+          body: { type: 'object' },
+          message: { type: 'string' },
+          duration: { type: 'number', minimum: 0 },
+        },
+      },
     },
     meta: {
       // Open — metadata escape hatch for title, description, version, author, generator, etc.

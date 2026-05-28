@@ -1,3 +1,4 @@
+import { ACTION_TYPES, API_METHODS, MUTATION_OPERATIONS } from '../validation/manifest-schema.js';
 import { ALL_COMPONENT_TYPES, CATEGORY_MAP } from './registry.js';
 
 /**
@@ -373,10 +374,10 @@ export function catalogToJsonSchema(): { type: string; required: string[]; prope
         additionalProperties: {
           type: 'object',
           properties: {
-            type: { type: 'string', enum: ['mutateState', 'navigate', 'openDialog', 'closeDialog', 'callApi', 'toast', 'custom'] },
+            type: { type: 'string', enum: [...ACTION_TYPES] },
             path: { type: 'string' },
             value: {},
-            operation: { type: 'string', enum: ['set', 'append', 'update', 'delete', 'increment', 'decrement', 'toggle'] },
+            operation: { type: 'string', enum: [...MUTATION_OPERATIONS] },
             set: { type: 'object' },
             data: { type: 'object' },
             key: { type: 'string' },
@@ -384,8 +385,10 @@ export function catalogToJsonSchema(): { type: string; required: string[]; prope
             action: { type: 'string' },
             target: { type: 'string' },
             url: { type: 'string' },
-            method: { type: 'string' },
+            method: { type: 'string', enum: [...API_METHODS] },
             body: { type: 'object' },
+            message: { type: 'string' },
+            duration: { type: 'number', minimum: 0 },
           },
           required: ['type'],
         },

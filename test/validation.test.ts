@@ -123,6 +123,56 @@ describe('validateManifest — schema validation', () => {
     const result = validateManifest({ ...validManifest(), bogusKey: true } as any);
     expect(result.valid).toBe(false);
   });
+
+  it('rejects unsupported action types', () => {
+    const result = validateManifest(validManifest({
+      actions: { save: { type: 'setState' as any, path: 'count', value: 1 } },
+    }));
+    expect(result.valid).toBe(false);
+  });
+
+  it('rejects action definitions without a type', () => {
+    const result = validateManifest(validManifest({
+      actions: { save: { path: 'count', value: 1 } as any },
+    }));
+    expect(result.valid).toBe(false);
+  });
+
+  it('rejects unsupported mutation operations', () => {
+    const result = validateManifest(validManifest({
+      actions: { save: { type: 'mutateState', path: 'count', operation: 'merge' as any } },
+    }));
+    expect(result.valid).toBe(false);
+  });
+
+  it('rejects unsupported API methods', () => {
+    const result = validateManifest(validManifest({
+      actions: { save: { type: 'callApi', url: '/api/save', method: 'TRACE' } },
+    }));
+    expect(result.valid).toBe(false);
+  });
+
+  it('rejects non-object action definitions', () => {
+    const result = validateManifest(validManifest({
+      actions: { save: 'custom' as any },
+    }));
+    expect(result.valid).toBe(false);
+  });
+
+  it('accepts runtime-supported action fields', () => {
+    const result = validateManifest(validManifest({
+      actions: {
+        save: { type: 'mutateState', path: 'count', operation: 'set', value: 1 },
+        next: { type: 'navigate', target: 'main' },
+        show: { type: 'openDialog', target: 'main' },
+        hide: { type: 'closeDialog', target: 'main' },
+        api: { type: 'callApi', url: '/api/save', method: 'post', body: { ok: true } },
+        notify: { type: 'toast', message: 'Saved', duration: 1000, data: { variant: 'success' } },
+        host: { type: 'custom', action: 'export', formId: 'form', handler: 'doThing' } as any,
+      },
+    }));
+    expect(result.valid).toBe(true);
+  });
 });
 
 describe('validateManifest — URL / injection safety', () => {
