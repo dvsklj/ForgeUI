@@ -66,6 +66,7 @@ export function renderElement(elementId: string, ctx: RenderContext): TemplateRe
       case 'Checkbox': return html`<forgeui-checkbox .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-checkbox>`;
       case 'Toggle':   return html`<forgeui-toggle .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-toggle>`;
       case 'DatePicker':return html`<forgeui-date-picker .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-date-picker>`;
+      case 'DateRangePicker':return html`<forgeui-date-range-picker .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-date-range-picker>`;
       case 'Slider':   return html`<forgeui-slider .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-slider>`;
       case 'FileUpload':return html`<forgeui-file-upload .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-file-upload>`;
       case 'Button':   return html`<forgeui-button .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-button>`;
@@ -84,6 +85,7 @@ export function renderElement(elementId: string, ctx: RenderContext): TemplateRe
       case 'Breadcrumb':return html`<forgeui-breadcrumb .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-breadcrumb>`;
       case 'Stepper':  return html`<forgeui-stepper .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}>${children}</forgeui-stepper>`;
       case 'SearchBox':return html`<forgeui-search-box .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-search-box>`;
+      case 'SegmentedControl':return html`<forgeui-segmented-control .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-segmented-control>`;
       case 'Pagination':return html`<forgeui-pagination .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-pagination>`;
       case 'Drawing':  return html`<forgeui-drawing .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-drawing>`;
       default:         return html`<forgeui-error .props=${({ msg: `Unknown: ${type}` })} .store=${ctx.store}></forgeui-error>`;

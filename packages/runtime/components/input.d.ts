@@ -49,6 +49,10 @@ export declare class ForgeDatePicker extends ForgeUIElement {
     static get styles(): import("lit").CSSResult;
     render(): import("lit-html").TemplateResult<1>;
 }
+export declare class ForgeDateRangePicker extends ForgeUIElement {
+    static get styles(): import("lit").CSSResult;
+    render(): import("lit-html").TemplateResult<1>;
+}
 export declare class ForgeSlider extends ForgeUIElement {
     static get styles(): import("lit").CSSResult;
     render(): import("lit-html").TemplateResult<1>;

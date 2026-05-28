@@ -79,7 +79,7 @@ describe('validateManifest — schema validation', () => {
     const types = [
       'Stack', 'Grid', 'Card', 'Container', 'Tabs', 'Accordion', 'Divider', 'Spacer', 'Repeater',
       'Text', 'Image', 'Icon', 'Badge', 'Avatar', 'EmptyState',
-      'Form', 'FieldGroup', 'TextInput', 'Textarea', 'NumberInput', 'Select', 'Combobox', 'MultiSelect', 'RadioGroup', 'Checkbox', 'Toggle', 'DatePicker', 'Slider', 'FileUpload',
+      'Form', 'FieldGroup', 'TextInput', 'Textarea', 'NumberInput', 'Select', 'Combobox', 'MultiSelect', 'RadioGroup', 'Checkbox', 'Toggle', 'DatePicker', 'DateRangePicker', 'Slider', 'FileUpload',
       'Button', 'ButtonGroup', 'Link',
       'Table', 'List', 'Chart', 'Metric', 'StatCard', 'KpiGrid',
       'Alert', 'Dialog', 'Progress', 'Toast',
@@ -649,6 +649,7 @@ describe('validateManifest — per-component prop validation', () => {
         textarea: { type: 'Textarea', props: { label: 'Notes', placeholder: 'Details', value: 'Draft', rows: 4, maxLength: 280, hint: 'Optional' } },
         combobox: { type: 'Combobox', props: { label: 'Assignee', options: ['Ari', 'Sam'], value: 'Ari', placeholder: 'Pick one', hint: 'Type to filter', required: true } },
         radioGroup: { type: 'RadioGroup', props: { label: 'Priority', options: ['Low', 'High'], value: 'Low', hint: 'Pick one' } },
+        dateRange: { type: 'DateRangePicker', props: { label: 'Window', start: '2026-05-01', end: '2026-05-31', startLabel: 'From', endLabel: 'To', min: '2026-01-01', max: '2026-12-31', disabled: false } },
         slider: { type: 'Slider', props: { label: 'Score', min: 0, max: 10, unit: 'pts' } },
         dialog: { type: 'Dialog', props: { title: 'Details', open: false } },
         progress: { type: 'Progress', props: { value: 40, max: 100, showValue: true } },

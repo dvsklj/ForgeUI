@@ -1,6 +1,6 @@
 # Component Catalog
 
-All 48 manifest components available in Forge, organized by category.
+All 49 manifest components available in Forge, organized by category.
 
 ---
 
@@ -479,6 +479,35 @@ Checkbox input.
 |------|------|---------|-------------|
 | `label` | string | — | Checkbox label |
 | `checked` | boolean | `false` | Current state |
+
+### DateRangePicker
+
+Two-date range input.
+
+```json
+{
+  "type": "DateRangePicker",
+  "props": {
+    "label": "Date window",
+    "start": "2026-05-01",
+    "end": "2026-05-31",
+    "bind": "$state:filters/dateRange"
+  }
+}
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `label` | string | — | Group label |
+| `value` | object | — | `{start, end}` range value |
+| `start` | string | — | Start date in `YYYY-MM-DD` format |
+| `end` | string | — | End date in `YYYY-MM-DD` format |
+| `startLabel` | string | `"Start"` | Start input label |
+| `endLabel` | string | `"End"` | End input label |
+| `min` | string | — | Earliest selectable date |
+| `max` | string | — | Latest selectable date |
+| `bind` | string | — | State binding updated with `{start, end}` |
+| `disabled` | boolean | `false` | Disabled state |
 
 ### Slider
 

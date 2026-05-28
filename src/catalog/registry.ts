@@ -7,7 +7,7 @@
 
 import type { ComponentType, ComponentCategory } from '../types/index.js';
 
-/** Category mapping for all 48 manifest components */
+/** Category mapping for all 49 manifest components */
 export const componentCategories: Record<ComponentType, ComponentCategory> = {
   Stack: 'layout', Grid: 'layout', Card: 'layout', Container: 'layout',
   Tabs: 'layout', Accordion: 'layout', Divider: 'layout', Spacer: 'layout', Repeater: 'layout',
@@ -16,7 +16,7 @@ export const componentCategories: Record<ComponentType, ComponentCategory> = {
   Avatar: 'content', EmptyState: 'content',
   
   Form: 'input', FieldGroup: 'input', TextInput: 'input', Textarea: 'input', NumberInput: 'input', Select: 'input', Combobox: 'input', MultiSelect: 'input', RadioGroup: 'input',
-  Checkbox: 'input', Toggle: 'input', DatePicker: 'input', Slider: 'input', FileUpload: 'input',
+  Checkbox: 'input', Toggle: 'input', DatePicker: 'input', DateRangePicker: 'input', Slider: 'input', FileUpload: 'input',
   
   Button: 'action', ButtonGroup: 'action', Link: 'action',
   
@@ -33,7 +33,7 @@ export const componentCategories: Record<ComponentType, ComponentCategory> = {
 export const componentsByCategory: Record<ComponentCategory, ComponentType[]> = {
   layout: ['Stack', 'Grid', 'Card', 'Container', 'Tabs', 'Accordion', 'Divider', 'Spacer', 'Repeater'],
   content: ['Text', 'Image', 'Icon', 'Badge', 'Avatar', 'EmptyState'],
-  input: ['Form', 'FieldGroup', 'TextInput', 'Textarea', 'NumberInput', 'Select', 'Combobox', 'MultiSelect', 'RadioGroup', 'Checkbox', 'Toggle', 'DatePicker', 'Slider', 'FileUpload'],
+  input: ['Form', 'FieldGroup', 'TextInput', 'Textarea', 'NumberInput', 'Select', 'Combobox', 'MultiSelect', 'RadioGroup', 'Checkbox', 'Toggle', 'DatePicker', 'DateRangePicker', 'Slider', 'FileUpload'],
   action: ['Button', 'ButtonGroup', 'Link'],
   data: ['Table', 'List', 'Chart', 'Metric', 'StatCard', 'KpiGrid'],
   feedback: ['Alert', 'Dialog', 'Progress', 'Toast'],

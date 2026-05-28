@@ -7,7 +7,7 @@ describe('isValidComponentType', () => {
     const expectedTypes = [
       'Stack', 'Grid', 'Card', 'Container', 'Tabs', 'Accordion', 'Divider', 'Spacer', 'Repeater',
       'Text', 'Image', 'Icon', 'Badge', 'Avatar', 'EmptyState',
-      'Form', 'FieldGroup', 'TextInput', 'Textarea', 'NumberInput', 'Select', 'Combobox', 'MultiSelect', 'RadioGroup', 'Checkbox', 'Toggle', 'DatePicker', 'Slider', 'FileUpload',
+      'Form', 'FieldGroup', 'TextInput', 'Textarea', 'NumberInput', 'Select', 'Combobox', 'MultiSelect', 'RadioGroup', 'Checkbox', 'Toggle', 'DatePicker', 'DateRangePicker', 'Slider', 'FileUpload',
       'Button', 'ButtonGroup', 'Link',
       'Table', 'List', 'Chart', 'Metric', 'StatCard', 'KpiGrid',
       'Alert', 'Dialog', 'Progress', 'Toast',

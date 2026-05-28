@@ -99,6 +99,18 @@ describe('Core a11y — label linkage (P1)', () => {
     expect(idAttr).toBeTruthy();
     expect(forAttr).toBe(idAttr);
   });
+
+  it('forgeui-date-range-picker labels both date inputs', async () => {
+    const el = await mount('forgeui-date-range-picker', { label: 'Window', startLabel: 'From', endLabel: 'To' });
+    const labels = Array.from(el.shadowRoot!.querySelectorAll('label'));
+    const inputs = Array.from(el.shadowRoot!.querySelectorAll('input'));
+
+    expect(labels).toHaveLength(2);
+    expect(inputs).toHaveLength(2);
+    expect(labels[0].getAttribute('for')).toBe(inputs[0].getAttribute('id'));
+    expect(labels[1].getAttribute('for')).toBe(inputs[1].getAttribute('id'));
+    expect(el.shadowRoot!.querySelector('[role="group"]')!.getAttribute('aria-label')).toBe('Window');
+  });
 });
 
 describe('Core a11y — prefers-reduced-motion (P1)', () => {
