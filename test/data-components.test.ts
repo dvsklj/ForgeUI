@@ -16,6 +16,7 @@ describe('data components', () => {
     expect(customElements.get('forgeui-table')).toBeDefined();
     expect(customElements.get('forgeui-list')).toBeDefined();
     expect(customElements.get('forgeui-chart')).toBeDefined();
+    expect(customElements.get('forgeui-chart-legend')).toBeDefined();
     expect(customElements.get('forgeui-metric')).toBeDefined();
     expect(customElements.get('forgeui-stat-card')).toBeDefined();
     expect(customElements.get('forgeui-kpi-grid')).toBeDefined();
@@ -39,6 +40,36 @@ describe('data components', () => {
     await el.updateComplete;
 
     expect(el.style.gridTemplateColumns).toBe('repeat(3, minmax(0, 1fr))');
+  });
+
+  it('renders chart legends from item data', async () => {
+    const el = document.createElement('forgeui-chart-legend') as any;
+    el.props = {
+      title: 'Channels',
+      items: [
+        { label: 'Web', value: 42, color: 'var(--forgeui-color-primary)' },
+        { label: 'Sales', value: 17, color: 'var(--forgeui-color-success)' },
+      ],
+      orientation: 'vertical',
+    };
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    expect(el.shadowRoot!.querySelector('.title')!.textContent).toBe('Channels');
+    expect(el.shadowRoot!.textContent).toContain('Web');
+    expect(el.shadowRoot!.textContent).toContain('42');
+    expect(el.shadowRoot!.textContent).toContain('Sales');
+    expect(el.getAttribute('orientation')).toBe('vertical');
+    expect(el.shadowRoot!.querySelectorAll('.swatch')).toHaveLength(2);
+  });
+
+  it('renders chart legend empty state', async () => {
+    const el = document.createElement('forgeui-chart-legend') as any;
+    el.props = { emptyMessage: 'No channels' };
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    expect(el.shadowRoot!.querySelector('.empty')!.textContent).toBe('No channels');
   });
 
   it('filters searchable tables', async () => {

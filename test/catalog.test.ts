@@ -9,7 +9,7 @@ describe('isValidComponentType', () => {
       'Text', 'Image', 'Icon', 'Badge', 'Avatar', 'EmptyState',
       'Form', 'FieldGroup', 'TextInput', 'Textarea', 'NumberInput', 'Select', 'Combobox', 'MultiSelect', 'RadioGroup', 'Checkbox', 'Toggle', 'DatePicker', 'DateRangePicker', 'Slider', 'FileUpload',
       'Button', 'ButtonGroup', 'Link',
-      'Table', 'List', 'Chart', 'Metric', 'StatCard', 'KpiGrid',
+      'Table', 'List', 'Chart', 'ChartLegend', 'Metric', 'StatCard', 'KpiGrid',
       'Alert', 'Dialog', 'Progress', 'Toast',
       'Breadcrumb', 'Stepper', 'SearchBox', 'SegmentedControl', 'Pagination',
       'Drawing',
