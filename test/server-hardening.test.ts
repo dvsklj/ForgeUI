@@ -216,6 +216,7 @@ describe('Query param clamping', () => {
 describe('API token auth', () => {
   it('unset: POST /api/apps without Authorization succeeds', async () => {
     delete process.env.FORGEUI_API_TOKEN;
+    delete process.env.NODE_ENV;
     seedApp();
     const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
 
@@ -231,6 +232,33 @@ describe('API token auth', () => {
     });
 
     expect(res.status).toBe(201);
+  });
+
+  it('production without token: write methods return 401', async () => {
+    delete process.env.FORGEUI_API_TOKEN;
+    process.env.NODE_ENV = 'production';
+    seedApp();
+    const { app } = createForgeUIServer({ baseUrl: 'http://localhost' });
+    const body = JSON.stringify({
+      id: 'new-app',
+      manifest: '0.1.0',
+      root: 'main',
+      elements: { main: { type: 'Text', props: { content: 'Hi' } } },
+    });
+
+    for (const [method, path] of [
+      ['POST', '/api/apps'],
+      ['PUT', '/api/apps/harden-test'],
+      ['PATCH', '/api/apps/harden-test'],
+      ['DELETE', '/api/apps/harden-test'],
+    ] as const) {
+      const res = await app.request(path, {
+        method,
+        headers: { 'content-type': 'application/json' },
+        body: method === 'DELETE' ? undefined : body,
+      });
+      expect(res.status).toBe(401);
+    }
   });
 
   it('token set: POST without Authorization returns 401', async () => {

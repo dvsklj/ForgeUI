@@ -62,6 +62,41 @@ describe('Server API — Full CRUD', () => {
     expect(body.id).toBeTruthy();
   });
 
+  it('POST /api/apps validates manifest before create', async () => {
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
+    const { app } = setup();
+    const res = await app.request('/api/apps', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        id: 'invalid-create',
+        manifest: '0.1.0',
+        root: 'missing',
+        elements: { main: { type: 'Text', props: { content: 'Hello' } } },
+      }),
+    });
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toBe('Validation failed');
+  });
+
+  it('POST /api/apps rejects duplicate IDs', async () => {
+    process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
+    const { app } = setup();
+    createApp({ id: 'dupe-app', manifest: '0.1.0', root: 'm', elements: { m: { type: 'Text' } } } as any);
+    const res = await app.request('/api/apps', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        id: 'dupe-app',
+        manifest: '0.1.0',
+        root: 'main',
+        elements: { main: { type: 'Text', props: { content: 'Hello' } } },
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
   it('GET /api/apps lists apps', async () => {
     process.env.FORGEUI_RATE_LIMIT_DISABLE = '1';
     const { app } = setup();

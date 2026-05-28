@@ -141,13 +141,14 @@ export function createForgeUIServer(options: ForgeServerOptions = {}) {
     });
   }
 
-  // ─── Optional API token auth ───────────────────────────────
+  // ─── API token auth ────────────────────────────────────────
   const apiToken = process.env.FORGEUI_API_TOKEN?.trim() || undefined;
 
-  if (apiToken) {
+  if (apiToken || process.env.NODE_ENV === 'production') {
     app.use('/api/*', async (c, next) => {
       const method = c.req.method;
       if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return next();
+      if (!apiToken) return c.json({ error: 'unauthorized' }, 401);
       const auth = c.req.header('authorization') ?? '';
       const expected = `Bearer ${apiToken}`;
       if (auth.length !== expected.length) return c.json({ error: 'unauthorized' }, 401);
@@ -159,7 +160,7 @@ export function createForgeUIServer(options: ForgeServerOptions = {}) {
   }
 
   if (!apiToken && process.env.NODE_ENV === 'production') {
-    console.warn('[forgeui-server] FORGEUI_API_TOKEN is not set; /api/apps/* writes are unauthenticated.');
+    console.warn('[forgeui-server] FORGEUI_API_TOKEN is not set; /api/apps/* writes will be rejected.');
   }
 
   // ─── Security response headers ─────────────────────────────
@@ -317,6 +318,11 @@ export function createForgeUIServer(options: ForgeServerOptions = {}) {
         manifest.id = generateAppId();
       } else if (!VALID_APP_ID.test(manifest.id)) {
         return c.json({ error: 'invalid id' }, 400);
+      }
+
+      const validation = validateManifest(manifest);
+      if (!validation.valid) {
+        return c.json({ error: 'Validation failed', details: validation.errors }, 400);
       }
 
       const stored = createApp(manifest);
