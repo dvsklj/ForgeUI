@@ -49,6 +49,8 @@ const defs: Record<ComponentType, string[]> = {
   Toast: [...SHARED, 'message', 'variant', 'duration'],
   Breadcrumb: [...SHARED, 'items'],
   Stepper: [...SHARED, 'steps', 'activeStep', 'variant'],
+  SearchBox: [...SHARED, ...INPUT_BASE, 'placeholder', 'disabled'],
+  Pagination: [...SHARED, 'page', 'totalPages', 'label'],
   Drawing: [...SHARED, 'width', 'height', 'background', 'shapes'],
 };
 

@@ -58,3 +58,66 @@ export class ForgeStepper extends ForgeUIElement {
   }
 }
 customElements.define('forgeui-stepper', ForgeStepper);
+
+export class ForgeSearchBox extends ForgeUIElement {
+  static get styles() { return css`
+    :host { display:block; min-width:0; }
+    .field { display:flex; flex-direction:column; gap:var(--forgeui-space-2xs); min-width:0; }
+    label { color:var(--forgeui-color-text); font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); }
+    input { width:100%; min-height:var(--forgeui-touch-target); box-sizing:border-box; padding:0 var(--forgeui-space-md);
+      border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md); background:var(--forgeui-color-surface);
+      color:var(--forgeui-color-text); font:inherit; font-size:var(--forgeui-text-sm); }
+    input:focus-visible { outline:2px solid var(--forgeui-color-primary); outline-offset:2px; }
+    input::placeholder { color:var(--forgeui-color-text-tertiary); }
+  `; }
+  render() {
+    const label = this.getString('label', 'Search');
+    const placeholder = this.getString('placeholder', 'Search');
+    const value = String(this.getBoundProp('value', '') ?? '');
+    const disabled = this.getBool('disabled');
+    const action = this.getString('action', 'change');
+    const id = this._instanceId;
+    return html`<div class="field">
+      <label for="${id}">${label}</label>
+      <input id="${id}" type="search" placeholder="${placeholder}" .value=${value} ?disabled=${disabled}
+        @input=${(event: Event) => {
+          const next = (event.target as HTMLInputElement).value;
+          this.dispatchAction(action, { value: next, query: next });
+        }}>
+    </div>`;
+  }
+}
+customElements.define('forgeui-search-box', ForgeSearchBox);
+
+export class ForgePagination extends ForgeUIElement {
+  static get styles() { return css`
+    :host { display:flex; align-items:center; justify-content:space-between; gap:var(--forgeui-space-sm); min-width:0; }
+    .status { color:var(--forgeui-color-text-secondary); font-size:var(--forgeui-text-sm); overflow-wrap:anywhere; }
+    .controls { display:inline-flex; align-items:center; gap:var(--forgeui-space-xs); }
+    button { min-width:var(--forgeui-touch-target); min-height:var(--forgeui-touch-target); border:1px solid var(--forgeui-color-border);
+      border-radius:var(--forgeui-radius-md); background:var(--forgeui-color-surface); color:var(--forgeui-color-text);
+      cursor:pointer; font:inherit; font-size:var(--forgeui-text-sm); }
+    button:hover:not(:disabled) { background:var(--forgeui-color-surface-hover); }
+    button:focus-visible { outline:2px solid var(--forgeui-color-primary); outline-offset:2px; }
+    button:disabled { opacity:0.5; cursor:not-allowed; }
+  `; }
+  render() {
+    const page = Math.max(1, Math.floor(Number(this.getBoundProp('page', this.getProp('page') ?? 1)) || 1));
+    const totalPages = Math.max(1, Math.floor(this.getNumber('totalPages', 1)));
+    const clamped = Math.min(page, totalPages);
+    const label = this.getString('label', `Page ${clamped} of ${totalPages}`);
+    const action = this.getString('action', 'page-change');
+    const setPage = (next: number) => {
+      const value = Math.min(totalPages, Math.max(1, next));
+      this.dispatchAction(action, { value, page: value, totalPages });
+    };
+    return html`
+      <div class="status" aria-live="polite">${label}</div>
+      <div class="controls">
+        <button type="button" aria-label="Previous page" ?disabled=${clamped <= 1} @click=${() => setPage(clamped - 1)}>‹</button>
+        <button type="button" aria-label="Next page" ?disabled=${clamped >= totalPages} @click=${() => setPage(clamped + 1)}>›</button>
+      </div>
+    `;
+  }
+}
+customElements.define('forgeui-pagination', ForgePagination);

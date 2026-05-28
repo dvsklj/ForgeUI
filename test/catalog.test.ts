@@ -11,7 +11,7 @@ describe('isValidComponentType', () => {
       'Button', 'ButtonGroup', 'Link',
       'Table', 'List', 'Chart', 'Metric', 'StatCard', 'KpiGrid',
       'Alert', 'Dialog', 'Progress', 'Toast',
-      'Breadcrumb', 'Stepper',
+      'Breadcrumb', 'Stepper', 'SearchBox', 'Pagination',
       'Drawing',
     ];
     for (const type of expectedTypes) {
