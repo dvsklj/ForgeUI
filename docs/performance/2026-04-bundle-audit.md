@@ -74,12 +74,16 @@ Standalone gzipped size of each runtime dependency (esbuild bundle of the dep's 
 
 ## Per-component cost (if measurable)
 
-Not individually measurable. All 39 components are implemented in two files:
+Not individually measurable in the original audit snapshot. At that point, all
+39 components were implemented in two files:
 
 - `src/components/base.ts` — 5.2 KB (base class)
 - `src/components/index.ts` — 67.6 KB (all 39 components barrel-exported in one file, 1,324 lines)
 
-The esbuild metafile resolves `src/components/index.ts` as a single input. There is no per-component file boundary, so per-component gzipped cost cannot be determined from the bundle analysis. The 39 components registered via `customElements.define()` are:
+The esbuild metafile resolved `src/components/index.ts` as a single input.
+There was no per-component file boundary, so per-component gzipped cost could
+not be determined from that bundle analysis. The 39 components registered via
+`customElements.define()` were:
 
 ```
 forgeui-stack  forgeui-grid  forgeui-card  forgeui-container  forgeui-tabs
@@ -93,7 +97,9 @@ forgeui-alert  forgeui-dialog  forgeui-progress  forgeui-toast
 forgeui-breadcrumb  forgeui-stepper  forgeui-error  forgeui-drawing
 ```
 
-The architecture doc (§4) claims 37 components (18 core + 19 extended). The current codebase has 39 — `forgeui-error` and `forgeui-drawing` were added without an apparent catalog-tier assignment.
+The architecture doc (§4) claimed 37 components (18 core + 19 extended). The
+codebase had 39 — `forgeui-error` and `forgeui-drawing` had been added without
+an apparent catalog-tier assignment.
 
 ## Reconciling with docs/architecture.md
 
