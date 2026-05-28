@@ -1,1 +1,1 @@
-export { ForgeDrawing } from '../forgeui-components.js';
+export * from '../forgeui-components.js';

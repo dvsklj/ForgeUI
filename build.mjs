@@ -62,10 +62,12 @@ function writeComponentEntrypoints({ typesOnly = false } = {}) {
         `export { ${className} } from '../forgeui-components.js';\n`,
       );
     }
-    writeFileSync(
-      `packages/runtime/components/${componentName}.d.ts`,
-      `export { ${className} } from './index.js';\n`,
-    );
+    if (!modules.includes(componentName)) {
+      writeFileSync(
+        `packages/runtime/components/${componentName}.d.ts`,
+        `export { ${className} } from './index.js';\n`,
+      );
+    }
   }
 
   if (!typesOnly) {
