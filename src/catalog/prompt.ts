@@ -142,6 +142,7 @@ function buildDefaultPrompt(): string {
     '  Breadcrumb(items: [{label, view?}])',
     '  Stepper(steps: [{label, description?}], activeStep: $state:path, variant: "horizontal"|"vertical")',
     '  SearchBox(label?, placeholder?, bind: $state:path)',
+    '  SegmentedControl(label?, options: [{label, value}], value|bind)',
     '  Pagination(page|$binding, totalPages, label?)',
     '',
     'DRAWING:',

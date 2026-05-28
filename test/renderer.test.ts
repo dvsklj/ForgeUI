@@ -146,7 +146,7 @@ describe('renderElement', () => {
       'Button', 'ButtonGroup', 'Link',
       'Table', 'List', 'Chart', 'Metric', 'StatCard', 'KpiGrid',
       'Alert', 'Dialog', 'Progress', 'Toast',
-      'Breadcrumb', 'Stepper', 'SearchBox', 'Pagination',
+      'Breadcrumb', 'Stepper', 'SearchBox', 'SegmentedControl', 'Pagination',
       'Drawing',
     ];
     for (const type of types) {
