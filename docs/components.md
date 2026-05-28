@@ -1,6 +1,6 @@
 # Component Catalog
 
-All 45 manifest components available in Forge, organized by category.
+All 47 manifest components available in Forge, organized by category.
 
 ---
 
@@ -540,6 +540,79 @@ Tabbed container.
 | `activeTab` | string | — | Initially active tab ID |
 
 Child containers must use `"slot"` prop matching the tab ID.
+
+### Breadcrumb
+
+Linked path trail.
+
+```json
+{
+  "type": "Breadcrumb",
+  "props": {
+    "items": [
+      { "label": "Projects", "href": "/projects" },
+      { "label": "Launch Plan" }
+    ]
+  }
+}
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `items` | array | `[]` | String labels or `{label, href}` items |
+
+### Stepper
+
+Progress indicator for ordered workflows.
+
+```json
+{
+  "type": "Stepper",
+  "props": { "steps": ["Plan", "Build", "Ship"], "activeStep": 1 }
+}
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `steps` | array | `[]` | Step labels or objects |
+| `activeStep` | number | `0` | Active step index |
+
+### SearchBox
+
+Search input for filtering lists, tables, and app navigation.
+
+```json
+{
+  "type": "SearchBox",
+  "props": { "label": "Search", "placeholder": "Find issues", "bind": "$state:filters/query" }
+}
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `label` | string | `"Search"` | Input label |
+| `placeholder` | string | `"Search"` | Placeholder text |
+| `value` | string | — | Current query |
+| `bind` | string | — | State binding updated on input |
+| `disabled` | boolean | `false` | Disabled state |
+
+### Pagination
+
+Previous/next page control.
+
+```json
+{
+  "type": "Pagination",
+  "props": { "page": "$state:table/page", "totalPages": 8 }
+}
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `page` | number | `1` | Current page |
+| `totalPages` | number | `1` | Total page count |
+| `label` | string | `"Page n of m"` | Status text |
+| `bind` | string | — | State binding updated when page changes |
 
 ### Dialog
 

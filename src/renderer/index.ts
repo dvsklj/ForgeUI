@@ -83,6 +83,8 @@ export function renderElement(elementId: string, ctx: RenderContext): TemplateRe
       case 'Toast':    return html`<forgeui-toast .props=${resolvedProps} .store=${ctx.store}></forgeui-toast>`;
       case 'Breadcrumb':return html`<forgeui-breadcrumb .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-breadcrumb>`;
       case 'Stepper':  return html`<forgeui-stepper .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}>${children}</forgeui-stepper>`;
+      case 'SearchBox':return html`<forgeui-search-box .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-search-box>`;
+      case 'Pagination':return html`<forgeui-pagination .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-pagination>`;
       case 'Drawing':  return html`<forgeui-drawing .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-drawing>`;
       default:         return html`<forgeui-error .props=${({ msg: `Unknown: ${type}` })} .store=${ctx.store}></forgeui-error>`;
     }

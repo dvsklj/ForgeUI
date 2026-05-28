@@ -140,6 +140,8 @@ function buildDefaultPrompt(): string {
     'NAVIGATION:',
     '  Breadcrumb(items: [{label, view?}])',
     '  Stepper(steps: [{label, description?}], activeStep: $state:path, variant: "horizontal"|"vertical")',
+    '  SearchBox(label?, placeholder?, bind: $state:path)',
+    '  Pagination(page|$binding, totalPages, label?)',
     '',
     'DRAWING:',
     '  Drawing(width, height, background?, shapes: Shape[])',
@@ -178,7 +180,7 @@ function buildDefaultPrompt(): string {
     '6. State paths use "/" separators: "view/active", "goals/calories".',
     '7. Actions are declarative — never write JavaScript.',
     '8. Keep manifests under 100KB.',
-    '9. Write mobile-safe layouts: Grid for metric cards, short labels, wrap:true for button rows.',
+    '9. Write mobile-safe layouts: KpiGrid for KPI cards, short labels, wrap:true for button rows.',
     '10. Prefer token gap/padding values (sm, md, lg) over raw numbers.',
     '11. If dark/light modes exist, include a visible bound Toggle so users can switch modes.'
   ].join('\n');
@@ -284,7 +286,7 @@ function buildFullPrompt(): string {
     '11. Data access is opt-in — set dataAccess.enabled: false (or omit) unless user wants LLM to read data.',
     '12. Prefer query over read — use forgeui_query_app_data for aggregates instead of forgeui_read_app_data.',
     '13. Never modify user data directly — read to reason, then update the manifest, not the records.',
-    '14. Write mobile-safe layouts: Grid for metric cards, short labels, wrap:true for horizontal button rows.',
+    '14. Write mobile-safe layouts: KpiGrid for KPI cards, short labels, wrap:true for horizontal button rows.',
     '15. Prefer token gap/padding values (sm, md, lg) over raw numbers.',
     '16. If dark/light modes exist, include a visible bound Toggle so users can switch modes.'
   ].join('\n');

@@ -23,8 +23,8 @@ export type ComponentType =
   | 'Table' | 'List' | 'Chart' | 'Metric' | 'StatCard' | 'KpiGrid'
   // Feedback (4)
   | 'Alert' | 'Dialog' | 'Progress' | 'Toast'
-  // Navigation (2)
-  | 'Breadcrumb' | 'Stepper'
+  // Navigation (4)
+  | 'Breadcrumb' | 'Stepper' | 'SearchBox' | 'Pagination'
   // Drawing (1)
   | 'Drawing';
 

@@ -7,7 +7,7 @@
 
 import type { ComponentType, ComponentCategory } from '../types/index.js';
 
-/** Category mapping for all 45 manifest components */
+/** Category mapping for all 47 manifest components */
 export const componentCategories: Record<ComponentType, ComponentCategory> = {
   Stack: 'layout', Grid: 'layout', Card: 'layout', Container: 'layout',
   Tabs: 'layout', Accordion: 'layout', Divider: 'layout', Spacer: 'layout', Repeater: 'layout',
@@ -24,7 +24,7 @@ export const componentCategories: Record<ComponentType, ComponentCategory> = {
   
   Alert: 'feedback', Dialog: 'feedback', Progress: 'feedback', Toast: 'feedback',
   
-  Breadcrumb: 'navigation', Stepper: 'navigation',
+  Breadcrumb: 'navigation', Stepper: 'navigation', SearchBox: 'navigation', Pagination: 'navigation',
 
   Drawing: 'drawing',
 };
@@ -37,7 +37,7 @@ export const componentsByCategory: Record<ComponentCategory, ComponentType[]> = 
   action: ['Button', 'ButtonGroup', 'Link'],
   data: ['Table', 'List', 'Chart', 'Metric', 'StatCard', 'KpiGrid'],
   feedback: ['Alert', 'Dialog', 'Progress', 'Toast'],
-  navigation: ['Breadcrumb', 'Stepper'],
+  navigation: ['Breadcrumb', 'Stepper', 'SearchBox', 'Pagination'],
   drawing: ['Drawing'],
 };
 

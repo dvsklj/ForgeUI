@@ -89,7 +89,7 @@ describe('LLM Reliability — Manifest Structure', () => {
       'Button', 'ButtonGroup', 'Link',
       'Table', 'List', 'Chart', 'Metric', 'StatCard', 'KpiGrid',
       'Alert', 'Dialog', 'Progress', 'Toast',
-      'Breadcrumb', 'Stepper', 'Drawing',
+      'Breadcrumb', 'Stepper', 'SearchBox', 'Pagination', 'Drawing',
     ];
     for (const type of types) {
       const m = valid({

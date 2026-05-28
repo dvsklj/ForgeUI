@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import '../src/components/index.js';
 
 async function mount(tag: string, props: Record<string, unknown>) {
@@ -32,5 +32,44 @@ describe('navigation components', () => {
     expect(el.shadowRoot!.querySelectorAll('.step')).toHaveLength(3);
     expect(el.shadowRoot!.querySelectorAll('.step[completed]')).toHaveLength(1);
     expect(el.shadowRoot!.querySelectorAll('.step[active]')).toHaveLength(1);
+  });
+
+  it('registers SearchBox and dispatches query changes', async () => {
+    expect(customElements.get('forgeui-search-box')).toBeDefined();
+    const el = await mount('forgeui-search-box', {
+      label: 'Search issues',
+      placeholder: 'Find by title',
+      action: 'search',
+    });
+    const onAction = vi.fn();
+    el.onAction = onAction;
+
+    const input = el.shadowRoot!.querySelector('input')!;
+    input.value = 'billing';
+    input.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+    expect(el.shadowRoot!.querySelector('label')!.textContent).toBe('Search issues');
+    expect(onAction).toHaveBeenCalledWith('search', { value: 'billing', query: 'billing' });
+  });
+
+  it('registers Pagination and dispatches page changes', async () => {
+    expect(customElements.get('forgeui-pagination')).toBeDefined();
+    const el = await mount('forgeui-pagination', { page: 2, totalPages: 4 });
+    const onAction = vi.fn();
+    el.onAction = onAction;
+
+    const buttons = el.shadowRoot!.querySelectorAll('button');
+    buttons[1].click();
+
+    expect(el.shadowRoot!.textContent).toContain('Page 2 of 4');
+    expect(onAction).toHaveBeenCalledWith('page-change', { value: 3, page: 3, totalPages: 4 });
+  });
+
+  it('disables pagination at range edges', async () => {
+    const el = await mount('forgeui-pagination', { page: 1, totalPages: 1 });
+    const buttons = el.shadowRoot!.querySelectorAll('button');
+
+    expect(buttons[0].disabled).toBe(true);
+    expect(buttons[1].disabled).toBe(true);
   });
 });
