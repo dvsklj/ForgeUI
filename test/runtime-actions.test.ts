@@ -51,6 +51,23 @@ describe('runtime declarative actions', () => {
     expect(app.getManifest()?.elements.dialog.props?.open).toBe(false);
   });
 
+  it('closes the most recently opened dialog from Dialog close events', async () => {
+    const app = await mountApp(manifest({
+      actions: {
+        showDialog: { type: 'openDialog', target: 'dialog' },
+      },
+    }));
+
+    app.dispatchAction('showDialog');
+    await app.updateComplete;
+    expect(app.getManifest()?.elements.dialog.props?.open).toBe(true);
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await app.updateComplete;
+
+    expect(app.getManifest()?.elements.dialog.props?.open).toBe(false);
+  });
+
   it('renders transient toasts from toast actions', async () => {
     vi.useFakeTimers();
     const app = await mountApp(manifest({

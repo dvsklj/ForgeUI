@@ -289,11 +289,15 @@ export class ForgeUIApp extends LitElement {
       }
     }
 
-    if (!manifest.actions) return;
+    if (!manifest.actions) {
+      if (this._handleImplicitDialogClose(actionId)) this.requestUpdate();
+      return;
+    }
 
     const action = manifest.actions[actionId];
     if (!action && handledBind) return;
     if (!action) {
+      if (this._handleImplicitDialogClose(actionId)) return;
       console.warn(`[Forge] Unknown action: ${actionId}`);
       return;
     }
@@ -368,6 +372,14 @@ export class ForgeUIApp extends LitElement {
         }));
       }
     }
+  }
+
+  private _handleImplicitDialogClose(actionId: string): boolean {
+    if (actionId !== 'close') return false;
+    const target = this._openDialogs[this._openDialogs.length - 1] || '';
+    if (!target) return false;
+    this._setDialogOpen(target, false);
+    return true;
   }
 
   private _setDialogOpen(elementId: string, open: boolean) {

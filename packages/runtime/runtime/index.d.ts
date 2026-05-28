@@ -59,6 +59,7 @@ export declare class ForgeUIApp extends LitElement {
     getPersistenceStatus(): PersisterStatus | null;
     private _emitPersist;
     private _handleAction;
+    private _handleImplicitDialogClose;
     private _setDialogOpen;
     private _showToast;
     private _callApi;
