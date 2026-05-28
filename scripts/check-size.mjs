@@ -5,7 +5,7 @@
 import { readFileSync, statSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 
-const BUDGET_BYTES = 55_500; // Covers runtime validation and interactive form controls.
+const BUDGET_BYTES = 56_000; // Covers runtime validation plus interactive form and table controls.
 
 const path = 'dist/forgeui.js';
 let raw;

@@ -126,7 +126,7 @@ Empty space element.
 
 ### Table
 
-Data table with typed columns.
+Data table with typed columns, optional search, sorting, and pagination.
 
 ```json
 {
@@ -134,10 +134,12 @@ Data table with typed columns.
   "props": {
     "data": { "$expr": "state.data.items | values" },
     "columns": [
-      { "key": "name", "label": "Name", "type": "text" },
+      { "key": "name", "label": "Name", "type": "text", "sortable": true },
       { "key": "status", "label": "Status", "type": "badge", "badgeMap": { "active": "success", "inactive": "error" } },
       { "key": "count", "label": "Count", "type": "number" }
     ],
+    "searchable": true,
+    "pageSize": 10,
     "selectable": true
   }
 }
@@ -147,7 +149,11 @@ Data table with typed columns.
 |------|------|---------|-------------|
 | `data` | array or expr | `[]` | Array of row objects |
 | `columns` | array | `[]` | Column definitions |
+| `searchable` | boolean | `false` | Show a table-wide search input |
+| `pageSize` | number | `0` | Rows per page; `0` disables pagination |
 | `selectable` | boolean | `false` | Enable row selection |
+| `rowAction` | string | — | Action dispatched when a row is clicked or keyboard-activated |
+| `caption` | string | — | Accessible table caption |
 
 **Column definition:**
 
@@ -156,6 +162,7 @@ Data table with typed columns.
 | `key` | string | Property name in row data |
 | `label` | string | Header text |
 | `type` | string | `"text"`, `"number"`, `"badge"`, `"date"` |
+| `sortable` | boolean | Enable header click sorting for this column |
 | `badgeMap` | object | Value→variant mapping (only for `type: "badge"`) |
 
 ### Chart
