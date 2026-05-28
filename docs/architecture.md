@@ -166,7 +166,7 @@ happens to existing manifests when the format changes.
 
 ### Catalog: core vs extended
 
-The manifest catalog today is **38 components**. The runtime registers 39
+The manifest catalog today is **39 components**. The runtime registers 40
 custom elements because `forgeui-error` is an internal fallback element, not a
 manifest component. For LLM reliability and testing discipline, we split the
 catalog into two tiers:
@@ -559,13 +559,13 @@ payloads. This flips the loop from LLM-polls-app to app-pushes-LLM.
 
 | Bundle                | Raw    | Gzip    | Use case                      |
 |-----------------------|--------|---------|-------------------------------|
-| IIFE (CDN)            | 185 KB | 55.5 KB | `<script>`-tag, zero build    |
+| IIFE (CDN)            | 192 KB | 56.5 KB | `<script>`-tag, zero build    |
 | ESM standalone        | 119 KB | 28 KB   | Modern bundler, whole runtime |
 | ESM per-component     | 70 KB  | 16 KB   | Tree-shaking consumers        |
 
 The IIFE now ships Lit, TinyBase, components, the precompiled Ajv
 standalone validator function, and small Ajv runtime helpers — no Zod, no
-Ajv compiler. The 55.5 KB gzip budget is enforced in CI via
+Ajv compiler. The 56.5 KB gzip budget is enforced in CI via
 `scripts/check-size.mjs`.
 
 This is the *Core* runtime only — server and connector are separate
@@ -586,7 +586,7 @@ import '@nedast/forgeui-runtime/components/table';             // +~2 KB gz
 `sideEffects` is narrowly scoped to component registration files so
 tree-shakers keep everything else. Goal: a consumer importing only core
 components pays ≤25 KB gzipped; a consumer importing everything pays
-the full ~28 KB ESM bundle (or ~55.5 KB IIFE on CDN). This is what makes growing the catalog cheap for us
+the full ~28 KB ESM bundle (or ~56.5 KB IIFE on CDN). This is what makes growing the catalog cheap for us
 and for them.
 
 ### Size discipline
@@ -600,8 +600,8 @@ The IIFE shipped at 95 KB gzip before the Ajv precompilation and Zod
 extraction work (2026-04-17). Zod was removed from the runtime bundle
 entirely — catalog schemas now validate at build time and the IIFE imports
 pre-generated data. Ajv's compiler was replaced with a precompiled
-standalone validator function, saving ~34 KB gzip. The IIFE is now ~46 KB
-gzip with a 55.5 KB ceiling enforced in CI. The aspirational ~40 KB target
+standalone validator function, saving ~34 KB gzip. The IIFE is now ~56 KB
+gzip with a 56.5 KB ceiling enforced in CI. The aspirational ~40 KB target
 from early development is within reach but not worth chasing — the remaining
 budget is better spent on components and features than on shaving the last
 few KB of third-party dep wiring. See
@@ -616,7 +616,7 @@ Both under-counted reality. The numbers below are honest.
 
 ### Phase 1 — MVP (shipped)
 
-Core runtime, Ring 2 server, MCP connector, 38 manifest components plus the
+Core runtime, Ring 2 server, MCP connector, 39 manifest components plus the
 internal error element, validation pipeline, design tokens, benchmarks, A2UI
 ingest. Remaining cleanup: chart z-index bug.
 

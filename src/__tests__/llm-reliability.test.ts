@@ -84,7 +84,7 @@ describe('LLM Reliability — Manifest Structure', () => {
     const types = [
       'Stack', 'Grid', 'Card', 'Container', 'Tabs', 'Accordion', 'Divider', 'Spacer',
       'Text', 'Image', 'Icon', 'Badge', 'Avatar', 'EmptyState',
-      'TextInput', 'NumberInput', 'Select', 'MultiSelect', 'Checkbox', 'Toggle',
+      'TextInput', 'NumberInput', 'Select', 'MultiSelect', 'RadioGroup', 'Checkbox', 'Toggle',
       'DatePicker', 'Slider', 'FileUpload',
       'Button', 'ButtonGroup', 'Link',
       'Table', 'List', 'Chart', 'Metric',

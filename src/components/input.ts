@@ -141,6 +141,45 @@ export class ForgeMultiSelect extends ForgeUIElement {
 }
 customElements.define('forgeui-multi-select', ForgeMultiSelect);
 
+export class ForgeRadioGroup extends ForgeUIElement {
+  static get styles() { return css`
+    :host { display:block; margin-bottom:var(--forgeui-space-sm); }
+    fieldset { border:0; padding:0; margin:0; min-width:0; }
+    legend { font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); color:var(--forgeui-color-text); }
+    .options { display:flex; flex-direction:column; gap:var(--forgeui-space-xs); }
+    label { display:flex; align-items:center; gap:var(--forgeui-space-xs); font-size:var(--forgeui-text-sm); color:var(--forgeui-color-text); cursor:pointer; overflow-wrap:anywhere; }
+    input { width:1.125rem; height:1.125rem; accent-color:var(--forgeui-color-primary); flex:0 0 auto; }
+    .hint { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-text-tertiary); margin-top:var(--forgeui-space-2xs); }
+  `; }
+  render() {
+    const label = this.getString('label', '');
+    const hint = this.getString('hint', '');
+    const options = (this.getProp('options') || []) as any[];
+    const val = String(this.getBoundProp('value', '') ?? '');
+    const disabled = this.getBool('disabled');
+    const name = this._instanceId;
+    return html`
+      <fieldset ?disabled=${disabled}>
+        ${label ? html`<legend>${label}</legend>` : nothing}
+        <div class="options">
+          ${options.map((option: any, i: number) => {
+            const value = String(typeof option === 'string' ? option : option?.value ?? option?.label ?? '');
+            const text = String(typeof option === 'string' ? option : option?.label ?? value);
+            const id = `${name}-${i}`;
+            return html`<label for=${id}>
+              <input id=${id} type="radio" name=${name} value=${value} ?checked=${value === val}
+                @change=${(e: Event) => this.dispatchAction('change', { value: (e.target as HTMLInputElement).value })}>
+              <span>${text}</span>
+            </label>`;
+          })}
+        </div>
+      </fieldset>
+      ${hint ? html`<div class="hint">${hint}</div>` : nothing}
+    `;
+  }
+}
+customElements.define('forgeui-radio-group', ForgeRadioGroup);
+
 export class ForgeCheckbox extends ForgeUIElement {
   static get styles() { return css`
     :host { display:flex; align-items:center; gap:var(--forgeui-space-xs); margin-bottom:var(--forgeui-space-xs); cursor:pointer; }
