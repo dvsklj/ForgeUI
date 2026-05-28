@@ -188,6 +188,7 @@ export interface ForgeEvents {
     'forgeui-action': CustomEvent<{
         action: string;
         payload?: Record<string, unknown>;
+        definition?: ForgeUIAction;
     }>;
     'forgeui-action-result': CustomEvent<{
         action: string;
@@ -214,6 +215,9 @@ export interface ForgeEvents {
         state: 'disabled' | 'loading' | 'ready' | 'failed';
         status: unknown;
         error?: string;
+    }>;
+    'forgeui-submit': CustomEvent<{
+        submitted: true;
     }>;
     'forgeui-state-change': CustomEvent<{
         path: string;

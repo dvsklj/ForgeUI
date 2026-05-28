@@ -210,6 +210,11 @@ Where behavior cannot be expressed declaratively, the right answer is
 either a new action type (audited, documented, shipped in the renderer)
 or a new component — never a code-escape hatch.
 
+The supported action types are `mutateState`, `navigate`, `openDialog`,
+`closeDialog`, `toast`, `callApi`, and `custom`. Manifest validation rejects
+unknown action types, malformed action entries, unsupported mutation
+operations, and unsupported API methods before rendering.
+
 ### Incremental updates
 
 When the LLM modifies an existing app it emits a JSON Merge Patch (RFC 7396).
@@ -292,17 +297,15 @@ handle the manifest shape itself — the structural keys Forge reads.
 
 - The runtime reads `manifest.manifest` (the version field) first.
 - Every minor version (0.1 → 0.2 → 0.3) ships a manifest-format migration
-  in the renderer. Old manifests are transformed in memory before
+  in the renderer. Earlier manifest shapes are transformed in memory before
   validation runs against the current JSON Schema.
 - The migration chain is versioned alongside the renderer; no user action
   required.
 - **Commitment:** for the duration of 0.x, every minor release ships a
-  migration from the previous minor. We do not break old manifests without
-  a migration path.
+  migration from the previous minor.
 
 When we move to 1.0.0, the format-migration policy becomes: every release
-must ship a migration from the previous **major**. Minor and patch
-releases are backward compatible by definition.
+must ship a migration from the previous **major**.
 
 ### File handling in browser-only mode
 
