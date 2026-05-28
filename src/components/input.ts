@@ -73,6 +73,46 @@ export class ForgeTextarea extends ForgeUIElement {
 }
 customElements.define('forgeui-textarea', ForgeTextarea);
 
+export class ForgeForm extends ForgeUIElement {
+  static get styles() { return css`
+    :host { display:block; min-width:0; }
+    form { display:flex; flex-direction:column; gap:var(--forgeui-space-md); min-width:0; }
+  `; }
+  render() {
+    const action = this.getString('action', '');
+    return html`<form @submit=${(event: SubmitEvent) => {
+      event.preventDefault();
+      const payload = { submitted: true };
+      if (action) this.dispatchAction(action, payload);
+      this.dispatchEvent(new CustomEvent('forgeui-submit', { detail: payload, bubbles: true, composed: true }));
+    }}><slot></slot></form>`;
+  }
+}
+customElements.define('forgeui-form', ForgeForm);
+
+export class ForgeFieldGroup extends ForgeUIElement {
+  static get styles() { return css`
+    :host { display:block; min-width:0; }
+    fieldset { border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md); padding:var(--forgeui-space-md); margin:0; min-width:0; }
+    legend { padding:0 var(--forgeui-space-2xs); color:var(--forgeui-color-text); font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-semibold); }
+    .body { display:flex; flex-direction:column; gap:var(--forgeui-space-sm); }
+    .description { color:var(--forgeui-color-text-tertiary); font-size:var(--forgeui-text-xs); margin-bottom:var(--forgeui-space-sm); }
+    .error { color:var(--forgeui-color-error); font-size:var(--forgeui-text-xs); margin-top:var(--forgeui-space-sm); }
+  `; }
+  render() {
+    const label = this.getString('label', '');
+    const description = this.getString('description', '');
+    const error = this.getString('error', '');
+    return html`<fieldset>
+      ${label ? html`<legend>${label}</legend>` : nothing}
+      ${description ? html`<div class="description">${description}</div>` : nothing}
+      <div class="body"><slot></slot></div>
+      ${error ? html`<div class="error">${error}</div>` : nothing}
+    </fieldset>`;
+  }
+}
+customElements.define('forgeui-field-group', ForgeFieldGroup);
+
 export class ForgeNumberInput extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; flex:1 1 auto; min-width:0; max-width:100%; margin-bottom:var(--forgeui-space-sm); }

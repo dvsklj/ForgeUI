@@ -79,7 +79,7 @@ describe('validateManifest — schema validation', () => {
     const types = [
       'Stack', 'Grid', 'Card', 'Container', 'Tabs', 'Accordion', 'Divider', 'Spacer', 'Repeater',
       'Text', 'Image', 'Icon', 'Badge', 'Avatar', 'EmptyState',
-      'TextInput', 'Textarea', 'NumberInput', 'Select', 'MultiSelect', 'RadioGroup', 'Checkbox', 'Toggle', 'DatePicker', 'Slider', 'FileUpload',
+      'Form', 'FieldGroup', 'TextInput', 'Textarea', 'NumberInput', 'Select', 'MultiSelect', 'RadioGroup', 'Checkbox', 'Toggle', 'DatePicker', 'Slider', 'FileUpload',
       'Button', 'ButtonGroup', 'Link',
       'Table', 'List', 'Chart', 'Metric',
       'Alert', 'Dialog', 'Progress', 'Toast',
@@ -588,6 +588,8 @@ describe('validateManifest — per-component prop validation', () => {
         table: { type: 'Table', props: { data: [], columns: [], selectable: true, searchable: true, pageSize: 10, rowAction: 'selectRow', caption: 'Results' } },
         chart: { type: 'Chart', props: { title: 'Revenue', data: [], chartType: 'bar', color: '#2563eb', yFormat: '$', labelKey: 'month', valueKey: 'revenue' } },
         metric: { type: 'Metric', props: { label: 'Revenue', value: '$299K', trend: 'up', trendLabel: 'QoQ', unit: 'USD', subtitle: '+12%' } },
+        form: { type: 'Form', props: { action: 'saveForm' } },
+        fieldGroup: { type: 'FieldGroup', props: { label: 'Contact', description: 'Primary details', error: 'Required' } },
         textInput: { type: 'TextInput', props: { label: 'Email', hint: 'Use work email', error: 'Required', type: 'email', inputType: 'email' } },
         textarea: { type: 'Textarea', props: { label: 'Notes', placeholder: 'Details', value: 'Draft', rows: 4, maxLength: 280, hint: 'Optional' } },
         radioGroup: { type: 'RadioGroup', props: { label: 'Priority', options: ['Low', 'High'], value: 'Low', hint: 'Pick one' } },
@@ -595,7 +597,7 @@ describe('validateManifest — per-component prop validation', () => {
         dialog: { type: 'Dialog', props: { title: 'Details', open: false } },
         progress: { type: 'Progress', props: { value: 40, max: 100, showValue: true } },
       },
-      actions: { selectRow: { type: 'custom' } },
+      actions: { selectRow: { type: 'custom' }, saveForm: { type: 'custom' } },
     }));
     expect(result.valid).toBe(true);
   });

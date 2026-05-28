@@ -54,6 +54,8 @@ export function renderElement(elementId: string, ctx: RenderContext): TemplateRe
       case 'Badge':    return html`<forgeui-badge .props=${resolvedProps} .store=${ctx.store}></forgeui-badge>`;
       case 'Avatar':   return html`<forgeui-avatar .props=${resolvedProps} .store=${ctx.store}></forgeui-avatar>`;
       case 'EmptyState':return html`<forgeui-empty-state .props=${resolvedProps} .store=${ctx.store}></forgeui-empty-state>`;
+      case 'Form':     return html`<forgeui-form .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}>${children}</forgeui-form>`;
+      case 'FieldGroup':return html`<forgeui-field-group .props=${resolvedProps} .store=${ctx.store}>${children}</forgeui-field-group>`;
       case 'TextInput':return html`<forgeui-text-input .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-text-input>`;
       case 'Textarea': return html`<forgeui-textarea .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-textarea>`;
       case 'NumberInput':return html`<forgeui-number-input .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-number-input>`;

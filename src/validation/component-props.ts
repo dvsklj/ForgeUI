@@ -20,6 +20,8 @@ const defs: Record<ComponentType, string[]> = {
   Badge: [...SHARED, 'text', 'label', 'colorScheme', 'variant'],
   Avatar: [...SHARED, 'src', 'name', 'size'],
   EmptyState: [...SHARED, 'title', 'description', 'icon', 'actionLabel'],
+  Form: [...SHARED, 'action'],
+  FieldGroup: [...SHARED, 'label', 'description', 'error'],
   TextInput: [...SHARED, ...INPUT_BASE, 'placeholder', 'hint', 'error', 'multiline', 'required', 'maxLength', 'type', 'inputType'],
   Textarea: [...SHARED, ...INPUT_BASE, 'placeholder', 'hint', 'error', 'required', 'maxLength', 'rows', 'disabled'],
   NumberInput: [...SHARED, ...INPUT_BASE, 'min', 'max', 'step', 'required'],

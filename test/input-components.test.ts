@@ -5,6 +5,8 @@ import '../src/components/index.js';
 
 describe('input components', () => {
   it('registers input primitives from the aggregate entrypoint', () => {
+    expect(customElements.get('forgeui-form')).toBeDefined();
+    expect(customElements.get('forgeui-field-group')).toBeDefined();
     expect(customElements.get('forgeui-text-input')).toBeDefined();
     expect(customElements.get('forgeui-textarea')).toBeDefined();
     expect(customElements.get('forgeui-number-input')).toBeDefined();
@@ -16,6 +18,29 @@ describe('input components', () => {
     expect(customElements.get('forgeui-date-picker')).toBeDefined();
     expect(customElements.get('forgeui-slider')).toBeDefined();
     expect(customElements.get('forgeui-file-upload')).toBeDefined();
+  });
+
+  it('dispatches form submit actions', async () => {
+    const el = document.createElement('forgeui-form') as any;
+    const events: any[] = [];
+    el.props = { action: 'save' };
+    el.onAction = (action: string, payload: Record<string, unknown>) => events.push({ action, payload });
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    el.shadowRoot!.querySelector('form')!.dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true }));
+
+    expect(events).toEqual([{ action: 'save', payload: { submitted: true } }]);
+  });
+
+  it('renders field group label and description', async () => {
+    const el = document.createElement('forgeui-field-group') as any;
+    el.props = { label: 'Contact', description: 'How should we reach you?' };
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    expect(el.shadowRoot!.querySelector('legend')!.textContent).toBe('Contact');
+    expect(el.shadowRoot!.querySelector('.description')!.textContent).toBe('How should we reach you?');
   });
 
   it('dispatches textarea value changes', async () => {
