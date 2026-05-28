@@ -25,6 +25,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import {
   initDatabase,
+  setAppStorage,
   closeDatabase,
   createApp,
   getApp,
@@ -34,6 +35,7 @@ import {
   deleteApp,
   generateAppId,
 } from './db.js';
+import type { AppStorage } from './db.js';
 import type { ForgeUIManifest } from '../types/index.js';
 import { validateManifest, validateManifestPatch } from '../validation/index.js';
 import { createRateLimiter, type RateLimiter } from './rate-limit.js';
@@ -43,6 +45,8 @@ import { getClientIp } from './client-ip.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const VALID_APP_ID = /^[a-z0-9][a-z0-9\-_]{0,127}$/;
 
+export type { AppStorage } from './db.js';
+
 export interface ForgeServerOptions {
   /** Port to listen on (default: 3000) */
   port?: number;
@@ -50,6 +54,8 @@ export interface ForgeServerOptions {
   host?: string;
   /** Path to the SQLite database file (default: './forgeui.db') */
   dbPath?: string;
+  /** App storage adapter. Defaults to SQLite at dbPath. */
+  storage?: AppStorage;
   /** Base URL for shareable links (default: auto-detected) */
   baseUrl?: string;
 }
@@ -59,11 +65,15 @@ export function createForgeUIServer(options: ForgeServerOptions = {}) {
     port = 3000,
     host = '0.0.0.0',
     dbPath = './forgeui.db',
+    storage,
     baseUrl,
   } = options;
 
-  // Init database
-  initDatabase(dbPath);
+  if (storage) {
+    setAppStorage(storage);
+  } else {
+    initDatabase(dbPath);
+  }
 
   const app = new Hono();
 

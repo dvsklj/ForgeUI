@@ -51,6 +51,84 @@ export interface QueryAppDataResult {
 }
 
 let _db: Database.Database | null = null;
+let _storage: AppStorage | null = null;
+
+export interface AppStorage {
+  create(manifest: ForgeUIManifest): StoredApp;
+  get(id: string): StoredApp | null;
+  list(limit?: number, offset?: number): { apps: StoredApp[]; total: number };
+  update(id: string, manifest: ForgeUIManifest): StoredApp | null;
+  delete(id: string): boolean;
+  close?(): void;
+}
+
+class SQLiteAppStorage implements AppStorage {
+  constructor(private readonly db: Database.Database) {}
+
+  create(manifest: ForgeUIManifest): StoredApp {
+    const id = manifest.id;
+    const title = manifest.meta?.title || id;
+
+    this.db.prepare(`
+      INSERT INTO apps (id, title, manifest, created_at, updated_at)
+      VALUES (?, ?, ?, datetime('now'), datetime('now'))
+    `).run(id, title, JSON.stringify(manifest));
+
+    return this.get(id)!;
+  }
+
+  get(id: string): StoredApp | null {
+    const row = this.db.prepare('SELECT * FROM apps WHERE id = ?').get(id) as any;
+    if (!row) return null;
+
+    return {
+      id: row.id,
+      title: row.title,
+      manifest: JSON.parse(row.manifest),
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+    };
+  }
+
+  list(limit = 50, offset = 0): { apps: StoredApp[]; total: number } {
+    const total = (this.db.prepare('SELECT COUNT(*) as count FROM apps').get() as any).count;
+    const rows = this.db.prepare(
+      'SELECT * FROM apps ORDER BY updated_at DESC LIMIT ? OFFSET ?'
+    ).all(limit, offset) as any[];
+
+    return {
+      apps: rows.map(row => ({
+        id: row.id,
+        title: row.title,
+        manifest: JSON.parse(row.manifest),
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      })),
+      total,
+    };
+  }
+
+  update(id: string, manifest: ForgeUIManifest): StoredApp | null {
+    const title = manifest.meta?.title || id;
+
+    const result = this.db.prepare(`
+      UPDATE apps SET manifest = ?, title = ?, updated_at = datetime('now')
+      WHERE id = ?
+    `).run(JSON.stringify(manifest), title, id);
+
+    if (result.changes === 0) return null;
+    return this.get(id);
+  }
+
+  delete(id: string): boolean {
+    const result = this.db.prepare('DELETE FROM apps WHERE id = ?').run(id);
+    return result.changes > 0;
+  }
+
+  close(): void {
+    this.db.close();
+  }
+}
 
 export function initDatabase(dbPath: string = './forgeui.db'): Database.Database {
   if (_db) return _db;
@@ -70,6 +148,7 @@ export function initDatabase(dbPath: string = './forgeui.db'): Database.Database
     CREATE INDEX IF NOT EXISTS idx_apps_updated ON apps(updated_at DESC);
   `);
 
+  _storage = new SQLiteAppStorage(_db);
   return _db;
 }
 
@@ -79,10 +158,19 @@ export function getDatabase(): Database.Database {
 }
 
 export function closeDatabase(): void {
-  if (_db) {
-    _db.close();
-    _db = null;
-  }
+  _storage?.close?.();
+  _storage = null;
+  _db = null;
+}
+
+export function setAppStorage(storage: AppStorage): void {
+  closeDatabase();
+  _storage = storage;
+}
+
+export function getAppStorage(): AppStorage {
+  if (!_storage) throw new Error('App storage not initialized. Call initDatabase() or setAppStorage() first.');
+  return _storage;
 }
 
 /**
@@ -96,66 +184,23 @@ export function generateAppId(): string {
 
 /** Create an app. Returns the stored app with generated ID. */
 export function createApp(manifest: ForgeUIManifest): StoredApp {
-  const db = getDatabase();
-  const id = manifest.id || generateAppId();
-  const title = manifest.meta?.title || id;
-
-  db.prepare(`
-    INSERT INTO apps (id, title, manifest, created_at, updated_at)
-    VALUES (?, ?, ?, datetime('now'), datetime('now'))
-  `).run(id, title, JSON.stringify(manifest));
-
-  return getApp(id)!;
+  const storedManifest = manifest.id ? manifest : { ...manifest, id: generateAppId() };
+  return getAppStorage().create(storedManifest);
 }
 
 /** Get an app by ID. Returns null if not found. */
 export function getApp(id: string): StoredApp | null {
-  const db = getDatabase();
-  const row = db.prepare('SELECT * FROM apps WHERE id = ?').get(id) as any;
-  if (!row) return null;
-
-  return {
-    id: row.id,
-    title: row.title,
-    manifest: JSON.parse(row.manifest),
-    created_at: row.created_at,
-    updated_at: row.updated_at,
-  };
+  return getAppStorage().get(id);
 }
 
 /** List all apps, newest first. */
 export function listApps(limit = 50, offset = 0): { apps: StoredApp[]; total: number } {
-  const db = getDatabase();
-
-  const total = (db.prepare('SELECT COUNT(*) as count FROM apps').get() as any).count;
-  const rows = db.prepare(
-    'SELECT * FROM apps ORDER BY updated_at DESC LIMIT ? OFFSET ?'
-  ).all(limit, offset) as any[];
-
-  return {
-    apps: rows.map(row => ({
-      id: row.id,
-      title: row.title,
-      manifest: JSON.parse(row.manifest),
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-    })),
-    total,
-  };
+  return getAppStorage().list(limit, offset);
 }
 
 /** Update an app's manifest. Returns the updated app. */
 export function updateApp(id: string, manifest: ForgeUIManifest): StoredApp | null {
-  const db = getDatabase();
-  const title = manifest.meta?.title || id;
-
-  const result = db.prepare(`
-    UPDATE apps SET manifest = ?, title = ?, updated_at = datetime('now')
-    WHERE id = ?
-  `).run(JSON.stringify(manifest), title, id);
-
-  if (result.changes === 0) return null;
-  return getApp(id);
+  return getAppStorage().update(id, manifest);
 }
 
 /** Result of a transactional patch attempt. */
@@ -186,9 +231,7 @@ export function patchApp(
 
 /** Delete an app. Returns true if deleted. */
 export function deleteApp(id: string): boolean {
-  const db = getDatabase();
-  const result = db.prepare('DELETE FROM apps WHERE id = ?').run(id);
-  return result.changes > 0;
+  return getAppStorage().delete(id);
 }
 
 const MAX_READ_ROWS = 100;

@@ -95,7 +95,7 @@ Port, host, and database path are set via CLI flags (`--port`, `--host`, `--db`)
 
 **Single-instance** (SQLite): Good for < 1000 apps, single server. SQLite handles concurrent reads well; writes are serialized but fast.
 
-**Multi-instance**: For horizontal scaling, swap SQLite for PostgreSQL and use the `@nedast/forgeui-server` with a custom `db` adapter. The API surface is small (6 CRUD operations) so the swap is straightforward.
+**Multi-instance**: For horizontal scaling, provide `createForgeUIServer({ storage })` with an `AppStorage` adapter backed by PostgreSQL or another shared store. The adapter covers create, get, list, update, delete, and close.
 
 **CDN for runtime**: Serve `forgeui.js` from a CDN (Cloudflare, Fastly). The runtime is static and cacheable:
 
