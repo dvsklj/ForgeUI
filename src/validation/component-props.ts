@@ -41,6 +41,8 @@ const defs: Record<ComponentType, string[]> = {
   List: [...SHARED, 'dataPath', 'template', 'emptyMessage', 'dividers', 'items'],
   Chart: [...SHARED, ...BASE_TEXT, 'title', 'dataPath', 'xKey', 'yKey', 'labelKey', 'valueKey', 'chartType', 'color', 'colorScheme', 'height', 'data', 'yFormat'],
   Metric: [...SHARED, ...BASE_TEXT, 'format', 'goal', 'trend', 'trendLabel', 'prefix', 'suffix', 'unit', 'subtitle'],
+  StatCard: [...SHARED, ...BASE_TEXT, 'trend', 'trendLabel', 'unit', 'subtitle'],
+  KpiGrid: [...SHARED, 'columns', 'gap'],
   Alert: [...SHARED, 'title', 'message', 'variant', 'dismissible'],
   Dialog: [...SHARED, 'title', 'trigger', 'confirmLabel', 'cancelLabel', 'open'],
   Progress: [...SHARED, ...BASE_TEXT, 'max', 'size', 'showValue'],

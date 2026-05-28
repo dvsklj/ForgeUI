@@ -1,6 +1,6 @@
 # Component Catalog
 
-All 43 manifest components available in Forge, organized by category.
+All 45 manifest components available in Forge, organized by category.
 
 ---
 
@@ -217,6 +217,50 @@ KPI card with trend indicator.
 | `trend` | string | — | `"up"`, `"down"`, or omit |
 | `subtitle` | string | — | Secondary text |
 | `unit` | string | — | Unit label |
+
+### StatCard
+
+Compact dashboard statistic card with trend and supporting context.
+
+```json
+{
+  "type": "StatCard",
+  "props": {
+    "label": "Revenue",
+    "value": "$299K",
+    "trend": "up",
+    "trendLabel": "+12%",
+    "subtitle": "vs last period",
+    "unit": "USD"
+  }
+}
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `label` | string | — | Statistic name |
+| `value` | string or number | — | Display value |
+| `trend` | string | — | `"up"`, `"down"`, `"positive"`, `"negative"`, `+...`, `-...`, or omit |
+| `trendLabel` | string | — | Trend text, such as `"+12%"` |
+| `subtitle` | string | — | Secondary context |
+| `unit` | string | — | Unit label |
+
+### KpiGrid
+
+Responsive grid for dashboard KPI and stat cards.
+
+```json
+{
+  "type": "KpiGrid",
+  "props": { "columns": 4, "gap": "md" },
+  "children": ["revenue", "orders", "conversion", "churn"]
+}
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `columns` | number | auto-fit | Fixed column count; omit for responsive auto-fit |
+| `gap` | string | `"md"` | CSS gap token or value |
 
 ### Text
 
@@ -582,8 +626,8 @@ Always use design tokens instead of raw CSS values. This ensures consistency, ac
 
 Forge components adapt automatically, but manifests should be written with mobile in mind:
 
-- Use `Grid` for KPI cards; it collapses to 1 column on narrow screens.
-- Keep `Metric` labels short so they wrap gracefully.
+- Use `KpiGrid` for dashboard KPI cards; omit `columns` when cards should auto-fit.
+- Keep `Metric` and `StatCard` labels short so they wrap gracefully.
 - Use `Stack` with `wrap` for horizontal button rows.
 - Avoid fixed widths; let containers fill available space.
 

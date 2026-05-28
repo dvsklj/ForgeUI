@@ -17,6 +17,28 @@ describe('data components', () => {
     expect(customElements.get('forgeui-list')).toBeDefined();
     expect(customElements.get('forgeui-chart')).toBeDefined();
     expect(customElements.get('forgeui-metric')).toBeDefined();
+    expect(customElements.get('forgeui-stat-card')).toBeDefined();
+    expect(customElements.get('forgeui-kpi-grid')).toBeDefined();
+  });
+
+  it('renders stat cards with values and trends', async () => {
+    const el = document.createElement('forgeui-stat-card') as any;
+    el.props = { label: 'Revenue', value: 299000, trend: 'up', trendLabel: '+12%', subtitle: 'vs last period' };
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    expect(el.shadowRoot!.textContent).toContain('Revenue');
+    expect(el.shadowRoot!.textContent).toContain('299,000');
+    expect(el.shadowRoot!.querySelector('.trend.up')!.textContent).toContain('+12%');
+  });
+
+  it('renders KPI grid slots with configured columns', async () => {
+    const el = document.createElement('forgeui-kpi-grid') as any;
+    el.props = { columns: 3, gap: 'sm' };
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    expect(el.style.gridTemplateColumns).toBe('repeat(3, minmax(0, 1fr))');
   });
 
   it('filters searchable tables', async () => {

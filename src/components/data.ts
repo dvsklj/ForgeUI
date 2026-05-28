@@ -407,6 +407,63 @@ export class ForgeChart extends ForgeUIElement {
 }
 customElements.define('forgeui-chart', ForgeChart);
 
+export class ForgeStatCard extends ForgeUIElement {
+  static get styles() { return css`
+    :host { display:block; min-width:0; }
+    .card { display:flex; flex-direction:column; gap:var(--forgeui-space-xs); min-width:0; padding:var(--forgeui-space-md);
+      border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md); background:var(--forgeui-color-surface); }
+    .top { display:flex; align-items:flex-start; justify-content:space-between; gap:var(--forgeui-space-sm); }
+    .label { color:var(--forgeui-color-text-secondary); font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); overflow-wrap:anywhere; }
+    .value { color:var(--forgeui-color-text); font-size:var(--forgeui-text-3xl); font-weight:var(--forgeui-weight-bold); line-height:1.1; overflow-wrap:anywhere; }
+    .meta { color:var(--forgeui-color-text-secondary); font-size:var(--forgeui-text-xs); overflow-wrap:anywhere; }
+    .trend { display:inline-flex; align-items:center; gap:var(--forgeui-space-3xs); border-radius:var(--forgeui-radius-sm);
+      padding:var(--forgeui-space-3xs) var(--forgeui-space-xs); color:var(--forgeui-color-text-inverse); background:var(--forgeui-color-text-secondary);
+      font-size:var(--forgeui-text-xs); font-weight:var(--forgeui-weight-bold); white-space:nowrap; }
+    .trend.up { background:var(--forgeui-color-success); }
+    .trend.down { background:var(--forgeui-color-error); }
+  `; }
+  private _trendClass(trend: unknown): string {
+    const value = String(trend ?? '').toLowerCase();
+    if (value === 'up' || value === 'positive' || value.startsWith('+')) return 'up';
+    if (value === 'down' || value === 'negative' || value.startsWith('-')) return 'down';
+    return 'neutral';
+  }
+  render() {
+    const label = this.getString('label', '');
+    const value = this.getProp('value');
+    const trend = this.getProp('trend');
+    const trendLabel = this.getString('trendLabel', '');
+    const subtitle = this.getString('subtitle', '');
+    const unit = this.getString('unit', '');
+    const display = typeof value === 'number' ? value.toLocaleString() : (value === undefined || value === null || value === '' ? '—' : String(value));
+    const trendText = trendLabel || (trend === undefined || trend === null ? '' : String(trend));
+    const trendClass = this._trendClass(trend);
+    return html`<div class="card">
+      <div class="top">
+        ${label ? html`<div class="label">${label}</div>` : nothing}
+        ${trendText ? html`<span class="trend ${trendClass}">${trendClass === 'up' ? '↑' : trendClass === 'down' ? '↓' : '→'} ${trendText}</span>` : nothing}
+      </div>
+      <div class="value">${display}${unit ? html` <span class="meta">${unit}</span>` : nothing}</div>
+      ${subtitle ? html`<div class="meta">${subtitle}</div>` : nothing}
+    </div>`;
+  }
+}
+customElements.define('forgeui-stat-card', ForgeStatCard);
+
+export class ForgeKpiGrid extends ForgeUIElement {
+  static get styles() { return css`
+    :host { display:grid; min-width:0; gap:var(--forgeui-space-md); grid-template-columns:repeat(auto-fit,minmax(min(12rem,100%),1fr)); }
+  `; }
+  render() {
+    const columns = Math.max(0, Math.floor(this.getNumber('columns', 0)));
+    const gap = this.gapValue(this.getString('gap', 'md'));
+    this.style.gap = gap;
+    this.style.gridTemplateColumns = columns > 0 ? `repeat(${columns}, minmax(0, 1fr))` : '';
+    return html`<slot></slot>`;
+  }
+}
+customElements.define('forgeui-kpi-grid', ForgeKpiGrid);
+
 export class ForgeMetric extends ForgeUIElement {
   static get styles() { return css`
     :host { display:flex; flex-direction:column; padding:var(--forgeui-space-md); background:var(--forgeui-color-surface);

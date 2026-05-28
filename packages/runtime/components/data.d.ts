@@ -26,6 +26,15 @@ export declare class ForgeChart extends ForgeUIElement {
     _niceMax(v: number): number;
     render(): import("lit-html").TemplateResult<1>;
 }
+export declare class ForgeStatCard extends ForgeUIElement {
+    static get styles(): import("lit").CSSResult;
+    private _trendClass;
+    render(): import("lit-html").TemplateResult<1>;
+}
+export declare class ForgeKpiGrid extends ForgeUIElement {
+    static get styles(): import("lit").CSSResult;
+    render(): import("lit-html").TemplateResult<1>;
+}
 export declare class ForgeMetric extends ForgeUIElement {
     static get styles(): import("lit").CSSResult;
     _trendMeta(trend: unknown): {
