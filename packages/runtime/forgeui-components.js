@@ -1,4 +1,4 @@
-import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Ze}from"lit";import{createStore as rt}from"tinybase";var He=new Set(["__proto__","prototype","constructor"]);function R(n){if(n.length===0||n.length>256)return!1;for(let t of n.normalize("NFC").split("."))if(He.has(t))return!1;return!0}function T(n,t){if(t.includes("/")){let e=t.split("/");if(e.length===3){let[r,o,i]=e;return n.getCell(r,o,i)}if(e.length===2){let[r,o]=e,i=n.getValue(t);if(i!==void 0)return i;let s=n.getCellIds(r,o);if(s.length>0){let l={};for(let c of s)l[c]=n.getCell(r,o,c);return l}}}return n.getValue(t)}function Fe(n,t){if(t.startsWith("count:")){let e=t.slice(6);return n.getRowCount(e)}if(t.startsWith("sum:")){let[e,r]=t.split(":"),[o,i]=r.split("/"),s=0,l=n.getRowIds(o);for(let c of l){let g=n.getCell(o,c,i);typeof g=="number"&&(s+=g)}return s}if(t.startsWith("avg:")){let[e,r]=t.split(":"),[o,i]=r.split("/"),s=0,l=0,c=n.getRowIds(o);for(let g of c){let h=n.getCell(o,g,i);typeof h=="number"&&(s+=h,l++)}return l>0?s/l:0}return T(n,t)}var O=null;function W(n){O=n}function qe(n,t){if(t.length>1024)return;let e="(state\\.[a-zA-Z_][a-zA-Z0-9_.]*|-?\\d+(?:\\.\\d+)?)",r=t.trim().match(new RegExp(`^${e}\\s*(>=|<=|[+\\-*/><])\\s*${e}$`));if(!r)return;let o=Re(n,r[1]),i=Re(n,r[3]);if(!(typeof o!="number"||typeof i!="number"))switch(r[2]){case"+":return o+i;case"-":return o-i;case"*":return o*i;case"/":return i===0?void 0:o/i;case">":return o>i;case"<":return o<i;case">=":return o>=i;case"<=":return o<=i}}function Re(n,t){if(/^-?\d/.test(t))return Number(t);if(!t.startsWith("state."))return;let e=t.slice(6);return R(e)?Oe(n,e):void 0}function K(n,t){let e=t.trim();if(e==="")return;if(e.startsWith('"')&&e.endsWith('"')||e.startsWith("'")&&e.endsWith("'"))return e.slice(1,-1);if(e.startsWith('"')&&!e.endsWith('"')||e.startsWith("'")&&!e.endsWith("'"))return;if(e==="true")return!0;if(e==="false")return!1;if(e==="null")return null;if(/^-?\d+(\.\d+)?$/.test(e))return Number(e);if(/(?:[+\-*/%]|===?|!==?|>=?|<=?|\&\&|\|\|)/.test(e)&&!e.includes("|"))return qe(n,e);if(e.includes("|")){let[o,...i]=e.split("|").map(c=>c.trim()),l=K(n,o);for(let c of i){let[g,...h]=c.split(/\s+/);l=Ue(l,g,h)}return l}if(e.startsWith("item.")||e==="item"){if(e==="item")return O;let o=e.slice(5);return L(O,o)}if(e.startsWith("state.")||e==="state"){if(e==="state")return;let o=e.slice(6);return Oe(n,o)}return T(n,e)}function Ue(n,t,e){switch(t){case"values":return Array.isArray(n)?n:n&&typeof n=="object"?Object.values(n):[];case"keys":return n&&typeof n=="object"?Object.keys(n):[];case"count":case"length":return Array.isArray(n)?n.length:n&&typeof n=="object"?Object.keys(n).length:typeof n=="string"?n.length:0;case"sum":return Array.isArray(n)?n.reduce((r,o)=>r+(typeof o=="number"?o:0),0):0;case"first":return Array.isArray(n)?n[0]:void 0;case"last":return Array.isArray(n)?n[n.length-1]:void 0;default:return n}}function L(n,t){if(!n||typeof n!="object"||!t||!R(t))return;let e=t.split(".");if(e.length>32)return;let r=n;for(let o of e){if(r==null)return;r=r[o]}return r}function Oe(n,t){if(!R(t))return;let e=n.getValue(t);if(e!==void 0){if(typeof e=="string")try{return JSON.parse(e)}catch{}return e}let r=t.split(".");if(r.length>=3){let[i,s,l,...c]=r;if(n.hasTable(i)&&n.hasRow(i,s)){let g=n.getCell(i,s,l);if(c.length===0)return g;if(typeof g=="string")try{let h=JSON.parse(g);return L(h,c.join("."))}catch{}return}}if(r.length>=2){let[i,s,...l]=r;if(n.hasTable(i)&&n.hasRow(i,s)){let c=n.getRow(i,s);return l.length===0?c:L(c,l.join("."))}}if(r.length>=1){let[i,...s]=r;if(n.hasTable(i)){let l=n.getRowIds(i),c={};for(let g of l)c[g]=n.getRow(i,g);return s.length===0?c:L(c,s.join("."))}}let o=n.getValue(r[0]);if(typeof o=="string"&&r.length>1)try{let i=JSON.parse(o);return L(i,r.slice(1).join("."))}catch{}}function j(n,t){if(typeof t!="string"){if(t!==null&&typeof t=="object"){let e=t;if("$expr"in e)return j(n,`$expr:${e.$expr}`);if("$state"in e)return j(n,`$state:${e.$state}`);if("$computed"in e)return j(n,`$computed:${e.$computed}`);if("$item"in e)return j(n,`$item:${e.$item}`)}return t}if(t.startsWith("$state:")){let e=t.slice(7);return R(e)?T(n,e):void 0}if(t.startsWith("$computed:")){let e=t.slice(10);return e.length>1024?void 0:Fe(n,e)}if(t.startsWith("$item:")){let e=t.slice(6);return R(e)?e.includes(".")?L(O,e):O?.[e]:void 0}if(t.startsWith("$expr:")){let e=t.slice(6);return e.length>1024?void 0:K(n,e)}return t.length>4096?t:t.includes("{{")&&t.includes("}}")?Je(t,n):t}function Je(n,t){let e="",r=0;for(;r<n.length;)if(n[r]==="{"&&n[r+1]==="{"){let o=r+2,i=1,s=o;for(;s<n.length-1&&i>0;){let l=n[s],c=n[s+1];l==="{"&&c==="{"?(i++,s+=2):l==="}"&&c==="}"?(i--,s+=2):s++}if(i)e+=n[r++];else{let l=n.slice(o,s-2);if(l.length<=256){let c=l.trim(),g=c.startsWith("$")?j(t,c):K(t,c);e+=g==null?"":String(g)}else e+=n.slice(r,s);r=s}}else e+=n[r++];return e}import{css as H}from"lit";var ct=H`
+import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Ye}from"lit";import{createStore as nt}from"tinybase";var Ue=new Set(["__proto__","prototype","constructor"]);function O(n){if(n.length===0||n.length>256)return!1;for(let t of n.normalize("NFC").split("."))if(Ue.has(t))return!1;return!0}function W(n,t){if(t.includes("/")){let e=t.split("/");if(e.length===3){let[r,o,i]=e;return n.getCell(r,o,i)}if(e.length===2){let[r,o]=e,i=n.getValue(t);if(i!==void 0)return i;let s=n.getCellIds(r,o);if(s.length>0){let l={};for(let c of s)l[c]=n.getCell(r,o,c);return l}}}return n.getValue(t)}function qe(n,t){if(t.startsWith("count:")){let e=t.slice(6);return n.getRowCount(e)}if(t.startsWith("sum:")){let[e,r]=t.split(":"),[o,i]=r.split("/"),s=0,l=n.getRowIds(o);for(let c of l){let g=n.getCell(o,c,i);typeof g=="number"&&(s+=g)}return s}if(t.startsWith("avg:")){let[e,r]=t.split(":"),[o,i]=r.split("/"),s=0,l=0,c=n.getRowIds(o);for(let g of c){let h=n.getCell(o,g,i);typeof h=="number"&&(s+=h,l++)}return l>0?s/l:0}return W(n,t)}var N=null;function K(n){N=n}function Je(n,t){if(t.length>1024)return;let e="(state\\.[a-zA-Z_][a-zA-Z0-9_.]*|-?\\d+(?:\\.\\d+)?)",r=t.trim().match(new RegExp(`^${e}\\s*(>=|<=|[+\\-*/><])\\s*${e}$`));if(!r)return;let o=Oe(n,r[1]),i=Oe(n,r[3]);if(!(typeof o!="number"||typeof i!="number"))switch(r[2]){case"+":return o+i;case"-":return o-i;case"*":return o*i;case"/":return i===0?void 0:o/i;case">":return o>i;case"<":return o<i;case">=":return o>=i;case"<=":return o<=i}}function Oe(n,t){if(/^-?\d/.test(t))return Number(t);if(!t.startsWith("state."))return;let e=t.slice(6);return O(e)?Ne(n,e):void 0}function H(n,t){let e=t.trim();if(e==="")return;if(e.startsWith('"')&&e.endsWith('"')||e.startsWith("'")&&e.endsWith("'"))return e.slice(1,-1);if(e.startsWith('"')&&!e.endsWith('"')||e.startsWith("'")&&!e.endsWith("'"))return;if(e==="true")return!0;if(e==="false")return!1;if(e==="null")return null;if(/^-?\d+(\.\d+)?$/.test(e))return Number(e);if(/(?:[+\-*/%]|===?|!==?|>=?|<=?|\&\&|\|\|)/.test(e)&&!e.includes("|"))return Je(n,e);if(e.includes("|")){let[o,...i]=e.split("|").map(c=>c.trim()),l=H(n,o);for(let c of i){let[g,...h]=c.split(/\s+/);l=Ze(l,g,h)}return l}if(e.startsWith("item.")||e==="item"){if(e==="item")return N;let o=e.slice(5);return D(N,o)}if(e.startsWith("state.")||e==="state"){if(e==="state")return;let o=e.slice(6);return Ne(n,o)}return W(n,e)}function Ze(n,t,e){switch(t){case"values":return Array.isArray(n)?n:n&&typeof n=="object"?Object.values(n):[];case"keys":return n&&typeof n=="object"?Object.keys(n):[];case"count":case"length":return Array.isArray(n)?n.length:n&&typeof n=="object"?Object.keys(n).length:typeof n=="string"?n.length:0;case"sum":return Array.isArray(n)?n.reduce((r,o)=>r+(typeof o=="number"?o:0),0):0;case"first":return Array.isArray(n)?n[0]:void 0;case"last":return Array.isArray(n)?n[n.length-1]:void 0;default:return n}}function D(n,t){if(!n||typeof n!="object"||!t||!O(t))return;let e=t.split(".");if(e.length>32)return;let r=n;for(let o of e){if(r==null)return;r=r[o]}return r}function Ne(n,t){if(!O(t))return;let e=n.getValue(t);if(e!==void 0){if(typeof e=="string")try{return JSON.parse(e)}catch{}return e}let r=t.split(".");if(r.length>=3){let[i,s,l,...c]=r;if(n.hasTable(i)&&n.hasRow(i,s)){let g=n.getCell(i,s,l);if(c.length===0)return g;if(typeof g=="string")try{let h=JSON.parse(g);return D(h,c.join("."))}catch{}return}}if(r.length>=2){let[i,s,...l]=r;if(n.hasTable(i)&&n.hasRow(i,s)){let c=n.getRow(i,s);return l.length===0?c:D(c,l.join("."))}}if(r.length>=1){let[i,...s]=r;if(n.hasTable(i)){let l=n.getRowIds(i),c={};for(let g of l)c[g]=n.getRow(i,g);return s.length===0?c:D(c,s.join("."))}}let o=n.getValue(r[0]);if(typeof o=="string"&&r.length>1)try{let i=JSON.parse(o);return D(i,r.slice(1).join("."))}catch{}}function j(n,t){if(typeof t!="string"){if(t!==null&&typeof t=="object"){let e=t;if("$expr"in e)return j(n,`$expr:${e.$expr}`);if("$state"in e)return j(n,`$state:${e.$state}`);if("$computed"in e)return j(n,`$computed:${e.$computed}`);if("$item"in e)return j(n,`$item:${e.$item}`)}return t}if(t.startsWith("$state:")){let e=t.slice(7);return O(e)?W(n,e):void 0}if(t.startsWith("$computed:")){let e=t.slice(10);return e.length>1024?void 0:qe(n,e)}if(t.startsWith("$item:")){let e=t.slice(6);return O(e)?e.includes(".")?D(N,e):N?.[e]:void 0}if(t.startsWith("$expr:")){let e=t.slice(6);return e.length>1024?void 0:H(n,e)}return t.length>4096?t:t.includes("{{")&&t.includes("}}")?Xe(t,n):t}function Xe(n,t){let e="",r=0;for(;r<n.length;)if(n[r]==="{"&&n[r+1]==="{"){let o=r+2,i=1,s=o;for(;s<n.length-1&&i>0;){let l=n[s],c=n[s+1];l==="{"&&c==="{"?(i++,s+=2):l==="}"&&c==="}"?(i--,s+=2):s++}if(i)e+=n[r++];else{let l=n.slice(o,s-2);if(l.length<=256){let c=l.trim(),g=c.startsWith("$")?j(t,c):H(t,c);e+=g==null?"":String(g)}else e+=n.slice(r,s);r=s}}else e+=n[r++];return e}import{css as F}from"lit";var dt=F`
   @layer tokens {
     :host {
       /* ─── Primary (deep teal — distinctive, calm, professional) ─── */
@@ -225,7 +225,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
     /* Preserve normal word-breaking for code/math contexts */
     code, pre, kbd, samp { word-break: normal; }
   }
-`,ut=H`
+`,ft=F`
   @layer surfaces {
     /* Chat: compact spacing, constrained width */
     :host([surface="chat"]) {
@@ -248,7 +248,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
       --forgeui-radius-md: 0;
     }
   }
-`,F=H`
+`,U=F`
   :host {
     display: block;
   }
@@ -262,7 +262,35 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
   input:focus-visible, textarea:focus-visible, select:focus-visible {
     outline: none;
   }
-`;var V=class V extends Ze{constructor(){super(...arguments);this._instanceId=`forge-${++V._instanceCounter}`;this.props={};this.store=null;this.onAction=null;this.itemContext=null}static get properties(){return{props:{type:Object}}}connectedCallback(){super.connectedCallback()}resolve(e){if(!this.store)return e;this.itemContext&&W(this.itemContext);try{return j(this.store,e)}finally{W(null)}}getProp(e){let r=this.props?.[e];return typeof r=="string"&&(r.startsWith("$state:")||r.startsWith("$computed:")||r.startsWith("$item:")||r.startsWith("$expr:")||r.includes("{{")&&r.includes("}}"))?this.resolve(r):r}getArray(e){let r=this.getProp(e);return Array.isArray(r)?r:r&&typeof r=="object"?Object.values(r):[]}getString(e,r=""){let o=this.getProp(e);return typeof o=="string"?o:String(o??r)}getNumber(e,r=0){let o=this.getProp(e);return typeof o=="number"?o:Number(o)||r}getBool(e,r=!1){let o=this.getProp(e);return typeof o=="boolean"?o:r}getBoundProp(e,r){let o=typeof this.props?.bind=="string"?this.props.bind:"";if(o){let s=this.resolve(o);if(s!==void 0)return s}let i=this.getProp(e);return i===void 0?r:i}dispatchAction(e,r){let o=typeof this.props?.bind=="string"?this.props.bind:"",i=o?{...r||{},bind:o}:r;this.onAction&&this.onAction(e,i),this.dispatchEvent(new CustomEvent("forgeui-action",{detail:{action:e,payload:i},bubbles:!0,composed:!0}))}handleAction(e){let r=this.getString("action");r&&this.dispatchAction(r,this.props)}prop(e){return this.getProp(e)}static get sharedStyles(){return[F]}gapValue(e){let r={none:"0",0:"0","3xs":"var(--forgeui-space-3xs)","2xs":"var(--forgeui-space-2xs)",xs:"var(--forgeui-space-xs)",sm:"var(--forgeui-space-sm)",md:"var(--forgeui-space-md)",lg:"var(--forgeui-space-lg)",xl:"var(--forgeui-space-xl)","2xl":"var(--forgeui-space-2xl)"};if(e==null||e==="")return"var(--forgeui-space-md)";let o=String(e);return o in r?r[o]:/^\d+(\.\d+)?$/.test(o)?`${o}px`:/^\d+(\.\d+)?(px|rem|em|%|vw|vh|ch)$/.test(o)?o:"var(--forgeui-space-md)"}static get styles(){return[F]}};V._instanceCounter=0;var d=V;function Xe(n){return`forgeui_${(n||"global").replace(/[^a-zA-Z0-9-]/g,"_")}`}var q="f";function Ye(n){return new Promise((t,e)=>{let r=i=>e(i??new Error("IDB"));if(!globalThis.indexedDB)return r();let o=indexedDB.open(`${Xe(n)}_f`,1);o.onupgradeneeded=()=>{o.result.createObjectStore(q)},o.onsuccess=()=>t(o.result),o.onerror=o.onblocked=()=>r(o.error)})}async function Ne(n,t){if(n.length===0)return;let e=null;try{e=await Ye(t),await new Promise((r,o)=>{let i=e.transaction(q,"readwrite"),s=i.objectStore(q);for(let{file:l,id:c}of n)s.put(l,c);i.oncomplete=()=>r(),i.onerror=i.onabort=()=>o(i.error)})}catch{return}finally{e?.close()}}var U=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return p`
+`;var B=class B extends Ye{constructor(){super(...arguments);this._instanceId=`forge-${++B._instanceCounter}`;this.props={};this.store=null;this.onAction=null;this.itemContext=null}static get properties(){return{props:{type:Object}}}connectedCallback(){super.connectedCallback()}resolve(e){if(!this.store)return e;this.itemContext&&K(this.itemContext);try{return j(this.store,e)}finally{K(null)}}getProp(e){let r=this.props?.[e];return typeof r=="string"&&(r.startsWith("$state:")||r.startsWith("$computed:")||r.startsWith("$item:")||r.startsWith("$expr:")||r.includes("{{")&&r.includes("}}"))?this.resolve(r):r}getArray(e){let r=this.getProp(e);return Array.isArray(r)?r:r&&typeof r=="object"?Object.values(r):[]}getString(e,r=""){let o=this.getProp(e);return typeof o=="string"?o:String(o??r)}getNumber(e,r=0){let o=this.getProp(e);return typeof o=="number"?o:Number(o)||r}getBool(e,r=!1){let o=this.getProp(e);return typeof o=="boolean"?o:r}getBoundProp(e,r){let o=typeof this.props?.bind=="string"?this.props.bind:"";if(o){let s=this.resolve(o);if(s!==void 0)return s}let i=this.getProp(e);return i===void 0?r:i}dispatchAction(e,r){let o=typeof this.props?.bind=="string"?this.props.bind:"",i=o?{...r||{},bind:o}:r;this.onAction&&this.onAction(e,i),this.dispatchEvent(new CustomEvent("forgeui-action",{detail:{action:e,payload:i},bubbles:!0,composed:!0}))}handleAction(e){let r=this.getString("action");r&&this.dispatchAction(r,this.props)}prop(e){return this.getProp(e)}static get sharedStyles(){return[U]}gapValue(e){let r={none:"0",0:"0","3xs":"var(--forgeui-space-3xs)","2xs":"var(--forgeui-space-2xs)",xs:"var(--forgeui-space-xs)",sm:"var(--forgeui-space-sm)",md:"var(--forgeui-space-md)",lg:"var(--forgeui-space-lg)",xl:"var(--forgeui-space-xl)","2xl":"var(--forgeui-space-2xl)"};if(e==null||e==="")return"var(--forgeui-space-md)";let o=String(e);return o in r?r[o]:/^\d+(\.\d+)?$/.test(o)?`${o}px`:/^\d+(\.\d+)?(px|rem|em|%|vw|vh|ch)$/.test(o)?o:"var(--forgeui-space-md)"}static get styles(){return[U]}};B._instanceCounter=0;var d=B;function Ge(n){return`forgeui_${(n||"global").replace(/[^a-zA-Z0-9-]/g,"_")}`}var q="f";function Qe(n){return new Promise((t,e)=>{let r=i=>e(i??new Error("IDB"));if(!globalThis.indexedDB)return r();let o=indexedDB.open(`${Ge(n)}_f`,1);o.onupgradeneeded=()=>{o.result.createObjectStore(q)},o.onsuccess=()=>t(o.result),o.onerror=o.onblocked=()=>r(o.error)})}async function Ve(n,t){if(n.length===0)return;let e=null;try{e=await Qe(t),await new Promise((r,o)=>{let i=e.transaction(q,"readwrite"),s=i.objectStore(q);for(let{file:l,id:c}of n)s.put(l,c);i.oncomplete=()=>r(),i.onerror=i.onabort=()=>o(i.error)})}catch{return}finally{e?.close()}}import{html as L,css as Be,nothing as et}from"lit";var J=class extends d{static get styles(){return Be`
+    :host { display:flex; align-items:center; gap:var(--forgeui-space-xs); font-size:var(--forgeui-text-sm); }
+    .sep { color:var(--forgeui-color-text-tertiary); }
+    a { color:var(--forgeui-color-primary); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .current { color:var(--forgeui-color-text); font-weight:var(--forgeui-weight-medium); }
+  `}render(){let t=this.getProp("items")||[];return L`${t.map((e,r)=>{let o=r===t.length-1,i=typeof e=="string"?e:e.label,s=typeof e=="string"?"#":e.href;return L`
+        ${r>0?L`<span class="sep">/</span>`:et}
+        ${o?L`<span class="current">${i}</span>`:L`<a href="${s}">${i}</a>`}
+      `})}`}};customElements.define("forgeui-breadcrumb",J);var Z=class extends d{static get styles(){return Be`
+    :host { display:flex; width:100%; gap:0; }
+    .step { flex:1; display:flex; flex-direction:column; align-items:center; position:relative; min-width:0; }
+    .step:not(:last-child)::after { content:''; position:absolute; top:0.75rem;
+      left:calc(50% + 0.875rem); right:calc(-50% + 0.875rem); height:2px;
+      background:var(--forgeui-color-border); z-index:0; }
+    .step:not(:last-child)[completed]::after { background:var(--forgeui-color-primary); }
+    .circle { width:1.75rem; height:1.75rem; border-radius:var(--forgeui-radius-full); display:flex; align-items:center;
+      justify-content:center; font-size:var(--forgeui-text-xs); font-weight:var(--forgeui-weight-semibold);
+      background:var(--forgeui-color-surface); color:var(--forgeui-color-text-secondary); border:2px solid var(--forgeui-color-border); z-index:1;
+      box-sizing:border-box; position:relative; }
+    .step[active] .circle { background:var(--forgeui-color-primary); color:var(--forgeui-color-text-inverse); border-color:var(--forgeui-color-primary); }
+    .step[completed] .circle { background:var(--forgeui-color-primary); color:var(--forgeui-color-text-inverse); border-color:var(--forgeui-color-primary); }
+    .label { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-text-secondary); margin-top:var(--forgeui-space-xs); text-align:center; padding:0 var(--forgeui-space-2xs); }
+    .step[active] .label { color:var(--forgeui-color-text); font-weight:var(--forgeui-weight-semibold); }
+    .step[completed] .label { color:var(--forgeui-color-text); }
+  `}render(){let t=this.getProp("steps")||[],e=this.getBoundProp("active",this.getProp("activeStep")??0),r=Number(e)||0;return L`${t.map((o,i)=>{let s=typeof o=="string"?o:o.label||o.title||`Step ${i+1}`,l=i===r,c=i<r;return L`<div class="step" ?active=${l} ?completed=${c}>
+        <div class="circle">${c?"\u2713":i+1}</div>
+        <div class="label">${s}</div>
+      </div>`})}`}};customElements.define("forgeui-stepper",Z);var X=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return p`
     :host { display: flex; flex-direction: column; min-width: 0; }
     :host([direction="row"]) { flex-direction: row; flex-wrap: wrap; }
     :host([direction="column"]) { flex-direction: column; }
@@ -277,7 +305,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
     :host([justify="around"]) { justify-content: space-around; }
     :host([wrap]) { flex-wrap: wrap; }
     :host([nowrap]) { flex-wrap: nowrap; }
-  `}render(){let t=this.getString("direction","column"),e=t==="horizontal"||t==="row"?"row":"column",r=this.getString("gap","")||this.getString("spacing","md"),o=this.getString("padding",""),i=this.getString("align",""),s=this.getString("justify",""),l=this.getBool("wrap"),c=this.gapValue(r),g=o?this.gapValue(o):"0";return this.setAttribute("direction",e),i&&this.setAttribute("align",i),s&&this.setAttribute("justify",s),l&&this.setAttribute("wrap",""),this.style.gap=c,this.style.padding=g,a`<slot></slot>`}};customElements.define("forgeui-stack",U);var J=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return p`
+  `}render(){let t=this.getString("direction","column"),e=t==="horizontal"||t==="row"?"row":"column",r=this.getString("gap","")||this.getString("spacing","md"),o=this.getString("padding",""),i=this.getString("align",""),s=this.getString("justify",""),l=this.getBool("wrap"),c=this.gapValue(r),g=o?this.gapValue(o):"0";return this.setAttribute("direction",e),i&&this.setAttribute("align",i),s&&this.setAttribute("justify",s),l&&this.setAttribute("wrap",""),this.style.gap=c,this.style.padding=g,a`<slot></slot>`}};customElements.define("forgeui-stack",X);var Y=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return p`
     :host { display: grid; min-width: 0; }
     @media (max-width: 900px) {
       :host([responsive]) { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
@@ -285,7 +313,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
     @media (max-width: 640px) {
       :host([responsive]) { grid-template-columns: 1fr !important; }
     }
-  `}render(){let t=this.getProp("columns"),e;typeof t=="number"?e=String(t):typeof t=="string"&&t?e=t:e="1";let r=/^\d+$/.test(e)?`repeat(${e}, minmax(0, 1fr))`:e,o=this.getString("gap","md"),i=this.gapValue(o),s=this.getString("padding",""),l=s?this.gapValue(s):"0";return this.style.gridTemplateColumns=r,this.style.gap=i,this.style.padding=l,/^\d+$/.test(e)&&Number(e)>=2&&this.setAttribute("responsive",""),a`<slot></slot>`}};customElements.define("forgeui-grid",J);var Z=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return p`
+  `}render(){let t=this.getProp("columns"),e;typeof t=="number"?e=String(t):typeof t=="string"&&t?e=t:e="1";let r=/^\d+$/.test(e)?`repeat(${e}, minmax(0, 1fr))`:e,o=this.getString("gap","md"),i=this.gapValue(o),s=this.getString("padding",""),l=s?this.gapValue(s):"0";return this.style.gridTemplateColumns=r,this.style.gap=i,this.style.padding=l,/^\d+$/.test(e)&&Number(e)>=2&&this.setAttribute("responsive",""),a`<slot></slot>`}};customElements.define("forgeui-grid",Y);var G=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return p`
     :host { display:block; background:var(--forgeui-color-surface); border:1px solid var(--forgeui-color-border);
       border-radius:var(--forgeui-radius-md); padding:var(--forgeui-space-md); min-width:0; }
     :host([variant="elevated"]) { box-shadow:var(--forgeui-shadow-md); border-color:transparent; }
@@ -304,7 +332,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
         </div>
       `:f}
       <div class="body"><slot></slot></div>
-    `}};customElements.define("forgeui-card",Z);var X=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return p`:host { display:block; margin-inline:auto; width:100%; box-sizing:border-box; }`}render(){let t=this.getString("maxWidth",""),e={sm:"640px",md:"768px",lg:"1024px",xl:"1280px","2xl":"1536px",full:"100%",none:"none","":""},r=t in e?e[t]:t,o=this.getString("padding","");return r&&r!=="none"?this.style.maxWidth=r:this.style.maxWidth="",this.style.padding=o?this.gapValue(o):"",a`<slot></slot>`}};customElements.define("forgeui-container",X);var Y=class extends d{static get properties(){return{props:{type:Object}}}constructor(){super(),this._active=""}static get styles(){return p`
+    `}};customElements.define("forgeui-card",G);var Q=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return p`:host { display:block; margin-inline:auto; width:100%; box-sizing:border-box; }`}render(){let t=this.getString("maxWidth",""),e={sm:"640px",md:"768px",lg:"1024px",xl:"1280px","2xl":"1536px",full:"100%",none:"none","":""},r=t in e?e[t]:t,o=this.getString("padding","");return r&&r!=="none"?this.style.maxWidth=r:this.style.maxWidth="",this.style.padding=o?this.gapValue(o):"",a`<slot></slot>`}};customElements.define("forgeui-container",Q);var ee=class extends d{static get properties(){return{props:{type:Object}}}constructor(){super(),this._active=""}static get styles(){return p`
     :host { display:block; }
     .tabs { display:flex; border-bottom:2px solid var(--forgeui-color-border); gap:var(--forgeui-space-xs); overflow-x:auto; }
     .tab { padding:var(--forgeui-space-sm) var(--forgeui-space-md); cursor:pointer; border:none; background:none;
@@ -331,7 +359,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
         `})}</div>
       <div class="panel" role="tabpanel" id="${this._instanceId}-panel"
         aria-labelledby="${this._instanceId}-tab-${o>=0?o:0}"><slot></slot></div>
-    `}};customElements.define("forgeui-tabs",Y);var G=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return p`
+    `}};customElements.define("forgeui-tabs",ee);var te=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return p`
     :host { display:block; }
     details { border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md); margin-bottom:var(--forgeui-space-2xs); }
     summary { padding:var(--forgeui-space-sm) var(--forgeui-space-md); cursor:pointer; font-weight:var(--forgeui-weight-medium);
@@ -343,14 +371,14 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
     summary::after { content:'▸'; transition:transform var(--forgeui-transition-fast); }
     details[open] summary::after { transform:rotate(90deg); }
     .content { padding:var(--forgeui-space-sm) var(--forgeui-space-md); }
-  `}render(){let t=this.getString("title","Section");return a`<details><summary>${t}</summary><div class="content"><slot></slot></div></details>`}};customElements.define("forgeui-accordion",G);var Q=class extends d{static get styles(){return p`
+  `}render(){let t=this.getString("title","Section");return a`<details><summary>${t}</summary><div class="content"><slot></slot></div></details>`}};customElements.define("forgeui-accordion",te);var re=class extends d{static get styles(){return p`
     :host { display:block; }
     hr { border:none; border-top:1px solid var(--forgeui-color-border); margin:var(--forgeui-space-sm) 0; }
-  `}render(){return a`<hr>`}};customElements.define("forgeui-divider",Q);var ee=class extends d{static get styles(){return p`:host { display:block; }`}render(){let t=this.getString("size","md"),e=this.getString("height",""),r=this.getString("width",""),o=e?this.gapValue(e):this.gapValue(t),i=r?/^\d+(\.\d+)?%$/.test(r)?r:this.gapValue(r):"";return a`<div style="height:${o};${i?`width:${i}`:""}"></div>`}};customElements.define("forgeui-spacer",ee);var te=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return p`
+  `}render(){return a`<hr>`}};customElements.define("forgeui-divider",re);var oe=class extends d{static get styles(){return p`:host { display:block; }`}render(){let t=this.getString("size","md"),e=this.getString("height",""),r=this.getString("width",""),o=e?this.gapValue(e):this.gapValue(t),i=r?/^\d+(\.\d+)?%$/.test(r)?r:this.gapValue(r):"";return a`<div style="height:${o};${i?`width:${i}`:""}"></div>`}};customElements.define("forgeui-spacer",oe);var ie=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return p`
     :host { display:flex; flex-direction:column; gap:var(--forgeui-space-md); min-width:0; }
     :host([direction="row"]) { flex-direction:row; flex-wrap:wrap; }
     .empty { padding:var(--forgeui-space-lg); text-align:center; color:var(--forgeui-color-text-tertiary); font-size:var(--forgeui-text-sm); }
-  `}render(){let t=this.getArray("data"),e=this.getString("emptyMessage",""),r=this.getString("direction","column");(r==="row"||r==="horizontal")&&this.setAttribute("direction","row");let o=this.getString("gap","md");return this.style.gap=this.gapValue(o),t.length===0&&e?a`<div class="empty">${e}</div>`:a`<slot></slot>`}};customElements.define("forgeui-repeater",te);var re=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return p`
+  `}render(){let t=this.getArray("data"),e=this.getString("emptyMessage",""),r=this.getString("direction","column");(r==="row"||r==="horizontal")&&this.setAttribute("direction","row");let o=this.getString("gap","md");return this.style.gap=this.gapValue(o),t.length===0&&e?a`<div class="empty">${e}</div>`:a`<slot></slot>`}};customElements.define("forgeui-repeater",ie);var ne=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return p`
     :host { display:block; min-width:0; }
     .heading1 { font-size:var(--forgeui-text-3xl); font-weight:var(--forgeui-weight-bold); line-height:var(--forgeui-leading-tight); letter-spacing:-0.02em; margin:0; overflow-wrap:break-word; }
     .heading2 { font-size:var(--forgeui-text-2xl); font-weight:var(--forgeui-weight-bold); line-height:var(--forgeui-leading-tight); letter-spacing:-0.01em; margin:0; overflow-wrap:break-word; }
@@ -366,13 +394,13 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
     .align-left { text-align:left; }
     .align-center { text-align:center; }
     .align-right { text-align:right; }
-  `}render(){let t=this.getString("content",""),e=this.getString("variant","body"),o={h1:"heading1",h2:"heading2",h3:"heading3",title:"heading2",subtitle:"subheading",paragraph:"body",text:"body",secondary:"muted",tertiary:"caption"}[e]||e,i=this.getString("colorScheme",""),s=this.getString("align",""),l=this.getString("weight",""),c={primary:"var(--forgeui-color-primary)",secondary:"var(--forgeui-color-text-secondary)",tertiary:"var(--forgeui-color-text-tertiary)",success:"var(--forgeui-color-success)",warning:"var(--forgeui-color-warning)",error:"var(--forgeui-color-error)",info:"var(--forgeui-color-info)"},g={normal:"var(--forgeui-weight-normal)",medium:"var(--forgeui-weight-medium)",semibold:"var(--forgeui-weight-semibold)",bold:"var(--forgeui-weight-bold)"},h=[];i&&c[i]&&h.push(`color:${c[i]}`),l&&g[l]&&h.push(`font-weight:${g[l]}`);let u=s?`align-${s}`:"",m=a`${t}<slot></slot>`;return o==="heading1"?a`<h1 class="${o} ${u}" style="${h.join(";")}">${m}</h1>`:o==="heading2"?a`<h2 class="${o} ${u}" style="${h.join(";")}">${m}</h2>`:o==="heading3"?a`<h3 class="${o} ${u}" style="${h.join(";")}">${m}</h3>`:a`<div class="${o} ${u}" style="${h.join(";")}">${t}<slot></slot></div>`}};customElements.define("forgeui-text",re);var oe=class extends d{static get styles(){return p`
+  `}render(){let t=this.getString("content",""),e=this.getString("variant","body"),o={h1:"heading1",h2:"heading2",h3:"heading3",title:"heading2",subtitle:"subheading",paragraph:"body",text:"body",secondary:"muted",tertiary:"caption"}[e]||e,i=this.getString("colorScheme",""),s=this.getString("align",""),l=this.getString("weight",""),c={primary:"var(--forgeui-color-primary)",secondary:"var(--forgeui-color-text-secondary)",tertiary:"var(--forgeui-color-text-tertiary)",success:"var(--forgeui-color-success)",warning:"var(--forgeui-color-warning)",error:"var(--forgeui-color-error)",info:"var(--forgeui-color-info)"},g={normal:"var(--forgeui-weight-normal)",medium:"var(--forgeui-weight-medium)",semibold:"var(--forgeui-weight-semibold)",bold:"var(--forgeui-weight-bold)"},h=[];i&&c[i]&&h.push(`color:${c[i]}`),l&&g[l]&&h.push(`font-weight:${g[l]}`);let u=s?`align-${s}`:"",m=a`${t}<slot></slot>`;return o==="heading1"?a`<h1 class="${o} ${u}" style="${h.join(";")}">${m}</h1>`:o==="heading2"?a`<h2 class="${o} ${u}" style="${h.join(";")}">${m}</h2>`:o==="heading3"?a`<h3 class="${o} ${u}" style="${h.join(";")}">${m}</h3>`:a`<div class="${o} ${u}" style="${h.join(";")}">${t}<slot></slot></div>`}};customElements.define("forgeui-text",ne);var se=class extends d{static get styles(){return p`
     :host { display:block; }
     img { max-width:100%; height:auto; display:block; border-radius:var(--forgeui-radius-md); }
-  `}render(){let t=this.getString("src",""),e=this.getString("alt",""),r=this.getString("fit","contain");return t?a`<img src="${t}" alt="${e}" style="object-fit:${r}" loading="lazy">`:a`${f}`}};customElements.define("forgeui-image",oe);var ie=class extends d{static get styles(){return p`
+  `}render(){let t=this.getString("src",""),e=this.getString("alt",""),r=this.getString("fit","contain");return t?a`<img src="${t}" alt="${e}" style="object-fit:${r}" loading="lazy">`:a`${f}`}};customElements.define("forgeui-image",se);var ae=class extends d{static get styles(){return p`
     :host { display:inline-flex; align-items:center; justify-content:center; }
     svg { width:var(--forgeui-icon-md); height:var(--forgeui-icon-md); fill:currentColor; }
-  `}render(){let t=this.getString("name","circle"),e={check:"M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",x:"M6 18L18 6M6 6l12 12",plus:"M12 4v16m8-8H4",minus:"M20 12H4",chevron:"M9 5l7 7-7 7",arrow:"M13 7l5 5m0 0l-5 5m5-5H6",star:"M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.96a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.96c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.96a1 1 0 00-.364-1.118L2.063 8.387c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.96z",circle:"M12 2a10 10 0 100 20 10 10 0 000-20z",alert:"M12 9v2m0 4h.01M4.93 4.93l14.14 14.14M12 2a10 10 0 100 20 10 10 0 000-20z"},r=e[t]||e.circle;return a`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${r}"/></svg>`}};customElements.define("forgeui-icon",ie);var ne=class extends d{static get styles(){return p`
+  `}render(){let t=this.getString("name","circle"),e={check:"M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",x:"M6 18L18 6M6 6l12 12",plus:"M12 4v16m8-8H4",minus:"M20 12H4",chevron:"M9 5l7 7-7 7",arrow:"M13 7l5 5m0 0l-5 5m5-5H6",star:"M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.96a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.96c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.96a1 1 0 00-.364-1.118L2.063 8.387c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.96z",circle:"M12 2a10 10 0 100 20 10 10 0 000-20z",alert:"M12 9v2m0 4h.01M4.93 4.93l14.14 14.14M12 2a10 10 0 100 20 10 10 0 000-20z"},r=e[t]||e.circle;return a`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${r}"/></svg>`}};customElements.define("forgeui-icon",ae);var le=class extends d{static get styles(){return p`
     :host { display:inline-flex; align-items:center; max-width:100%; }
     .badge { display:inline-flex; align-items:center; min-height:1.5rem; padding:var(--forgeui-space-2xs) var(--forgeui-space-xs);
       border-radius:var(--forgeui-radius-sm); font-size:var(--forgeui-text-xs); font-weight:var(--forgeui-weight-bold);
@@ -381,13 +409,13 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
     .badge[variant="success"] { background:var(--forgeui-color-success); color:var(--forgeui-color-text-inverse); }
     .badge[variant="warning"] { background:var(--forgeui-color-warning); color:var(--forgeui-color-text-inverse); }
     .badge[variant="error"] { background:var(--forgeui-color-error); color:var(--forgeui-color-text-inverse); }
-  `}render(){let t=this.getString("text","")||this.getString("label",""),e=this.getString("variant","");return a`<span class="badge" variant="${e}">${t}<slot></slot></span>`}};customElements.define("forgeui-badge",ne);var se=class extends d{static get styles(){return p`
+  `}render(){let t=this.getString("text","")||this.getString("label",""),e=this.getString("variant","");return a`<span class="badge" variant="${e}">${t}<slot></slot></span>`}};customElements.define("forgeui-badge",le);var ce=class extends d{static get styles(){return p`
     :host { display:inline-flex; }
     .avatar { width:2.5rem; height:2.5rem; border-radius:var(--forgeui-radius-full); background:var(--forgeui-color-primary-subtle);
       color:var(--forgeui-color-primary); display:flex; align-items:center; justify-content:center;
       font-weight:var(--forgeui-weight-semibold); font-size:var(--forgeui-text-sm); overflow:hidden; }
     img { width:100%; height:100%; object-fit:cover; }
-  `}render(){let t=this.getString("src",""),e=this.getString("name","?"),r=e.split(" ").map(o=>o[0]).join("").toUpperCase().slice(0,2);return a`<div class="avatar">${t?a`<img src="${t}" alt="${e}">`:r}<slot></slot></div>`}};customElements.define("forgeui-avatar",se);var ae=class extends d{static get styles(){return p`
+  `}render(){let t=this.getString("src",""),e=this.getString("name","?"),r=e.split(" ").map(o=>o[0]).join("").toUpperCase().slice(0,2);return a`<div class="avatar">${t?a`<img src="${t}" alt="${e}">`:r}<slot></slot></div>`}};customElements.define("forgeui-avatar",ce);var ue=class extends d{static get styles(){return p`
     :host { display:block; text-align:center; padding:var(--forgeui-space-2xl) var(--forgeui-space-lg); }
     .title { font-size:var(--forgeui-text-lg); font-weight:var(--forgeui-weight-semibold); margin-bottom:var(--forgeui-space-xs); overflow-wrap:break-word; }
     .desc { font-size:var(--forgeui-text-sm); color:var(--forgeui-color-text-secondary); margin-bottom:var(--forgeui-space-md); overflow-wrap:break-word; }
@@ -395,7 +423,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
       <div class="title">${t}</div>
       ${e?a`<div class="desc">${e}</div>`:f}
       <slot></slot>
-    `}};customElements.define("forgeui-empty-state",ae);var le=class extends d{static get styles(){return p`
+    `}};customElements.define("forgeui-empty-state",ue);var ge=class extends d{static get styles(){return p`
     :host { display:block; flex:1 1 auto; min-width:0; max-width:100%; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); color:var(--forgeui-color-text); overflow-wrap:break-word; }
     input, textarea { width:100%; padding:var(--forgeui-space-xs) var(--forgeui-space-sm); border:1px solid var(--forgeui-color-border);
@@ -412,7 +440,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
       ${s?a`<textarea id="${c}" placeholder="${e}" .value=${l} @input=${g=>this.dispatchAction("change",{value:g.target.value})}></textarea>`:a`<input id="${c}" type="${i}" placeholder="${e}" .value=${l} @input=${g=>this.dispatchAction("change",{value:g.target.value})}>`}
       ${r&&!o?a`<div class="hint">${r}</div>`:f}
       ${o?a`<div class="error">${o}</div>`:f}
-    `}};customElements.define("forgeui-text-input",le);var ce=class extends d{static get styles(){return p`
+    `}};customElements.define("forgeui-text-input",ge);var de=class extends d{static get styles(){return p`
     :host { display:block; flex:1 1 auto; min-width:0; max-width:100%; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); overflow-wrap:break-word; }
     input { width:100%; padding:var(--forgeui-space-xs) var(--forgeui-space-sm); border:1px solid var(--forgeui-color-border);
@@ -423,7 +451,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
       ${t?a`<label for="${s}">${t}</label>`:f}
       <input id="${s}" type="number" min=${e} max=${r} step=${o} .value=${i??""}
         @input=${l=>this.dispatchAction("change",{value:Number(l.target.value)})}>
-    `}};customElements.define("forgeui-number-input",ce);var ue=class extends d{static get styles(){return p`
+    `}};customElements.define("forgeui-number-input",de);var fe=class extends d{static get styles(){return p`
     :host { display:block; flex:1 1 auto; min-width:0; max-width:100%; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); overflow-wrap:break-word; }
     select { width:100%; padding:var(--forgeui-space-xs) var(--forgeui-space-sm); border:1px solid var(--forgeui-color-border);
@@ -437,7 +465,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
           ${typeof i=="string"?i:i.label||i.value}
         </option>`)}
       </select>
-    `}};customElements.define("forgeui-select",ue);var ge=class extends d{static get styles(){return p`
+    `}};customElements.define("forgeui-select",fe);var pe=class extends d{static get styles(){return p`
     :host { display:block; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); }
     .tags { display:flex; flex-wrap:wrap; gap:var(--forgeui-space-2xs); padding:var(--forgeui-space-xs); border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md); min-height:var(--forgeui-input-height); }
@@ -452,7 +480,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
         ${e.map(r=>a`<span class="tag">${String(r)}<button @click=${()=>this.dispatchAction("remove",{value:r})}>×</button></span>`)}
         <slot></slot>
       </div>
-    `}};customElements.define("forgeui-multi-select",ge);var de=class extends d{static get styles(){return p`
+    `}};customElements.define("forgeui-multi-select",pe);var he=class extends d{static get styles(){return p`
     :host { display:flex; align-items:center; gap:var(--forgeui-space-xs); margin-bottom:var(--forgeui-space-xs); cursor:pointer; }
     input { width:1.125rem; height:1.125rem; accent-color:var(--forgeui-color-primary); cursor:pointer; }
     label { font-size:var(--forgeui-text-sm); cursor:pointer; }
@@ -460,7 +488,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
   `}render(){let t=this.getString("label",""),e=!!this.getBoundProp("checked",this.getProp("value")??!1),r=this._instanceId;return a`
       <input id="${r}" type="checkbox" ?checked=${e} @change=${o=>this.dispatchAction("change",{checked:o.target.checked})}>
       ${t?a`<label for="${r}">${t}</label>`:f}
-    `}};customElements.define("forgeui-checkbox",de);var fe=class extends d{constructor(){super(...arguments);this._toggle=()=>{if(this.getBool("disabled"))return;let e=!!this.getBoundProp("on",this.getProp("value")??!1);this.dispatchAction("change",{value:!e,checked:!e})};this._onKeydown=e=>{(e.key==="Enter"||e.key===" "||e.key==="Spacebar")&&(e.preventDefault(),this._toggle())}}static get styles(){return p`
+    `}};customElements.define("forgeui-checkbox",he);var me=class extends d{constructor(){super(...arguments);this._toggle=()=>{if(this.getBool("disabled"))return;let e=!!this.getBoundProp("on",this.getProp("value")??!1);this.dispatchAction("change",{value:!e,checked:!e})};this._onKeydown=e=>{(e.key==="Enter"||e.key===" "||e.key==="Spacebar")&&(e.preventDefault(),this._toggle())}}static get styles(){return p`
     :host { display:flex; align-items:center; gap:var(--forgeui-space-sm); margin-bottom:var(--forgeui-space-xs); }
     .switch { position:relative; width:2.75rem; height:1.5rem; background:var(--forgeui-color-border-strong);
       border-radius:var(--forgeui-radius-full); cursor:pointer; border:none; padding:0;
@@ -490,7 +518,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
         ></button>
         ${r?a`<span class="toggle-text">${r}</span>`:f}
       </label>
-    `}};customElements.define("forgeui-toggle",fe);var pe=class extends d{static get styles(){return p`
+    `}};customElements.define("forgeui-toggle",me);var be=class extends d{static get styles(){return p`
     :host { display:block; flex:1 1 auto; min-width:0; max-width:100%; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); overflow-wrap:break-word; }
     input { width:100%; padding:var(--forgeui-space-xs) var(--forgeui-space-sm); border:1px solid var(--forgeui-color-border);
@@ -500,7 +528,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
   `}render(){let t=this.getString("label",""),e=this.getString("value",""),r=this._instanceId;return a`
       ${t?a`<label for="${r}">${t}</label>`:f}
       <input id="${r}" type="date" .value=${e} @change=${o=>this.dispatchAction("change",{value:o.target.value})}>
-    `}};customElements.define("forgeui-date-picker",pe);var he=class extends d{static get styles(){return p`
+    `}};customElements.define("forgeui-date-picker",be);var ve=class extends d{static get styles(){return p`
     :host { display:block; flex:1 1 auto; min-width:0; max-width:100%; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); overflow-wrap:break-word; }
     input[type=range] { width:100%; accent-color:var(--forgeui-color-primary); min-width:0; }
@@ -510,7 +538,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
       <input id="${l}" type="range" min=${e} max=${r} step=${o} .value=${s}
         @input=${c=>this.dispatchAction("change",{value:Number(c.target.value)})}>
       <div class="value">${s}</div>
-    `}};customElements.define("forgeui-slider",he);var me=class extends d{constructor(){super(...arguments);this._dragging=!1;this._openFilePicker=()=>{this.shadowRoot?.querySelector('input[type="file"]')?.click()};this._onDropzoneKeydown=e=>{e.key!=="Enter"&&e.key!==" "||(e.preventDefault(),this._openFilePicker())};this._onFileChange=e=>{let r=Array.from(e.target.files??[]);this._processFiles(r)};this._onDragOver=e=>{e.preventDefault(),!this._dragging&&(this._dragging=!0,this.requestUpdate())};this._onDragLeave=e=>{e.currentTarget===e.target&&(this._dragging=!1,this.requestUpdate())};this._onDrop=e=>{e.preventDefault(),this._dragging=!1,this.requestUpdate(),this._processFiles(Array.from(e.dataTransfer?.files??[]))}}static get styles(){return p`
+    `}};customElements.define("forgeui-slider",ve);var ye=class extends d{constructor(){super(...arguments);this._dragging=!1;this._openFilePicker=()=>{this.shadowRoot?.querySelector('input[type="file"]')?.click()};this._onDropzoneKeydown=e=>{e.key!=="Enter"&&e.key!==" "||(e.preventDefault(),this._openFilePicker())};this._onFileChange=e=>{let r=Array.from(e.target.files??[]);this._processFiles(r)};this._onDragOver=e=>{e.preventDefault(),!this._dragging&&(this._dragging=!0,this.requestUpdate())};this._onDragLeave=e=>{e.currentTarget===e.target&&(this._dragging=!1,this.requestUpdate())};this._onDrop=e=>{e.preventDefault(),this._dragging=!1,this.requestUpdate(),this._processFiles(Array.from(e.dataTransfer?.files??[]))}}static get styles(){return p`
     :host { display:block; margin-bottom:var(--forgeui-space-sm); }
     label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); }
     .dropzone { border:2px dashed var(--forgeui-color-border-strong); border-radius:var(--forgeui-radius-md);
@@ -518,7 +546,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
     .dropzone:hover, .dropzone.dragging { border-color:var(--forgeui-color-primary); background:var(--forgeui-color-primary-subtle); }
     .dropzone:focus-visible { outline:3px solid var(--forgeui-color-focus); outline-offset:2px; }
     .dropzone p { color:var(--forgeui-color-text-secondary); font-size:var(--forgeui-text-sm); }
-  `}_maxSizeBytes(){let e=this.getProp("maxSize");if(typeof e=="number"&&Number.isFinite(e)&&e>=0)return Math.floor(e);if(typeof e!="string")return null;let r=e.trim().match(/^(\d+(?:\.\d+)?)\s*(b|kb|mb|gb)?$/i);if(!r)return null;let o=Number(r[1]),i=(r[2]||"b").toLowerCase(),s=i==="gb"?1<<30:i==="mb"?1<<20:i==="kb"?1024:1,l=o*s;return Number.isFinite(l)?Math.floor(l):null}_newFileId(){return globalThis.crypto?.randomUUID?.()??`${Date.now()}_${Math.random().toString(36).slice(2)}`}_processFiles(e){let r=this.getBool("multiple"),o=this._maxSizeBytes(),i=(r?e:e.slice(0,1)).map(u=>{let m=this._newFileId(),w=o==null||u.size<=o,I={id:m,name:u.name,size:u.size,type:u.type,lastModified:u.lastModified,accepted:w,storageKey:w?m:null};return w||(I.error="maxSize"),[u,I]}),s=i.filter(([,u])=>u.accepted),l=i.map(([,u])=>u),c=s.map(([,u])=>u),g=r?c:c[0]??null,h=c[0]??null;this.dispatchAction("change",{id:h?.id??null,uuid:h?.id??null,name:h?.name??null,size:h?.size??null,type:h?.type??null,lastModified:h?.lastModified??null,storageKey:h?.storageKey??null,value:g,files:l,rejected:l.filter(u=>!u.accepted),multiple:r,maxSize:o}),Ne(s.map(([u,m])=>({file:u,id:m.id})))}render(){let e=this.getString("label","Upload file"),r=this.getString("accept","*"),o=this.getBool("multiple");return a`
+  `}_maxSizeBytes(){let e=this.getProp("maxSize");if(typeof e=="number"&&Number.isFinite(e)&&e>=0)return Math.floor(e);if(typeof e!="string")return null;let r=e.trim().match(/^(\d+(?:\.\d+)?)\s*(b|kb|mb|gb)?$/i);if(!r)return null;let o=Number(r[1]),i=(r[2]||"b").toLowerCase(),s=i==="gb"?1<<30:i==="mb"?1<<20:i==="kb"?1024:1,l=o*s;return Number.isFinite(l)?Math.floor(l):null}_newFileId(){return globalThis.crypto?.randomUUID?.()??`${Date.now()}_${Math.random().toString(36).slice(2)}`}_processFiles(e){let r=this.getBool("multiple"),o=this._maxSizeBytes(),i=(r?e:e.slice(0,1)).map(u=>{let m=this._newFileId(),w=o==null||u.size<=o,I={id:m,name:u.name,size:u.size,type:u.type,lastModified:u.lastModified,accepted:w,storageKey:w?m:null};return w||(I.error="maxSize"),[u,I]}),s=i.filter(([,u])=>u.accepted),l=i.map(([,u])=>u),c=s.map(([,u])=>u),g=r?c:c[0]??null,h=c[0]??null;this.dispatchAction("change",{id:h?.id??null,uuid:h?.id??null,name:h?.name??null,size:h?.size??null,type:h?.type??null,lastModified:h?.lastModified??null,storageKey:h?.storageKey??null,value:g,files:l,rejected:l.filter(u=>!u.accepted),multiple:r,maxSize:o}),Ve(s.map(([u,m])=>({file:u,id:m.id})))}render(){let e=this.getString("label","Upload file"),r=this.getString("accept","*"),o=this.getBool("multiple");return a`
       ${e?a`<label>${e}</label>`:f}
       <div class="dropzone ${this._dragging?"dragging":""}" role="button" tabindex="0"
         @click=${this._openFilePicker} @keydown=${this._onDropzoneKeydown}
@@ -526,7 +554,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
         <p>Drop</p>
         <input type="file" accept="${r}" ?multiple=${o} hidden @change=${this._onFileChange}>
       </div>
-    `}};customElements.define("forgeui-file-upload",me);var be=class extends d{static get styles(){return p`
+    `}};customElements.define("forgeui-file-upload",ye);var xe=class extends d{static get styles(){return p`
     :host { display:inline-flex; }
     button { display:inline-flex; align-items:center; justify-content:center; gap:var(--forgeui-space-xs);
       padding:0 var(--forgeui-space-md); height:var(--forgeui-button-height); border:1px solid transparent;
@@ -550,15 +578,15 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
     }
   `}render(){let t=this.getString("label","Button"),e=this.getString("variant","primary"),r=this.getString("size",""),o=this.getBool("disabled"),i=this.getProp("pressed");return a`<button class="${e} ${r}" ?disabled=${o}
       aria-pressed=${i==null?f:String(!!i)}
-      @click=${s=>this.handleAction(s)}>${t}<slot></slot></button>`}};customElements.define("forgeui-button",be);var ve=class extends d{static get styles(){return p`
+      @click=${s=>this.handleAction(s)}>${t}<slot></slot></button>`}};customElements.define("forgeui-button",xe);var we=class extends d{static get styles(){return p`
     :host { display:flex; gap:var(--forgeui-space-xs); }
-  `}render(){return a`<slot></slot>`}};customElements.define("forgeui-button-group",ve);var ye=class extends d{static get styles(){return p`
+  `}render(){return a`<slot></slot>`}};customElements.define("forgeui-button-group",we);var $e=class extends d{static get styles(){return p`
     :host { display:inline-flex; }
     a { color:var(--forgeui-color-primary); text-decoration:none; font-size:var(--forgeui-text-sm); cursor:pointer;
       text-decoration-thickness:1px; text-underline-offset:2px; }
     a:hover { text-decoration:underline; }
     a:focus-visible { outline:3px solid var(--forgeui-color-focus); outline-offset:2px; border-radius:2px; }
-  `}render(){let t=this.getString("label",""),e=this.getString("href","#");return a`<a href="${e}">${t}<slot></slot></a>`}};customElements.define("forgeui-link",ye);var xe=class extends d{static get styles(){return p`
+  `}render(){let t=this.getString("label",""),e=this.getString("href","#");return a`<a href="${e}">${t}<slot></slot></a>`}};customElements.define("forgeui-link",$e);var ke=class extends d{static get styles(){return p`
     :host { display:block; overflow-x:auto; min-width:0; width:100%; }
     table { width:100%; min-width:42rem; border-collapse:collapse; font-size:var(--forgeui-text-sm); }
     th { text-align:left; padding:var(--forgeui-space-sm) var(--forgeui-space-md); font-weight:var(--forgeui-weight-semibold);
@@ -598,7 +626,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
                 @keydown=${g?u=>{(u.key==="Enter"||u.key===" ")&&(u.preventDefault(),this.dispatchAction(o,{row:l,index:c}))}:void 0}>
               ${s.map(u=>{let m=typeof u=="object"?u.align:void 0;return a`<td class="${m==="right"?"align-right":m==="center"?"align-center":""}">${this._renderCell(u,l)}</td>`})}</tr>`})}</tbody>
       </table>
-    `}};customElements.define("forgeui-table",xe);var we=class extends d{static get styles(){return p`
+    `}};customElements.define("forgeui-table",ke);var Se=class extends d{static get styles(){return p`
     :host { display:block; }
     .list { display:flex; flex-direction:column; gap:var(--forgeui-space-xs); }
     .item { padding:var(--forgeui-space-sm); border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md);
@@ -607,7 +635,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
     .empty { padding:var(--forgeui-space-lg); text-align:center; color:var(--forgeui-color-text-tertiary); font-size:var(--forgeui-text-sm); overflow-wrap:break-word; }
   `}render(){let t=this.getProp("data"),e=this.getString("dataPath","");!("data"in(this.props||{}))&&e&&this.store?.hasTable(e)&&(t=Object.values(this.store.getTable(e)));let r=this.getString("emptyMessage","No items");return!Array.isArray(t)||t.length===0?a`<div class="empty">${r}</div>`:a`<div class="list">${t.map((o,i)=>a`
       <div class="item" data-index=${i}><slot name="item" .item=${o} .index=${i}>${JSON.stringify(o)}</slot></div>
-    `)}</div>`}};customElements.define("forgeui-list",we);var $e=class extends d{constructor(){super(...arguments);this._palette=["var(--forgeui-color-primary)","var(--forgeui-color-success)","var(--forgeui-color-warning)","var(--forgeui-color-error)","var(--forgeui-color-info)","var(--forgeui-color-chart-6)","var(--forgeui-color-chart-7)","var(--forgeui-color-chart-8)","var(--forgeui-color-chart-9)","var(--forgeui-color-chart-10)"]}static get styles(){return p`
+    `)}</div>`}};customElements.define("forgeui-list",Se);var _e=class extends d{constructor(){super(...arguments);this._palette=["var(--forgeui-color-primary)","var(--forgeui-color-success)","var(--forgeui-color-warning)","var(--forgeui-color-error)","var(--forgeui-color-info)","var(--forgeui-color-chart-6)","var(--forgeui-color-chart-7)","var(--forgeui-color-chart-8)","var(--forgeui-color-chart-9)","var(--forgeui-color-chart-10)"]}static get styles(){return p`
     :host { display:block; min-width:0; }
     .title { font-weight:var(--forgeui-weight-semibold); font-size:var(--forgeui-text-sm); margin-bottom:var(--forgeui-space-xs); color:var(--forgeui-color-text); }
     .wrap { width:100%; overflow:hidden; }
@@ -631,7 +659,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
   `}_niceMax(e){if(e<=0)return 1;let r=Math.pow(10,Math.floor(Math.log10(e))),o=e/r;return(o<=1?1:o<=2?2:o<=5?5:10)*r}render(){let e=this.getString("chartType","bar"),r=this.getProp("data")||[],o=this.getString("title",""),i=this.getString("xKey","label")||this.getString("labelKey","label"),s=this.getString("yKey","value")||this.getString("valueKey","value"),l=this.getString("color","");if(!r||r.length===0)return a`
         ${o?a`<div class="title">${o}</div>`:f}
         <div class="empty">No data to display</div>
-      `;let c=r.map(b=>typeof b=="number"?{label:"",value:b}:b&&typeof b=="object"?{label:String(b[i]??b.label??b.name??b.x??""),value:Number(b[s]??b.value??b.y??0)||0,color:b.color}:{label:String(b),value:0}),g=600,h=260,u={top:8,right:16,bottom:36,left:48},m=g-u.left-u.right,w=h-u.top-u.bottom,I,Ie=f;if(e==="pie"||e==="donut"){let b=c.reduce((k,x)=>k+Math.max(0,x.value),0)||1,P=g/2,A=h/2,z=Math.min(m,w)/2-8,M=e==="donut"?z*.55:0,y=-Math.PI/2,$=[],E=[];c.forEach((k,x)=>{let C=Math.max(0,k.value)/b,S=y,_=y+C*Math.PI*2;y=_;let D=_-S>Math.PI?1:0,N=P+z*Math.cos(S),je=A+z*Math.sin(S),Le=P+z*Math.cos(_),De=A+z*Math.sin(_),B=k.color||this._palette[x%this._palette.length];if(E.push(B),M>0){let Ve=P+M*Math.cos(S),Be=A+M*Math.sin(S),Te=P+M*Math.cos(_),We=A+M*Math.sin(_);$.push(v`<path class="slice" fill="${B}" d="M ${N} ${je} A ${z} ${z} 0 ${D} 1 ${Le} ${De} L ${Te} ${We} A ${M} ${M} 0 ${D} 0 ${Ve} ${Be} Z"/>`)}else $.push(v`<path class="slice" fill="${B}" d="M ${P} ${A} L ${N} ${je} A ${z} ${z} 0 ${D} 1 ${Le} ${De} Z"/>`)}),I=v`<g>${$}</g>`,Ie=a`<div class="legend">${c.map((k,x)=>a`
+      `;let c=r.map(b=>typeof b=="number"?{label:"",value:b}:b&&typeof b=="object"?{label:String(b[i]??b.label??b.name??b.x??""),value:Number(b[s]??b.value??b.y??0)||0,color:b.color}:{label:String(b),value:0}),g=600,h=260,u={top:8,right:16,bottom:36,left:48},m=g-u.left-u.right,w=h-u.top-u.bottom,I,je=f;if(e==="pie"||e==="donut"){let b=c.reduce((k,x)=>k+Math.max(0,x.value),0)||1,P=g/2,A=h/2,z=Math.min(m,w)/2-8,M=e==="donut"?z*.55:0,y=-Math.PI/2,$=[],E=[];c.forEach((k,x)=>{let C=Math.max(0,k.value)/b,S=y,_=y+C*Math.PI*2;y=_;let R=_-S>Math.PI?1:0,V=P+z*Math.cos(S),Le=A+z*Math.sin(S),De=P+z*Math.cos(_),Re=A+z*Math.sin(_),T=k.color||this._palette[x%this._palette.length];if(E.push(T),M>0){let Te=P+M*Math.cos(S),We=A+M*Math.sin(S),Ke=P+M*Math.cos(_),He=A+M*Math.sin(_);$.push(v`<path class="slice" fill="${T}" d="M ${V} ${Le} A ${z} ${z} 0 ${R} 1 ${De} ${Re} L ${Ke} ${He} A ${M} ${M} 0 ${R} 0 ${Te} ${We} Z"/>`)}else $.push(v`<path class="slice" fill="${T}" d="M ${P} ${A} L ${V} ${Le} A ${z} ${z} 0 ${R} 1 ${De} ${Re} Z"/>`)}),I=v`<g>${$}</g>`,je=a`<div class="legend">${c.map((k,x)=>a`
         <span class="legend-item"><span class="swatch" style="background:${E[x]}"></span>${k.label} (${k.value})</span>
       `)}</div>`}else{let b=Math.max(...c.map(y=>y.value),0),P=this._niceMax(b),A=y=>u.top+w-y/P*w,z=4,M=[];for(let y=0;y<=z;y++){let $=P*y/z,E=A($);M.push(v`<line class="grid" x1="${u.left}" x2="${u.left+m}" y1="${E}" y2="${E}"/>`),M.push(v`<text class="tick-label" x="${u.left-6}" y="${E+3}" text-anchor="end">${$.toLocaleString()}</text>`)}if(e==="line"||e==="area"){let y=m/Math.max(1,c.length-1),$=c.map((x,C)=>{let S=u.left+C*y,_=A(x.value);return`${C===0?"M":"L"} ${S} ${_}`}).join(" "),E=e==="area"?$+` L ${u.left+m} ${u.top+w} L ${u.left} ${u.top+w} Z`:"",k=l||"var(--forgeui-color-primary)";I=a`
           <g>${M}</g>
@@ -641,7 +669,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
               <text class="tick-label" x="${S}" y="${u.top+w+14}" text-anchor="middle">${x.label}</text>`})}
         `}else{let y=c.length,$=m/y,E=Math.max(2,$*.7),k=$-E;I=a`
           <g>${M}</g>
-          ${c.map((x,C)=>{let S=u.left+C*$+k/2,_=A(x.value),D=Math.max(0,u.top+w-_),N=x.color||l||"var(--forgeui-color-primary)";return v`<rect class="bar" x="${S}" y="${_}" width="${E}" height="${D}" rx="2" style="fill:${N}">
+          ${c.map((x,C)=>{let S=u.left+C*$+k/2,_=A(x.value),R=Math.max(0,u.top+w-_),V=x.color||l||"var(--forgeui-color-primary)";return v`<rect class="bar" x="${S}" y="${_}" width="${E}" height="${R}" rx="2" style="fill:${V}">
                 <title>${x.label}: ${x.value}</title>
               </rect>
               <text class="tick-label" x="${S+E/2}" y="${u.top+w+14}" text-anchor="middle">${x.label}</text>`})}
@@ -651,9 +679,9 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
         <svg viewBox="0 0 ${g} ${h}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${o||e+" chart"}">
           ${I}
         </svg>
-        ${Ie}
+        ${je}
       </div>
-    `}};customElements.define("forgeui-chart",$e);var ke=class extends d{static get styles(){return p`
+    `}};customElements.define("forgeui-chart",_e);var ze=class extends d{static get styles(){return p`
     :host { display:flex; flex-direction:column; padding:var(--forgeui-space-md); background:var(--forgeui-color-surface);
       border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md); min-width:0; gap:var(--forgeui-space-2xs); }
     :host([variant="plain"]) { background:transparent; border:none; padding:0; }
@@ -680,7 +708,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
       </div>
       ${c?a`<div class="subtitle">${c}</div>`:f}
       ${i!=null&&i!==""?a`<div class="goal">Goal: ${typeof i=="number"?i.toLocaleString():i}</div>`:f}
-    `}};customElements.define("forgeui-metric",ke);var Se=class extends d{static get styles(){return p`
+    `}};customElements.define("forgeui-metric",ze);var Me=class extends d{static get styles(){return p`
     :host { display:block; margin-bottom:var(--forgeui-space-sm); }
     .alert { padding:var(--forgeui-space-sm) var(--forgeui-space-md); border-radius:var(--forgeui-radius-md);
       border-left:4px solid; font-size:var(--forgeui-text-sm); color:var(--forgeui-color-text); line-height:var(--forgeui-leading-normal); overflow-wrap:break-word; }
@@ -694,7 +722,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
     .error strong { color:var(--forgeui-color-error); }
   `}render(){let t=this.getString("variant","info"),e=this.getString("title",""),r=this.getString("message","");return a`<div class="alert ${t}" role=${t==="error"||t==="warning"?"alert":"status"}>
       ${e?a`<strong>${e}</strong> `:f}${r}<slot></slot>
-    </div>`}};customElements.define("forgeui-alert",Se);var _e=class extends d{constructor(){super(...arguments);this._priorFocus=null;this._keydownHandler=e=>this._onKeydown(e);this._close=()=>{this.dispatchAction("close")}}static get styles(){return p`
+    </div>`}};customElements.define("forgeui-alert",Me);var Ee=class extends d{constructor(){super(...arguments);this._priorFocus=null;this._keydownHandler=e=>this._onKeydown(e);this._close=()=>{this.dispatchAction("close")}}static get styles(){return p`
     :host { display:none; }
     :host([open]) { display:flex; position:fixed; inset:0; z-index:50; align-items:center; justify-content:center; }
     .backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.5); }
@@ -717,7 +745,7 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
         ${e?a`<h2 id="${o}" class="title">${e}</h2>`:f}
         <slot></slot>
       </div>
-    `:f}updated(e){if(super.updated?.(e),e.has("props")){let r=this.getBool("open"),i=e.get("props")?.open??!1;r&&!i?this._onOpen():!r&&i&&this._onClose()}}_onOpen(){this._priorFocus=document.activeElement instanceof HTMLElement?document.activeElement:null,document.addEventListener("keydown",this._keydownHandler),requestAnimationFrame(()=>{let e=this.shadowRoot?.querySelector(".dialog");(this._firstFocusableInDialog()??e)?.focus()})}_onClose(){document.removeEventListener("keydown",this._keydownHandler),this._priorFocus instanceof HTMLElement&&this._priorFocus.focus(),this._priorFocus=null}disconnectedCallback(){super.disconnectedCallback?.(),document.removeEventListener("keydown",this._keydownHandler)}_onKeydown(e){if(e.key==="Escape"){e.preventDefault(),this._close();return}e.key==="Tab"&&this._trapFocus(e)}_trapFocus(e){let r=this._allFocusableInDialog();if(r.length===0){e.preventDefault();return}let o=r[0],i=r[r.length-1],s=this.shadowRoot?.activeElement??document.activeElement;e.shiftKey?(s===o||!this._dialogContains(s))&&(e.preventDefault(),i.focus()):(s===i||!this._dialogContains(s))&&(e.preventDefault(),o.focus())}_firstFocusableInDialog(){return this._allFocusableInDialog()[0]??null}_allFocusableInDialog(){let e=this.shadowRoot?.querySelector(".dialog");if(!e)return[];let r='button, [href], input:not([type="hidden"]), select, textarea, [tabindex]:not([tabindex="-1"])',o=Array.from(e.querySelectorAll(r)),i=e.querySelector("slot"),s=i instanceof HTMLSlotElement?i.assignedElements({flatten:!0}).flatMap(l=>[l,...Array.from(l.querySelectorAll(r))].filter(g=>g instanceof HTMLElement&&g.matches(r))):[];return[...o,...s].filter(l=>!l.disabled)}_dialogContains(e){return e?this.shadowRoot?.querySelector(".dialog")?.contains(e)??!1:!1}};customElements.define("forgeui-dialog",_e);var ze=class extends d{static get styles(){return p`
+    `:f}updated(e){if(super.updated?.(e),e.has("props")){let r=this.getBool("open"),i=e.get("props")?.open??!1;r&&!i?this._onOpen():!r&&i&&this._onClose()}}_onOpen(){this._priorFocus=document.activeElement instanceof HTMLElement?document.activeElement:null,document.addEventListener("keydown",this._keydownHandler),requestAnimationFrame(()=>{let e=this.shadowRoot?.querySelector(".dialog");(this._firstFocusableInDialog()??e)?.focus()})}_onClose(){document.removeEventListener("keydown",this._keydownHandler),this._priorFocus instanceof HTMLElement&&this._priorFocus.focus(),this._priorFocus=null}disconnectedCallback(){super.disconnectedCallback?.(),document.removeEventListener("keydown",this._keydownHandler)}_onKeydown(e){if(e.key==="Escape"){e.preventDefault(),this._close();return}e.key==="Tab"&&this._trapFocus(e)}_trapFocus(e){let r=this._allFocusableInDialog();if(r.length===0){e.preventDefault();return}let o=r[0],i=r[r.length-1],s=this.shadowRoot?.activeElement??document.activeElement;e.shiftKey?(s===o||!this._dialogContains(s))&&(e.preventDefault(),i.focus()):(s===i||!this._dialogContains(s))&&(e.preventDefault(),o.focus())}_firstFocusableInDialog(){return this._allFocusableInDialog()[0]??null}_allFocusableInDialog(){let e=this.shadowRoot?.querySelector(".dialog");if(!e)return[];let r='button, [href], input:not([type="hidden"]), select, textarea, [tabindex]:not([tabindex="-1"])',o=Array.from(e.querySelectorAll(r)),i=e.querySelector("slot"),s=i instanceof HTMLSlotElement?i.assignedElements({flatten:!0}).flatMap(l=>[l,...Array.from(l.querySelectorAll(r))].filter(g=>g instanceof HTMLElement&&g.matches(r))):[];return[...o,...s].filter(l=>!l.disabled)}_dialogContains(e){return e?this.shadowRoot?.querySelector(".dialog")?.contains(e)??!1:!1}};customElements.define("forgeui-dialog",Ee);var Ae=class extends d{static get styles(){return p`
     :host { display:block; flex:1 1 auto; min-width:8rem; }
     .progress { height:0.625rem; background:var(--forgeui-color-surface-alt); border-radius:var(--forgeui-radius-sm); overflow:hidden; border:1px solid var(--forgeui-color-border); }
     .bar { height:100%; background:var(--forgeui-color-primary); border-radius:var(--forgeui-radius-full); transition:width var(--forgeui-transition-normal); }
@@ -747,45 +775,16 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
       >
         <div class="bar" style=${r?"":`width:${i}%`}></div>
       </div>
-    `}};customElements.define("forgeui-progress",ze);var Me=class extends d{static get styles(){return p`
+    `}};customElements.define("forgeui-progress",Ae);var Pe=class extends d{static get styles(){return p`
     :host { display:block; position:fixed; bottom:var(--forgeui-space-lg); right:var(--forgeui-space-lg); z-index:60; }
     .toast { padding:var(--forgeui-space-sm) var(--forgeui-space-md); border-radius:var(--forgeui-radius-md);
       background:var(--forgeui-color-text); color:var(--forgeui-color-text-inverse); font-size:var(--forgeui-text-sm);
       box-shadow:var(--forgeui-shadow-lg); max-width:20rem; overflow-wrap:break-word; }
-  `}render(){let t=this.getString("message","");return t?a`<div class="toast">${t}</div>`:a`${f}`}};customElements.define("forgeui-toast",Me);var Ee=class extends d{static get styles(){return p`
-    :host { display:flex; align-items:center; gap:var(--forgeui-space-xs); font-size:var(--forgeui-text-sm); }
-    .sep { color:var(--forgeui-color-text-tertiary); }
-    a { color:var(--forgeui-color-primary); text-decoration:none; }
-    a:hover { text-decoration:underline; }
-    .current { color:var(--forgeui-color-text); font-weight:var(--forgeui-weight-medium); }
-  `}render(){let t=this.getProp("items")||[];return a`${t.map((e,r)=>{let o=r===t.length-1,i=typeof e=="string"?e:e.label,s=typeof e=="string"?"#":e.href;return a`
-        ${r>0?a`<span class="sep">/</span>`:f}
-        ${o?a`<span class="current">${i}</span>`:a`<a href="${s}">${i}</a>`}
-      `})}`}};customElements.define("forgeui-breadcrumb",Ee);var Ae=class extends d{static get styles(){return p`
-    :host { display:flex; width:100%; gap:0; }
-    .step { flex:1; display:flex; flex-direction:column; align-items:center; position:relative; min-width:0; }
-    /* Connector line: starts from after circle midpoint, ends at the next step's circle midpoint */
-    .step:not(:last-child)::after { content:''; position:absolute; top:0.75rem;
-      left:calc(50% + 0.875rem); right:calc(-50% + 0.875rem); height:2px;
-      background:var(--forgeui-color-border); z-index:0; }
-    .step:not(:last-child)[completed]::after { background:var(--forgeui-color-primary); }
-    .circle { width:1.75rem; height:1.75rem; border-radius:var(--forgeui-radius-full); display:flex; align-items:center;
-      justify-content:center; font-size:var(--forgeui-text-xs); font-weight:var(--forgeui-weight-semibold);
-      background:var(--forgeui-color-surface); color:var(--forgeui-color-text-secondary); border:2px solid var(--forgeui-color-border); z-index:1;
-      box-sizing:border-box; position:relative; }
-    .step[active] .circle { background:var(--forgeui-color-primary); color:var(--forgeui-color-text-inverse); border-color:var(--forgeui-color-primary); }
-    .step[completed] .circle { background:var(--forgeui-color-primary); color:var(--forgeui-color-text-inverse); border-color:var(--forgeui-color-primary); }
-    .label { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-text-secondary); margin-top:var(--forgeui-space-xs); text-align:center; padding:0 var(--forgeui-space-2xs); }
-    .step[active] .label { color:var(--forgeui-color-text); font-weight:var(--forgeui-weight-semibold); }
-    .step[completed] .label { color:var(--forgeui-color-text); }
-  `}render(){let t=this.getProp("steps")||[],e=this.getBoundProp("active",this.getProp("activeStep")??0),r=Number(e)||0;return a`${t.map((o,i)=>{let s=typeof o=="string"?o:o.label||o.title||`Step ${i+1}`,l=i===r,c=i<r;return a`<div class="step" ?active=${l} ?completed=${c}>
-        <div class="circle">${c?"\u2713":i+1}</div>
-        <div class="label">${s}</div>
-      </div>`})}`}};customElements.define("forgeui-stepper",Ae);var Pe=class extends d{static get styles(){return p`
+  `}render(){let t=this.getString("message","");return t?a`<div class="toast">${t}</div>`:a`${f}`}};customElements.define("forgeui-toast",Pe);var Ce=class extends d{static get styles(){return p`
     :host { display:block; }
     .error { padding:var(--forgeui-space-sm); background:var(--forgeui-color-error-subtle); color:var(--forgeui-color-error);
       border:1px solid var(--forgeui-color-error); border-radius:var(--forgeui-radius-md); font-size:var(--forgeui-text-sm); }
-  `}render(){let t=this.getString("msg","Unknown error");return a`<div class="error" role="alert">⚠ ${t}</div>`}};customElements.define("forgeui-error",Pe);var Ce=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return p`
+  `}render(){let t=this.getString("msg","Unknown error");return a`<div class="error" role="alert">⚠ ${t}</div>`}};customElements.define("forgeui-error",Ce);var Ie=class extends d{static get properties(){return{props:{type:Object}}}static get styles(){return p`
     :host { display:block; }
     svg { display:block; }
   `}render(){let t=this.getNumber("width",400),e=this.getNumber("height",300),r=this.getString("background","transparent"),o=this.getProp("shapes")||[];return v`
@@ -845,4 +844,4 @@ import{html as a,css as p,svg as v,nothing as f}from"lit";import{LitElement as Z
           opacity="${e.opacity??1}"
           style="${o}"
           @click=${r}
-        />`;default:return v``}}};customElements.define("forgeui-drawing",Ce);export{G as ForgeAccordion,Se as ForgeAlert,se as ForgeAvatar,ne as ForgeBadge,Ee as ForgeBreadcrumb,be as ForgeButton,ve as ForgeButtonGroup,Z as ForgeCard,$e as ForgeChart,de as ForgeCheckbox,X as ForgeContainer,pe as ForgeDatePicker,_e as ForgeDialog,Q as ForgeDivider,Ce as ForgeDrawing,ae as ForgeEmptyState,me as ForgeFileUpload,J as ForgeGrid,ie as ForgeIcon,oe as ForgeImage,ye as ForgeLink,we as ForgeList,ke as ForgeMetric,ge as ForgeMultiSelect,ce as ForgeNumberInput,ze as ForgeProgress,te as ForgeRepeater,ue as ForgeSelect,he as ForgeSlider,ee as ForgeSpacer,U as ForgeStack,Ae as ForgeStepper,xe as ForgeTable,Y as ForgeTabs,re as ForgeText,le as ForgeTextInput,Me as ForgeToast,fe as ForgeToggle,Pe as ForgeUIError};
+        />`;default:return v``}}};customElements.define("forgeui-drawing",Ie);export{te as ForgeAccordion,Me as ForgeAlert,ce as ForgeAvatar,le as ForgeBadge,J as ForgeBreadcrumb,xe as ForgeButton,we as ForgeButtonGroup,G as ForgeCard,_e as ForgeChart,he as ForgeCheckbox,Q as ForgeContainer,be as ForgeDatePicker,Ee as ForgeDialog,re as ForgeDivider,Ie as ForgeDrawing,ue as ForgeEmptyState,ye as ForgeFileUpload,Y as ForgeGrid,ae as ForgeIcon,se as ForgeImage,$e as ForgeLink,Se as ForgeList,ze as ForgeMetric,pe as ForgeMultiSelect,de as ForgeNumberInput,Ae as ForgeProgress,ie as ForgeRepeater,fe as ForgeSelect,ve as ForgeSlider,oe as ForgeSpacer,X as ForgeStack,Z as ForgeStepper,ke as ForgeTable,ee as ForgeTabs,ne as ForgeText,ge as ForgeTextInput,Pe as ForgeToast,me as ForgeToggle,Ce as ForgeUIError};

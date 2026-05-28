@@ -33,7 +33,10 @@ const sharedConfig = {
 };
 
 function componentExportEntries() {
-  const source = readFileSync('src/components/index.ts', 'utf8');
+  const files = readdirSync('src/components')
+    .filter((file) => file.endsWith('.ts') && file !== 'base.ts')
+    .map((file) => join('src/components', file));
+  const source = files.map((file) => readFileSync(file, 'utf8')).join('\n');
   return [...source.matchAll(/^export class (Forge[A-Za-z0-9]+) extends ForgeUIElement/gm)]
     .map(([, className]) => {
       const componentName = className
@@ -48,6 +51,9 @@ function componentExportEntries() {
 function writeComponentEntrypoints({ typesOnly = false } = {}) {
   const entries = componentExportEntries();
   mkdirSync('packages/runtime/components', { recursive: true });
+  const modules = readdirSync('src/components')
+    .filter((file) => file.endsWith('.ts') && file !== 'base.ts' && file !== 'index.ts')
+    .map((file) => file.replace(/\.ts$/, ''));
 
   for (const { className, componentName } of entries) {
     if (!typesOnly) {
@@ -60,6 +66,15 @@ function writeComponentEntrypoints({ typesOnly = false } = {}) {
       `packages/runtime/components/${componentName}.d.ts`,
       `export { ${className} } from './index.js';\n`,
     );
+  }
+
+  if (!typesOnly) {
+    for (const moduleName of modules) {
+      writeFileSync(
+        `packages/runtime/components/${moduleName}.js`,
+        `export * from '../forgeui-components.js';\n`,
+      );
+    }
   }
 
   console.log(`✅ packages/runtime/components/{${entries.length} entrypoints}`);
