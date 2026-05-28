@@ -166,7 +166,7 @@ happens to existing manifests when the format changes.
 
 ### Catalog: core vs extended
 
-The manifest catalog today is **39 components**. The runtime registers 40
+The manifest catalog today is **40 components**. The runtime registers 41
 custom elements because `forgeui-error` is an internal fallback element, not a
 manifest component. For LLM reliability and testing discipline, we split the
 catalog into two tiers:
@@ -559,7 +559,7 @@ payloads. This flips the loop from LLM-polls-app to app-pushes-LLM.
 
 | Bundle                | Raw    | Gzip    | Use case                      |
 |-----------------------|--------|---------|-------------------------------|
-| IIFE (CDN)            | 192 KB | 56.5 KB | `<script>`-tag, zero build    |
+| IIFE (CDN)            | 194 KB | 56.5 KB | `<script>`-tag, zero build    |
 | ESM standalone        | 119 KB | 28 KB   | Modern bundler, whole runtime |
 | ESM per-component     | 70 KB  | 16 KB   | Tree-shaking consumers        |
 
@@ -616,7 +616,7 @@ Both under-counted reality. The numbers below are honest.
 
 ### Phase 1 — MVP (shipped)
 
-Core runtime, Ring 2 server, MCP connector, 39 manifest components plus the
+Core runtime, Ring 2 server, MCP connector, 40 manifest components plus the
 internal error element, validation pipeline, design tokens, benchmarks, A2UI
 ingest. Remaining cleanup: chart z-index bug.
 

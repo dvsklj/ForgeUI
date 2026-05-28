@@ -3,6 +3,10 @@ export declare class ForgeTextInput extends ForgeUIElement {
     static get styles(): import("lit").CSSResult;
     render(): import("lit-html").TemplateResult<1>;
 }
+export declare class ForgeTextarea extends ForgeUIElement {
+    static get styles(): import("lit").CSSResult;
+    render(): import("lit-html").TemplateResult<1>;
+}
 export declare class ForgeNumberInput extends ForgeUIElement {
     static get styles(): import("lit").CSSResult;
     render(): import("lit-html").TemplateResult<1>;

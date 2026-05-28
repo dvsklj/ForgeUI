@@ -1,6 +1,6 @@
 # Component Catalog
 
-All 39 manifest components available in Forge, organized by category.
+All 40 manifest components available in Forge, organized by category.
 
 ---
 
@@ -276,6 +276,23 @@ Text input field.
 | `label` | string | — | Field label |
 | `placeholder` | string | — | Placeholder text |
 | `required` | boolean | `false` | Required field |
+| `value` | string | — | Initial value |
+
+### Textarea
+
+Multi-line text field.
+
+```json
+{ "type": "Textarea", "props": { "label": "Notes", "placeholder": "Add details", "rows": 4 } }
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `label` | string | — | Field label |
+| `placeholder` | string | — | Placeholder text |
+| `rows` | number | `4` | Visible text rows |
+| `required` | boolean | `false` | Required field |
+| `maxLength` | number | — | Maximum character count |
 | `value` | string | — | Initial value |
 
 ### NumberInput

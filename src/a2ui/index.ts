@@ -26,6 +26,8 @@ const A2UI_TO_FORGEUI: Record<string, ComponentType> = {
   button: 'Button',
   link: 'Link',
   textInput: 'TextInput',
+  textarea: 'Textarea',
+  textArea: 'Textarea',
   numberInput: 'NumberInput',
   checkbox: 'Checkbox',
   toggle: 'Toggle',
@@ -171,6 +173,8 @@ function translateProps(a2uiType: string, props: Record<string, unknown>): Recor
       break;
 
     case 'textInput':
+    case 'textarea':
+    case 'textArea':
       result.placeholder = props.placeholder || '';
       result.value = props.value || '';
       result.label = props.label || '';

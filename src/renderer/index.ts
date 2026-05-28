@@ -55,6 +55,7 @@ export function renderElement(elementId: string, ctx: RenderContext): TemplateRe
       case 'Avatar':   return html`<forgeui-avatar .props=${resolvedProps} .store=${ctx.store}></forgeui-avatar>`;
       case 'EmptyState':return html`<forgeui-empty-state .props=${resolvedProps} .store=${ctx.store}></forgeui-empty-state>`;
       case 'TextInput':return html`<forgeui-text-input .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-text-input>`;
+      case 'Textarea': return html`<forgeui-textarea .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-textarea>`;
       case 'NumberInput':return html`<forgeui-number-input .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-number-input>`;
       case 'Select':   return html`<forgeui-select .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-select>`;
       case 'MultiSelect':return html`<forgeui-multi-select .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-multi-select>`;

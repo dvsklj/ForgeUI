@@ -81,6 +81,15 @@ describe('ingestPayload', () => {
     expect(rootEl.type).toBe('Button');
   });
 
+  it('converts A2UI textarea component', () => {
+    const a2ui = { components: [{ type: 'textarea', props: { label: 'Message', placeholder: 'Write details' } }] };
+    const result = ingestPayload(a2ui);
+    const rootEl = result.elements[result.root];
+    expect(rootEl.type).toBe('Textarea');
+    expect((rootEl.props as any).label).toBe('Message');
+    expect((rootEl.props as any).placeholder).toBe('Write details');
+  });
+
   it('converts A2UI container with children', () => {
     const a2ui = {
       components: [{

@@ -72,8 +72,8 @@
       "props": { "label": "Email", "placeholder": "jane@example.com", "type": "email", "bind": "$state:form/email" }
     },
     "input-message": {
-      "type": "TextInput",
-      "props": { "label": "Your Feedback", "placeholder": "Tell us what you think...", "multiline": true, "bind": "$state:form/message", "required": true }
+      "type": "Textarea",
+      "props": { "label": "Your Feedback", "placeholder": "Tell us what you think...", "bind": "$state:form/message", "required": true }
     },
     "slider-rating": {
       "type": "Slider",
