@@ -103,9 +103,13 @@ customElements.define('forgeui-select', ForgeSelect);
 
 export class ForgeMultiSelect extends ForgeUIElement {
   static get styles() { return css`
-    :host { display:block; margin-bottom:var(--forgeui-space-sm); }
-    label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); }
-    .tags { display:flex; flex-wrap:wrap; gap:var(--forgeui-space-2xs); padding:var(--forgeui-space-xs); border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md); min-height:var(--forgeui-input-height); }
+    :host { display:block; min-width:0; margin-bottom:var(--forgeui-space-sm); }
+    label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); overflow-wrap:break-word; }
+    select { width:100%; min-height:calc(var(--forgeui-input-height) * 2); padding:var(--forgeui-space-xs) var(--forgeui-space-sm);
+      border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md); font:inherit;
+      background:var(--forgeui-color-surface); color:var(--forgeui-color-text); box-sizing:border-box; }
+    select:focus { outline:none; border-color:var(--forgeui-color-primary); box-shadow:0 0 0 3px var(--forgeui-color-primary-subtle); }
+    .tags { display:flex; flex-wrap:wrap; gap:var(--forgeui-space-2xs); margin-top:var(--forgeui-space-xs); padding:var(--forgeui-space-xs); border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-md); min-height:var(--forgeui-input-height); }
     .tag { display:inline-flex; align-items:center; gap:var(--forgeui-space-2xs); padding:var(--forgeui-space-2xs) var(--forgeui-space-xs);
       background:var(--forgeui-color-primary-subtle); color:var(--forgeui-color-primary); border-radius:var(--forgeui-radius-sm);
       font-size:var(--forgeui-text-xs); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -114,11 +118,34 @@ export class ForgeMultiSelect extends ForgeUIElement {
   `; }
   render() {
     const label = this.getString('label', '');
-    const selected = (this.getProp('selected') || []) as any[];
+    const options = (this.getProp('options') || []) as any[];
+    const rawSelected = this.getBoundProp('value', this.getProp('selected') ?? []);
+    const rawMax = Number(this.getProp('maxSelections'));
+    const limit = Number.isFinite(rawMax) && rawMax >= 0 ? rawMax : Infinity;
+    const selected = (Array.isArray(rawSelected) ? rawSelected.map((value: any) => String(value)) : []).slice(0, limit);
+    const disabled = this.getBool('disabled');
+    const inputId = this._instanceId;
+    const remove = (value: string) => {
+      const next = selected.filter(item => item !== value);
+      this.dispatchAction('remove', { value });
+      this.dispatchAction('change', { value: next, selected: next });
+    };
     return html`
-      ${label ? html`<label>${label}</label>` : nothing}
+      ${label ? html`<label for="${inputId}">${label}</label>` : nothing}
+      <select id="${inputId}" multiple ?disabled=${disabled}
+        @change=${(event: Event) => {
+          const values = Array.from((event.target as HTMLSelectElement).selectedOptions).map(option => option.value).slice(0, limit);
+          this.dispatchAction('change', { value: values, selected: values });
+        }}>
+        ${options.map((option: any) => {
+          const value = String(typeof option === 'string' ? option : option?.value ?? option?.label ?? '');
+          return html`<option value=${value} ?selected=${selected.includes(value)}>
+            ${typeof option === 'string' ? option : option?.label ?? value}
+          </option>`;
+        })}
+      </select>
       <div class="tags">
-        ${selected.map((s: any) => html`<span class="tag">${String(s)}<button @click=${() => this.dispatchAction('remove', { value: s })}>×</button></span>`)}
+        ${selected.map((value: string) => html`<span class="tag">${value}<button type="button" aria-label=${`Remove ${value}`} @click=${() => remove(value)}>×</button></span>`)}
         <slot></slot>
       </div>
     `;
