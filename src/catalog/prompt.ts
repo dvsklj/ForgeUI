@@ -103,6 +103,8 @@ function buildDefaultPrompt(): string {
     '  EmptyState(title, description, icon?, actionLabel?, action?)',
     '',
     'INPUT:',
+    '  Form(action?, children) — semantic submit wrapper for form fields.',
+    '  FieldGroup(label, description?, error?, children) — groups related fields.',
     '  TextInput(label, placeholder?, bind: $state:path, multiline?, required?, maxLength?)',
     '  Textarea(label, placeholder?, bind: $state:path, rows?, required?, maxLength?)',
     '  NumberInput(label, bind: $state:path, min?, max?, step?, required?)',

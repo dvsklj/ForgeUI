@@ -5,7 +5,7 @@
 > - Zod removed from IIFE (commit f2df37e): -16.3 KB gzip. Runtime now imports pre-generated data, not Zod. See CHANGELOG 0.1.0.
 > - Ajv compiler removed via standalone precompilation (commit 9ffbb58): -33.7 KB gzip. `validateManifest()` now runs a precompiled validator — also O(validation), not O(recompile + validation).
 > - Component source was split into category modules with package entrypoints (`components/actions`, `components/content`, `components/data`, `components/drawing`, `components/feedback`, `components/input`, `components/layout`, `components/navigation`).
-> - Architecture and package metadata now distinguish 40 manifest catalog components from 41 runtime custom elements (`forgeui-error` is internal).
+> - Architecture and package metadata now distinguish 42 manifest catalog components from 43 runtime custom elements (`forgeui-error` is internal).
 >
 > The rest of this document is preserved as a point-in-time audit.
 

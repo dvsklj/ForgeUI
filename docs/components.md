@@ -1,6 +1,6 @@
 # Component Catalog
 
-All 40 manifest components available in Forge, organized by category.
+All 42 manifest components available in Forge, organized by category.
 
 ---
 
@@ -262,6 +262,32 @@ Progress indicator.
 ---
 
 ## Input
+
+### Form
+
+Semantic submit wrapper.
+
+```json
+{ "type": "Form", "props": { "action": "saveForm" }, "children": ["email", "submit"] }
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `action` | string | — | Action dispatched on submit |
+
+### FieldGroup
+
+Grouped form fields.
+
+```json
+{ "type": "FieldGroup", "props": { "label": "Contact", "description": "Primary details" }, "children": ["email", "phone"] }
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `label` | string | — | Group label |
+| `description` | string | — | Help text |
+| `error` | string | — | Group error text |
 
 ### TextInput
 
