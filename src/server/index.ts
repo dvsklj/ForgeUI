@@ -431,7 +431,7 @@ export function createForgeUIServer(options: ForgeServerOptions = {}) {
         port,
         hostname: host,
       }, (info) => {
-        console.log(`🔥 Forge Server running at http://${info.address}:${info.port}`);
+        console.log(`Forge Server running at http://${info.address}:${info.port}`);
         resolve();
       });
     });
@@ -483,8 +483,8 @@ function renderAppPage(manifestJson: string, title: string, baseUrl: string, non
         app.style.alignItems = 'center';
         app.style.justifyContent = 'center';
         app.style.minHeight = '100vh';
-        app.style.color = '#e0e0e0';
-        app.style.background = '#0a0a0a';
+        app.style.color = '#1f2937';
+        app.style.background = '#f8fafc';
         app.style.fontFamily = 'system-ui, sans-serif';
         app.textContent = 'Manifest could not be loaded. Check the server logs.';
         if (window.console) console.error('[forgeui] Manifest parse failed:', err);
@@ -513,20 +513,40 @@ function renderLandingPage(apps: any[], total: number): string {
   <title>Forge Server</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #0a0a0a; color: #e0e0e0; }
+    :root {
+      --forge-page-bg: #f8fafc;
+      --forge-surface: #ffffff;
+      --forge-border: #d7dde8;
+      --forge-text: #172033;
+      --forge-muted: #64748b;
+      --forge-muted-soft: #94a3b8;
+      --forge-accent: #0f766e;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --forge-page-bg: #0f172a;
+        --forge-surface: #111c2f;
+        --forge-border: #24324a;
+        --forge-text: #e5edf7;
+        --forge-muted: #9aa8bc;
+        --forge-muted-soft: #748298;
+        --forge-accent: #5eead4;
+      }
+    }
+    body { font-family: system-ui, -apple-system, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: var(--forge-page-bg); color: var(--forge-text); }
     h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
-    .subtitle { color: #888; margin-bottom: 2rem; }
+    .subtitle { color: var(--forge-muted); margin-bottom: 2rem; }
     .apps { display: grid; gap: 1rem; }
-    .app-card { display: block; padding: 1rem 1.25rem; background: #141414; border: 1px solid #222; border-radius: 8px; text-decoration: none; color: inherit; transition: border-color 0.15s; }
-    .app-card:hover { border-color: #444; }
+    .app-card { display: block; padding: 1rem 1.25rem; background: var(--forge-surface); border: 1px solid var(--forge-border); border-radius: 8px; text-decoration: none; color: inherit; transition: border-color 0.15s, transform 0.15s; }
+    .app-card:hover { border-color: var(--forge-accent); transform: translateY(-1px); }
     .app-card h3 { font-size: 1rem; margin-bottom: 0.25rem; }
-    .app-card code { font-size: 0.75rem; color: #666; }
-    .app-card .updated { float: right; font-size: 0.75rem; color: #555; }
-    .empty { color: #555; font-style: italic; padding: 2rem; text-align: center; }
+    .app-card code { font-size: 0.75rem; color: var(--forge-muted); }
+    .app-card .updated { float: right; font-size: 0.75rem; color: var(--forge-muted-soft); }
+    .empty { color: var(--forge-muted); font-style: italic; padding: 2rem; text-align: center; }
   </style>
 </head>
 <body>
-  <h1>🔥 Forge Server</h1>
+  <h1>Forge Server</h1>
   <p class="subtitle">${total} app${total === 1 ? '' : 's'} hosted</p>
   <div class="apps">
     ${apps.length === 0 ? '<div class="empty">No apps yet. Create one via the API.</div>' : appList}
@@ -539,7 +559,7 @@ function renderErrorPage(title: string, message: string): string {
   return `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${escapeHtml(title)}</title>
-<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0a0a0a;color:#e0e0e0;text-align:center;padding:2rem}h1{font-size:1.5rem;margin-bottom:0.5rem}p{color:#888}</style>
+<style>*{margin:0;padding:0;box-sizing:border-box}:root{--forge-page-bg:#f8fafc;--forge-text:#172033;--forge-muted:#64748b}@media(prefers-color-scheme:dark){:root{--forge-page-bg:#0f172a;--forge-text:#e5edf7;--forge-muted:#9aa8bc}}body{font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--forge-page-bg);color:var(--forge-text);text-align:center;padding:2rem}h1{font-size:1.5rem;margin-bottom:0.5rem}p{color:var(--forge-muted)}</style>
 </head><body><div><h1>${escapeHtml(title)}</h1><p>${escapeHtml(message)}</p></div></body></html>`;
 }
 
