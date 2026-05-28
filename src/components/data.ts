@@ -2,13 +2,23 @@ import { html, css, svg, nothing } from 'lit';
 import { ForgeUIElement } from './base.js';
 
 export class ForgeTable extends ForgeUIElement {
+  private _query = '';
+  private _sortKey = '';
+  private _sortDir: 'asc' | 'desc' = 'asc';
+  private _page = 0;
+
   static get styles() { return css`
     :host { display:block; overflow-x:auto; min-width:0; width:100%; }
+    .search-input { width:100%; max-width:18rem; border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-sm); margin-bottom:var(--forgeui-space-sm);
+      padding:var(--forgeui-space-xs) var(--forgeui-space-sm);
+      font:inherit; }
     table { width:100%; min-width:42rem; border-collapse:collapse; font-size:var(--forgeui-text-sm); }
     th { text-align:left; padding:var(--forgeui-space-sm) var(--forgeui-space-md); font-weight:var(--forgeui-weight-semibold);
       color:var(--forgeui-color-text-secondary); border-bottom:2px solid var(--forgeui-color-border-strong); white-space:nowrap;
       text-transform:uppercase; letter-spacing:0.05em; font-size:var(--forgeui-text-xs);
       background:var(--forgeui-color-surface-alt); }
+    th button { all:unset; display:inline-flex; align-items:center; gap:var(--forgeui-space-2xs); cursor:pointer; border-radius:var(--forgeui-radius-sm); }
+    th button:focus-visible { outline:2px solid var(--forgeui-color-primary); outline-offset:2px; }
     td { padding:var(--forgeui-space-sm) var(--forgeui-space-md); border-bottom:1px solid var(--forgeui-color-border); vertical-align:middle; overflow-wrap:break-word; word-break:break-word; }
     tr:last-child td { border-bottom:none; }
     tbody tr:hover td { background:var(--forgeui-color-surface-hover); }
@@ -30,7 +40,18 @@ export class ForgeTable extends ForgeUIElement {
     .row-action { cursor:pointer; }
     .row-action:hover td { background:var(--forgeui-color-surface-hover); }
     .row-action:focus-visible { outline:2px solid var(--forgeui-color-primary); outline-offset:-2px; }
+    .pager { display:flex; align-items:center; justify-content:flex-end; gap:var(--forgeui-space-sm); margin-top:var(--forgeui-space-sm);
+      color:var(--forgeui-color-text-secondary); font-size:var(--forgeui-text-sm); flex-wrap:wrap; }
+    .pager button { border:1px solid var(--forgeui-color-border); border-radius:var(--forgeui-radius-sm);
+      padding:var(--forgeui-space-2xs) var(--forgeui-space-sm); cursor:pointer; }
+    .pager button:disabled { opacity:0.5; cursor:not-allowed; }
   `; }
+  private _colKey(col: any): string {
+    return typeof col === 'string' ? col : String(col?.key ?? '');
+  }
+  private _colLabel(col: any): string {
+    return typeof col === 'string' ? col : String(col?.label ?? col?.key ?? '');
+  }
   _statusClass(val: unknown): string {
     const s = String(val ?? '').toLowerCase().trim();
     if (['done', 'complete', 'completed', 'success', 'active', 'ok', 'approved', 'paid'].includes(s)) return 'success';
@@ -43,7 +64,7 @@ export class ForgeTable extends ForgeUIElement {
     return 'neutral';
   }
   _renderCell(col: any, row: any): any {
-    const key = typeof col === 'string' ? col : col.key;
+    const key = this._colKey(col);
     const raw = row[key];
     const type = (col && typeof col === 'object') ? col.type : undefined;
     if (raw === undefined || raw === null || raw === '') return html`<span style="color:var(--forgeui-color-text-tertiary)">—</span>`;
@@ -69,38 +90,97 @@ export class ForgeTable extends ForgeUIElement {
     }
     return String(raw);
   }
+  private _sortBy(key: string) {
+    if (!key) return;
+    if (this._sortKey === key) {
+      this._sortDir = this._sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this._sortKey = key;
+      this._sortDir = 'asc';
+    }
+    this._page = 0;
+    this.requestUpdate();
+  }
+  private _setQuery(value: string) {
+    this._query = value;
+    this._page = 0;
+    this.requestUpdate();
+  }
+  private _filteredRows(rows: any[], cols: any[]): any[] {
+    const q = this._query.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter(row => cols.some(col => String(row[this._colKey(col)] ?? '').toLowerCase().includes(q)));
+  }
+  private _sortedRows(rows: any[]): any[] {
+    if (!this._sortKey) return rows;
+    const dir = this._sortDir === 'asc' ? 1 : -1;
+    return [...rows].sort((a, b) => {
+      const av = a?.[this._sortKey];
+      const bv = b?.[this._sortKey];
+      if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir;
+      const as = String(av ?? '').toLowerCase();
+      const bs = String(bv ?? '').toLowerCase();
+      return (as > bs ? 1 : as < bs ? -1 : 0) * dir;
+    });
+  }
+  private _setPage(page: number, pageCount: number) {
+    this._page = Math.max(0, Math.min(page, Math.max(0, pageCount - 1)));
+    this.requestUpdate();
+  }
   render() {
     const data = this.getProp('data');
     const columns = (this.getProp('columns') || []) as any[];
     const emptyMsg = this.getString('emptyMessage', 'No data yet');
     const rowAction = this.getString('rowAction', '');
     const caption = this.getString('caption', '');
+    const searchable = this.getBool('searchable', false);
+    const pageSize = Math.max(0, Math.floor(this.getNumber('pageSize', 0)));
     if (!Array.isArray(data)) {
       return html`<div class="empty">${emptyMsg}</div>`;
     }
     const cols = columns.length > 0 ? columns : (data.length > 0 ? Object.keys(data[0]) : []);
     if (cols.length === 0) return html`<div class="empty">${emptyMsg}</div>`;
+    const filteredRows = this._filteredRows(data, cols);
+    const sortedRows = this._sortedRows(filteredRows);
+    const pageCount = pageSize > 0 ? Math.max(1, Math.ceil(sortedRows.length / pageSize)) : 1;
+    const page = Math.min(this._page, pageCount - 1);
+    if (page !== this._page) this._page = page;
+    const visibleRows = pageSize > 0 ? sortedRows.slice(page * pageSize, page * pageSize + pageSize) : sortedRows;
     return html`
+      ${searchable ? html`
+        <input class="search-input" .value=${this._query} aria-label="Search"
+          @input=${(e: InputEvent) => this._setQuery((e.target as HTMLInputElement).value)} />
+      ` : nothing}
       <table>
         ${caption ? html`<caption>${caption}</caption>` : nothing}
         <thead><tr>${cols.map((c: any) => {
-          const label = typeof c === 'string' ? c : (c.label || c.key);
+          const label = this._colLabel(c);
+          const key = this._colKey(c);
           const align = typeof c === 'object' ? c.align : undefined;
           const width = typeof c === 'object' ? c.width : undefined;
           const alignCls = align === 'right' ? 'align-right' : align === 'center' ? 'align-center' : '';
-          return html`<th class="${alignCls}" style="${width ? `width:${width}` : ''}">${label}</th>`;
+          const sortable = typeof c === 'object' && c.sortable === true;
+          const active = this._sortKey === key;
+          return html`<th class="${alignCls}" style="${width ? `width:${width}` : ''}" aria-sort=${active ? (this._sortDir === 'asc' ? 'ascending' : 'descending') : nothing}>
+            ${sortable ? html`
+              <button type="button" @click=${() => this._sortBy(key)}>
+                <span>${label}</span>${active ? html`<span class="sort" aria-hidden="true">${this._sortDir === 'asc' ? '▲' : '▼'}</span>` : nothing}
+              </button>
+            ` : label}
+          </th>`;
         })}</tr></thead>
-        <tbody>${data.length === 0
+        <tbody>${visibleRows.length === 0
           ? html`<tr><td colspan=${cols.length} class="empty">${emptyMsg}</td></tr>`
-          : data.map((row: any, i: number) => {
+          : visibleRows.map((row: any, i: number) => {
+              const absoluteIndex = pageSize > 0 ? page * pageSize + i : i;
               const hasAction = !!rowAction;
               const rowLabel = hasAction ? String(row[typeof cols[0] === 'string' ? cols[0] : cols[0]?.key] ?? `Row ${i + 1}`) : '';
               return html`<tr class="${hasAction ? 'row-action' : ''}"
                 tabindex=${hasAction ? 0 : nothing}
                 role=${hasAction ? 'button' : nothing}
                 aria-label=${hasAction ? rowLabel : nothing}
-                @click=${hasAction ? () => this.dispatchAction(rowAction, { row, index: i }) : undefined}
-                @keydown=${hasAction ? (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.dispatchAction(rowAction, { row, index: i }); } } : undefined}>
+                @click=${hasAction ? () => this.dispatchAction(rowAction, { row, index: absoluteIndex }) : undefined}
+                @keydown=${hasAction ? (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.dispatchAction(rowAction, { row, index: absoluteIndex }); } } : undefined}>
               ${cols.map((c: any) => {
                 const align = typeof c === 'object' ? c.align : undefined;
                 const alignCls = align === 'right' ? 'align-right' : align === 'center' ? 'align-center' : '';
@@ -109,6 +189,13 @@ export class ForgeTable extends ForgeUIElement {
             })
         }</tbody>
       </table>
+      ${pageSize > 0 && sortedRows.length > 0 ? html`
+        <nav class="pager">
+          <button type="button" ?disabled=${page === 0} @click=${() => this._setPage(page - 1, pageCount)}>Prev</button>
+          <span>${page + 1} / ${pageCount}</span>
+          <button type="button" ?disabled=${page >= pageCount - 1} @click=${() => this._setPage(page + 1, pageCount)}>Next</button>
+        </nav>
+      ` : nothing}
     `;
   }
 }
@@ -391,4 +478,3 @@ export class ForgeMetric extends ForgeUIElement {
   }
 }
 customElements.define('forgeui-metric', ForgeMetric);
-
