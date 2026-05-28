@@ -1,6 +1,6 @@
 # Component Catalog
 
-All 42 manifest components available in Forge, organized by category.
+All 43 manifest components available in Forge, organized by category.
 
 ---
 
@@ -360,6 +360,29 @@ Dropdown select.
 | `label` | string | — | Field label |
 | `options` | array | `[]` | `[{value, label}]` pairs |
 | `value` | string | — | Selected value |
+
+### Combobox
+
+Text input with suggested options.
+
+```json
+{
+  "type": "Combobox",
+  "props": {
+    "label": "Assignee",
+    "options": ["Ari", "Sam"],
+    "placeholder": "Type a name"
+  }
+}
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `label` | string | — | Field label |
+| `options` | array | `[]` | `[{value, label}]` pairs or strings |
+| `placeholder` | string | — | Placeholder text |
+| `value` | string | — | Current value |
+| `hint` | string | — | Help text |
 
 ### RadioGroup
 

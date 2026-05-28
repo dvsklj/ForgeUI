@@ -14,8 +14,8 @@ export type ComponentType =
   | 'Stack' | 'Grid' | 'Card' | 'Container' | 'Tabs' | 'Accordion' | 'Divider' | 'Spacer' | 'Repeater'
   // Content (6)
   | 'Text' | 'Image' | 'Icon' | 'Badge' | 'Avatar' | 'EmptyState'
-  // Input (13)
-  | 'Form' | 'FieldGroup' | 'TextInput' | 'Textarea' | 'NumberInput' | 'Select' | 'MultiSelect' | 'RadioGroup' | 'Checkbox'
+  // Input (14)
+  | 'Form' | 'FieldGroup' | 'TextInput' | 'Textarea' | 'NumberInput' | 'Select' | 'Combobox' | 'MultiSelect' | 'RadioGroup' | 'Checkbox'
   | 'Toggle' | 'DatePicker' | 'Slider' | 'FileUpload'
   // Action (3)
   | 'Button' | 'ButtonGroup' | 'Link'

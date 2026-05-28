@@ -164,6 +164,44 @@ export class ForgeSelect extends ForgeUIElement {
 }
 customElements.define('forgeui-select', ForgeSelect);
 
+export class ForgeCombobox extends ForgeUIElement {
+  static get styles() { return css`
+    :host { display:block; flex:1 1 auto; min-width:0; max-width:100%; margin-bottom:var(--forgeui-space-sm); }
+    label { display:block; font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); margin-bottom:var(--forgeui-space-2xs); overflow-wrap:break-word; }
+    input { width:100%; padding:var(--forgeui-space-xs) var(--forgeui-space-sm); border:1px solid var(--forgeui-color-border);
+      border-radius:var(--forgeui-radius-md); font:inherit; height:var(--forgeui-input-height);
+      background:var(--forgeui-color-surface); color:var(--forgeui-color-text); box-sizing:border-box; min-width:0; }
+    input:focus { outline:none; border-color:var(--forgeui-color-primary); box-shadow:0 0 0 3px var(--forgeui-color-primary-subtle); }
+    .hint { font-size:var(--forgeui-text-xs); color:var(--forgeui-color-text-tertiary); margin-top:var(--forgeui-space-2xs); }
+  `; }
+  render() {
+    const label = this.getString('label', '');
+    const placeholder = this.getString('placeholder', '');
+    const hint = this.getString('hint', '');
+    const options = (this.getProp('options') || []) as any[];
+    const val = String(this.getBoundProp('value', '') ?? '');
+    const disabled = this.getBool('disabled');
+    const required = this.getBool('required');
+    const inputId = this._instanceId;
+    const listId = `${inputId}-list`;
+    return html`
+      ${label ? html`<label for="${inputId}">${label}</label>` : nothing}
+      <input id="${inputId}" list="${listId}" role="combobox" aria-autocomplete="list"
+        placeholder="${placeholder}" .value=${val} ?disabled=${disabled} ?required=${required}
+        @input=${(e: any) => this.dispatchAction('change', { value: e.target.value })}>
+      <datalist id="${listId}">
+        ${options.map((option: any) => {
+          const value = String(typeof option === 'string' ? option : option?.value ?? option?.label ?? '');
+          const label = typeof option === 'string' ? '' : String(option?.label ?? '');
+          return html`<option value=${value} label=${label}></option>`;
+        })}
+      </datalist>
+      ${hint ? html`<div class="hint">${hint}</div>` : nothing}
+    `;
+  }
+}
+customElements.define('forgeui-combobox', ForgeCombobox);
+
 export class ForgeMultiSelect extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; min-width:0; margin-bottom:var(--forgeui-space-sm); }

@@ -11,6 +11,7 @@ describe('input components', () => {
     expect(customElements.get('forgeui-textarea')).toBeDefined();
     expect(customElements.get('forgeui-number-input')).toBeDefined();
     expect(customElements.get('forgeui-select')).toBeDefined();
+    expect(customElements.get('forgeui-combobox')).toBeDefined();
     expect(customElements.get('forgeui-multi-select')).toBeDefined();
     expect(customElements.get('forgeui-radio-group')).toBeDefined();
     expect(customElements.get('forgeui-checkbox')).toBeDefined();
@@ -56,6 +57,22 @@ describe('input components', () => {
     textarea.dispatchEvent(new InputEvent('input', { bubbles: true }));
 
     expect(events).toEqual([{ action: 'change', payload: { value: 'Ship it' } }]);
+  });
+
+  it('dispatches combobox value changes', async () => {
+    const el = document.createElement('forgeui-combobox') as any;
+    const events: any[] = [];
+    el.props = { label: 'Assignee', value: '', options: ['Ari', 'Sam'] };
+    el.onAction = (action: string, payload: Record<string, unknown>) => events.push({ action, payload });
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    const input = el.shadowRoot!.querySelector('input') as HTMLInputElement;
+    input.value = 'Sam';
+    input.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+    expect(events).toEqual([{ action: 'change', payload: { value: 'Sam' } }]);
+    expect(el.shadowRoot!.querySelectorAll('datalist option')).toHaveLength(2);
   });
 
   it('dispatches selected radio value', async () => {

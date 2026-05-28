@@ -23,6 +23,10 @@ export declare class ForgeSelect extends ForgeUIElement {
     static get styles(): import("lit").CSSResult;
     render(): import("lit-html").TemplateResult<1>;
 }
+export declare class ForgeCombobox extends ForgeUIElement {
+    static get styles(): import("lit").CSSResult;
+    render(): import("lit-html").TemplateResult<1>;
+}
 export declare class ForgeMultiSelect extends ForgeUIElement {
     static get styles(): import("lit").CSSResult;
     render(): import("lit-html").TemplateResult<1>;

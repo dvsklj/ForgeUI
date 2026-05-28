@@ -109,6 +109,7 @@ function buildDefaultPrompt(): string {
     '  Textarea(label, placeholder?, bind: $state:path, rows?, required?, maxLength?)',
     '  NumberInput(label, bind: $state:path, min?, max?, step?, required?)',
     '  Select(label, options: [{value, label}]|string[], bind: $state:path, placeholder?, required?)',
+    '  Combobox(label, options: [{value, label}]|string[], bind: $state:path, placeholder?, required?)',
     '  MultiSelect(label, options: [{value, label}]|string[], bind: $state:path, maxSelections?)',
     '  RadioGroup(label, options: [{value, label}]|string[], bind: $state:path, hint?)',
     '  Checkbox(label, bind: $state:path, description?)',
