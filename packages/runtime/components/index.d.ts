@@ -154,6 +154,11 @@ export declare class ForgeSlider extends ForgeUIElement {
 }
 export declare class ForgeFileUpload extends ForgeUIElement {
     static get styles(): import("lit").CSSResult;
+    private _maxSizeBytes;
+    private _newFileId;
+    private _openFilePicker;
+    private _onDropzoneKeydown;
+    private _onFileChange;
     render(): import("lit-html").TemplateResult<1>;
 }
 export declare class ForgeButton extends ForgeUIElement {

@@ -7,6 +7,7 @@
 
 import { html, css, svg, nothing } from 'lit';
 import { ForgeUIElement } from './base.js';
+import { storeFileBlobs } from '../runtime/persister.js';
 
 // ═══════════════════════════════════════════════════════════════
 // LAYOUT (8)
@@ -700,17 +701,88 @@ export class ForgeFileUpload extends ForgeUIElement {
     .dropzone:focus-visible { outline:3px solid var(--forgeui-color-focus); outline-offset:2px; }
     .dropzone p { color:var(--forgeui-color-text-secondary); font-size:var(--forgeui-text-sm); }
   `; }
+
+  private _maxSizeBytes(): number | null {
+    const raw = this.getProp('maxSize');
+    if (typeof raw === 'number' && Number.isFinite(raw) && raw >= 0) return Math.floor(raw);
+    if (typeof raw !== 'string') return null;
+    const match = raw.trim().match(/^(\d+(?:\.\d+)?)\s*(b|kb|mb|gb)?$/i);
+    if (!match) return null;
+    const value = Number(match[1]);
+    const unit = (match[2] || 'b').toLowerCase();
+    const multiplier = unit === 'gb' ? 1 << 30 : unit === 'mb' ? 1 << 20 : unit === 'kb' ? 1 << 10 : 1;
+    const bytes = value * multiplier;
+    return Number.isFinite(bytes) ? Math.floor(bytes) : null;
+  }
+
+  private _newFileId(): string {
+    return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  }
+
+  private _openFilePicker = () => {
+    this.shadowRoot?.querySelector<HTMLInputElement>('input[type="file"]')?.click();
+  };
+
+  private _onDropzoneKeydown = (event: KeyboardEvent) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    this._openFilePicker();
+  };
+
+  private _onFileChange = (event: Event) => {
+    const selected = Array.from((event.target as HTMLInputElement).files ?? []);
+    const multiple = this.getBool('multiple');
+    const maxSize = this._maxSizeBytes();
+    const files = (multiple ? selected : selected.slice(0, 1)).map((file) => {
+      const id = this._newFileId();
+      const accepted = maxSize == null || file.size <= maxSize;
+      const payload = {
+        id,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        accepted,
+        storageKey: accepted ? id : null,
+      };
+      if (!accepted) (payload as { error?: string }).error = 'maxSize';
+      return [file, payload] as const;
+    });
+
+    const accepted = files.filter(([, payload]) => payload.accepted);
+    const payloadFiles = files.map(([, payload]) => payload);
+    const acceptedPayloads = accepted.map(([, payload]) => payload);
+    const value = multiple ? acceptedPayloads : (acceptedPayloads[0] ?? null);
+    const first = acceptedPayloads[0] ?? null;
+
+    this.dispatchAction('change', {
+      id: first?.id ?? null,
+      uuid: first?.id ?? null,
+      name: first?.name ?? null,
+      size: first?.size ?? null,
+      type: first?.type ?? null,
+      lastModified: first?.lastModified ?? null,
+      storageKey: first?.storageKey ?? null,
+      value,
+      files: payloadFiles,
+      rejected: payloadFiles.filter((file) => !file.accepted),
+      multiple,
+      maxSize,
+    });
+
+    void storeFileBlobs(accepted.map(([file, payload]) => ({ file, id: payload.id })));
+  };
+
   render() {
     const label = this.getString('label', 'Upload file');
     const accept = this.getString('accept', '*');
+    const multiple = this.getBool('multiple');
     return html`
       ${label ? html`<label>${label}</label>` : nothing}
-      <div class="dropzone" @click=${() => this.shadowRoot?.querySelector('input')?.click()}>
-        <p>Click or drop file here</p>
-        <input type="file" accept="${accept}" hidden @change=${(e: any) => {
-          const file = e.target.files?.[0];
-          if (file) this.dispatchAction('change', { name: file.name, size: file.size, type: file.type });
-        }}>
+      <div class="dropzone" role="button" tabindex="0"
+        @click=${this._openFilePicker} @keydown=${this._onDropzoneKeydown}>
+        <p>Drop</p>
+        <input type="file" accept="${accept}" ?multiple=${multiple} hidden @change=${this._onFileChange}>
       </div>
     `;
   }
