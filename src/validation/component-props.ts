@@ -26,6 +26,7 @@ const defs: Record<ComponentType, string[]> = {
   Textarea: [...SHARED, ...INPUT_BASE, 'placeholder', 'hint', 'error', 'required', 'maxLength', 'rows', 'disabled'],
   NumberInput: [...SHARED, ...INPUT_BASE, 'min', 'max', 'step', 'required'],
   Select: [...SHARED, ...INPUT_BASE, 'options', 'placeholder', 'required'],
+  Combobox: [...SHARED, ...INPUT_BASE, 'options', 'placeholder', 'hint', 'required', 'disabled'],
   MultiSelect: [...SHARED, ...INPUT_BASE, 'options', 'maxSelections'],
   RadioGroup: [...SHARED, ...INPUT_BASE, 'options', 'hint', 'required', 'disabled'],
   Checkbox: [...SHARED, ...INPUT_BASE, 'description', 'checked'],

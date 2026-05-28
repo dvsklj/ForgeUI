@@ -82,6 +82,7 @@ describe('Core a11y — label linkage (P1)', () => {
     ['forgeui-text-input', 'input'],
     ['forgeui-number-input', 'input'],
     ['forgeui-select', 'select'],
+    ['forgeui-combobox', 'input'],
     ['forgeui-checkbox', 'input'],
     ['forgeui-toggle', 'button'],
     ['forgeui-date-picker', 'input'],

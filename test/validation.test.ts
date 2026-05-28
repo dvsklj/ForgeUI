@@ -79,7 +79,7 @@ describe('validateManifest — schema validation', () => {
     const types = [
       'Stack', 'Grid', 'Card', 'Container', 'Tabs', 'Accordion', 'Divider', 'Spacer', 'Repeater',
       'Text', 'Image', 'Icon', 'Badge', 'Avatar', 'EmptyState',
-      'Form', 'FieldGroup', 'TextInput', 'Textarea', 'NumberInput', 'Select', 'MultiSelect', 'RadioGroup', 'Checkbox', 'Toggle', 'DatePicker', 'Slider', 'FileUpload',
+      'Form', 'FieldGroup', 'TextInput', 'Textarea', 'NumberInput', 'Select', 'Combobox', 'MultiSelect', 'RadioGroup', 'Checkbox', 'Toggle', 'DatePicker', 'Slider', 'FileUpload',
       'Button', 'ButtonGroup', 'Link',
       'Table', 'List', 'Chart', 'Metric',
       'Alert', 'Dialog', 'Progress', 'Toast',
@@ -592,6 +592,7 @@ describe('validateManifest — per-component prop validation', () => {
         fieldGroup: { type: 'FieldGroup', props: { label: 'Contact', description: 'Primary details', error: 'Required' } },
         textInput: { type: 'TextInput', props: { label: 'Email', hint: 'Use work email', error: 'Required', type: 'email', inputType: 'email' } },
         textarea: { type: 'Textarea', props: { label: 'Notes', placeholder: 'Details', value: 'Draft', rows: 4, maxLength: 280, hint: 'Optional' } },
+        combobox: { type: 'Combobox', props: { label: 'Assignee', options: ['Ari', 'Sam'], value: 'Ari', placeholder: 'Pick one', hint: 'Type to filter', required: true } },
         radioGroup: { type: 'RadioGroup', props: { label: 'Priority', options: ['Low', 'High'], value: 'Low', hint: 'Pick one' } },
         slider: { type: 'Slider', props: { label: 'Score', min: 0, max: 10, unit: 'pts' } },
         dialog: { type: 'Dialog', props: { title: 'Details', open: false } },

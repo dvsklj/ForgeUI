@@ -60,6 +60,7 @@ export function renderElement(elementId: string, ctx: RenderContext): TemplateRe
       case 'Textarea': return html`<forgeui-textarea .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-textarea>`;
       case 'NumberInput':return html`<forgeui-number-input .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-number-input>`;
       case 'Select':   return html`<forgeui-select .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-select>`;
+      case 'Combobox': return html`<forgeui-combobox .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-combobox>`;
       case 'MultiSelect':return html`<forgeui-multi-select .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-multi-select>`;
       case 'RadioGroup':return html`<forgeui-radio-group .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-radio-group>`;
       case 'Checkbox': return html`<forgeui-checkbox .props=${resolvedProps} .store=${ctx.store} .onAction=${ctx.onAction}></forgeui-checkbox>`;
