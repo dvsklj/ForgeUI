@@ -32,6 +32,7 @@ const defs: Record<ComponentType, string[]> = {
   Checkbox: [...SHARED, ...INPUT_BASE, 'description', 'checked'],
   Toggle: [...SHARED, ...INPUT_BASE, 'description', 'checked'],
   DatePicker: [...SHARED, ...INPUT_BASE, 'format', 'min', 'max'],
+  DateRangePicker: [...SHARED, 'label', 'value', 'start', 'end', 'startLabel', 'endLabel', 'min', 'max', 'disabled'],
   Slider: [...SHARED, ...INPUT_BASE, 'min', 'max', 'step', 'showValue', 'unit'],
   FileUpload: [...SHARED, ...INPUT_BASE, 'accept', 'maxSize', 'multiple'],
   Button: [...SHARED, 'label', 'variant', 'size', 'icon', 'disabled', 'pressed'],

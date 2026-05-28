@@ -85,7 +85,7 @@ describe('LLM Reliability — Manifest Structure', () => {
       'Stack', 'Grid', 'Card', 'Container', 'Tabs', 'Accordion', 'Divider', 'Spacer',
       'Text', 'Image', 'Icon', 'Badge', 'Avatar', 'EmptyState',
       'Form', 'FieldGroup', 'TextInput', 'Textarea', 'NumberInput', 'Select', 'Combobox', 'MultiSelect', 'RadioGroup', 'Checkbox', 'Toggle',
-      'DatePicker', 'Slider', 'FileUpload',
+      'DatePicker', 'DateRangePicker', 'Slider', 'FileUpload',
       'Button', 'ButtonGroup', 'Link',
       'Table', 'List', 'Chart', 'Metric', 'StatCard', 'KpiGrid',
       'Alert', 'Dialog', 'Progress', 'Toast',

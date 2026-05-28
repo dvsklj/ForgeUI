@@ -388,6 +388,56 @@ export class ForgeDatePicker extends ForgeUIElement {
 }
 customElements.define('forgeui-date-picker', ForgeDatePicker);
 
+export class ForgeDateRangePicker extends ForgeUIElement {
+  static get styles() { return css`
+    :host { display:block; flex:1 1 auto; min-width:0; max-width:100%; margin-bottom:var(--forgeui-space-sm); }
+    .group { display:grid; gap:var(--forgeui-space-xs); min-width:0; }
+    .legend { font-size:var(--forgeui-text-sm); font-weight:var(--forgeui-weight-medium); color:var(--forgeui-color-text); overflow-wrap:break-word; }
+    .fields { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--forgeui-space-sm); }
+    label { display:block; font-size:var(--forgeui-text-xs); font-weight:var(--forgeui-weight-medium); color:var(--forgeui-color-text-secondary); margin-bottom:var(--forgeui-space-2xs); overflow-wrap:break-word; }
+    input { width:100%; padding:var(--forgeui-space-xs) var(--forgeui-space-sm); border:1px solid var(--forgeui-color-border);
+      border-radius:var(--forgeui-radius-md); font:inherit; height:var(--forgeui-input-height);
+      background:var(--forgeui-color-surface); color:var(--forgeui-color-text); box-sizing:border-box; min-width:0; }
+    input:focus { outline:none; border-color:var(--forgeui-color-primary); box-shadow:0 0 0 3px var(--forgeui-color-primary-subtle); }
+    input:disabled { opacity:0.6; cursor:not-allowed; }
+    @media (max-width: 480px) { .fields { grid-template-columns:1fr; } }
+  `; }
+  render() {
+    const label = this.getString('label', '');
+    const bound = this.getBoundProp('value', this.getProp('value'));
+    const range = bound && typeof bound === 'object' && !Array.isArray(bound) ? bound as Record<string, unknown> : {};
+    const start = String(range.start ?? this.getProp('start') ?? '');
+    const end = String(range.end ?? this.getProp('end') ?? '');
+    const min = this.getString('min', '');
+    const max = this.getString('max', '');
+    const disabled = this.getBool('disabled');
+    const action = this.getString('action', 'change');
+    const startId = `${this._instanceId}-start`;
+    const endId = `${this._instanceId}-end`;
+    const emit = (next: { start: string; end: string }) => {
+      this.dispatchAction(action, { value: next, start: next.start, end: next.end });
+    };
+    return html`
+      <div class="group" role="group" aria-label=${label || 'Date range'}>
+        ${label ? html`<div class="legend">${label}</div>` : nothing}
+        <div class="fields">
+          <div>
+            <label for="${startId}">${this.getString('startLabel', 'Start')}</label>
+            <input id="${startId}" type="date" .value=${start} min=${min || nothing} max=${max || nothing} ?disabled=${disabled}
+              @change=${(e: Event) => emit({ start: (e.target as HTMLInputElement).value, end })}>
+          </div>
+          <div>
+            <label for="${endId}">${this.getString('endLabel', 'End')}</label>
+            <input id="${endId}" type="date" .value=${end} min=${min || nothing} max=${max || nothing} ?disabled=${disabled}
+              @change=${(e: Event) => emit({ start, end: (e.target as HTMLInputElement).value })}>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+}
+customElements.define('forgeui-date-range-picker', ForgeDateRangePicker);
+
 export class ForgeSlider extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; flex:1 1 auto; min-width:0; max-width:100%; margin-bottom:var(--forgeui-space-sm); }

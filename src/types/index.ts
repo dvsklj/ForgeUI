@@ -14,9 +14,9 @@ export type ComponentType =
   | 'Stack' | 'Grid' | 'Card' | 'Container' | 'Tabs' | 'Accordion' | 'Divider' | 'Spacer' | 'Repeater'
   // Content (6)
   | 'Text' | 'Image' | 'Icon' | 'Badge' | 'Avatar' | 'EmptyState'
-  // Input (14)
+  // Input (15)
   | 'Form' | 'FieldGroup' | 'TextInput' | 'Textarea' | 'NumberInput' | 'Select' | 'Combobox' | 'MultiSelect' | 'RadioGroup' | 'Checkbox'
-  | 'Toggle' | 'DatePicker' | 'Slider' | 'FileUpload'
+  | 'Toggle' | 'DatePicker' | 'DateRangePicker' | 'Slider' | 'FileUpload'
   // Action (3)
   | 'Button' | 'ButtonGroup' | 'Link'
   // Data Display (6)

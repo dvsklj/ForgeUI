@@ -116,6 +116,7 @@ function buildDefaultPrompt(): string {
     '  Checkbox(label, bind: $state:path, description?)',
     '  Toggle(label, bind: $state:path, description?)',
     '  DatePicker(label, bind: $state:path, format: "date"|"datetime"|"time", min?, max?)',
+    '  DateRangePicker(label, bind: $state:path, start?, end?, min?, max?)',
     '  Slider(label, bind: $state:path, min, max, step, showValue?)',
     '  FileUpload(label, accept?, maxSize?, multiple?, bind: $state:path)',
     '',

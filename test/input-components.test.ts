@@ -92,4 +92,29 @@ describe('input components', () => {
 
     expect(events).toEqual([{ action: 'change', payload: { value: 'high' } }]);
   });
+
+  it('dispatches date range changes as one bound value', async () => {
+    const el = document.createElement('forgeui-date-range-picker') as any;
+    const events: any[] = [];
+    el.props = { label: 'Date window', start: '2026-05-01', end: '2026-05-31' };
+    el.onAction = (action: string, payload: Record<string, unknown>) => events.push({ action, payload });
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    const [start, end] = Array.from(el.shadowRoot!.querySelectorAll('input')) as HTMLInputElement[];
+    expect(start.value).toBe('2026-05-01');
+    expect(end.value).toBe('2026-05-31');
+
+    end.value = '2026-06-15';
+    end.dispatchEvent(new Event('change', { bubbles: true }));
+
+    expect(events).toEqual([{
+      action: 'change',
+      payload: {
+        value: { start: '2026-05-01', end: '2026-06-15' },
+        start: '2026-05-01',
+        end: '2026-06-15',
+      },
+    }]);
+  });
 });
