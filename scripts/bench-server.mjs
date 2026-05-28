@@ -5,7 +5,7 @@
  *
  * Operator-facing sanity check — NOT a pass/fail gate.
  * Starts the Forge server on port 3456 (in-memory DB) and hammers it
- * with autocannon. Prints a results table at the end.
+ * with autocannon when installed. Prints a results table at the end.
  *
  * Usage: node scripts/bench-server.mjs
  *        npm run bench:server
@@ -17,8 +17,8 @@ let autocannon;
 try {
   autocannon = (await import('autocannon')).default;
 } catch {
-  console.log('\n  ⏭️  autocannon not installed — skipping benchmark.');
-  console.log('     Install with: npm install -D autocannon\n');
+  console.log('\n  autocannon not installed; skipping benchmark.');
+  console.log('  Install temporarily with: npm install -D autocannon\n');
   process.exit(0);
 }
 
@@ -43,7 +43,7 @@ const { start, stop } = createForgeUIServer({
 });
 
 await start();
-console.log('\n  🔥 Benchmark server running on http://127.0.0.1:3456\n');
+console.log('\n  Benchmark server running on http://127.0.0.1:3456\n');
 
 // ── Small valid manifest for POST bench ─────────────────────
 
