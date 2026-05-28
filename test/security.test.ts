@@ -197,11 +197,12 @@ describe('Security — Manifest size limits', () => {
 });
 
 describe('Security — URL allowlist enforcement', () => {
-  it('warns on data: URLs not in allowlist', () => {
+  it('rejects data URLs that do not match the field policy', () => {
     const result = validateManifest(validManifest({
       elements: { main: { type: 'Link', props: { href: 'data:application/pdf,abc' } } },
     }));
-    expect(result.warnings.some(w => w.message.includes('Data URL'))).toBe(true);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.message.includes('not allowed'))).toBe(true);
   });
 
   it('does not flag plain text content as URL', () => {

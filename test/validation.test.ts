@@ -218,12 +218,10 @@ describe('validateManifest — URL / injection safety', () => {
     expect(result.valid).toBe(false);
   });
 
-  it('rejects data:text/javascript URL in action data', () => {
+  it('rejects data:text/javascript callApi URLs', () => {
     const result = validateManifest(validManifest({
       actions: {
-        // The URL-safety check inspects action.data[*] values, so put the
-        // dangerous URL there to exercise the layer-2 scheme check.
-        submit: { type: 'callApi', data: { url: 'data:text/javascript,alert(1)' } } as any,
+        submit: { type: 'callApi', url: 'data:text/javascript,alert(1)' },
       },
     }));
     expect(result.valid).toBe(false);
@@ -248,6 +246,46 @@ describe('validateManifest — URL / injection safety', () => {
       elements: { main: { type: 'Link', props: { href: '#section' } } },
     }));
     expect(result.valid).toBe(true);
+  });
+
+  it('rejects data:image URLs for Link href', () => {
+    const result = validateManifest(validManifest({
+      elements: {
+        main: { type: 'Link', props: { href: 'data:image/png;base64,abc' } },
+      },
+    }));
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.path === '/elements/main/props/href' && e.message.includes('not allowed'))).toBe(true);
+  });
+
+  it('rejects mailto URLs for Image src', () => {
+    const result = validateManifest(validManifest({
+      elements: {
+        main: { type: 'Image', props: { src: 'mailto:test@example.com' } },
+      },
+    }));
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.path === '/elements/main/props/src' && e.message.includes('not allowed'))).toBe(true);
+  });
+
+  it('rejects unsafe Breadcrumb item hrefs', () => {
+    const result = validateManifest(validManifest({
+      elements: {
+        main: { type: 'Breadcrumb', props: { items: [{ label: 'Home', href: 'data:image/png;base64,abc' }] } },
+      },
+    }));
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.path === '/elements/main/props/items/0/href')).toBe(true);
+  });
+
+  it('rejects non-http callApi URLs', () => {
+    const result = validateManifest(validManifest({
+      actions: {
+        load: { type: 'callApi', url: 'mailto:test@example.com' },
+      },
+    }));
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.path === '/actions/load/url' && e.message.includes('not allowed'))).toBe(true);
   });
 });
 
