@@ -7,7 +7,7 @@
 
 import type { ComponentType, ComponentCategory } from '../types/index.js';
 
-/** Category mapping for all 39 components */
+/** Category mapping for all 38 manifest components */
 export const componentCategories: Record<ComponentType, ComponentCategory> = {
   Stack: 'layout', Grid: 'layout', Card: 'layout', Container: 'layout',
   Tabs: 'layout', Accordion: 'layout', Divider: 'layout', Spacer: 'layout', Repeater: 'layout',

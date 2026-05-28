@@ -4,6 +4,8 @@
 >
 > - Zod removed from IIFE (commit f2df37e): -16.3 KB gzip. Runtime now imports pre-generated data, not Zod. See CHANGELOG 0.1.0.
 > - Ajv compiler removed via standalone precompilation (commit 9ffbb58): -33.7 KB gzip. `validateManifest()` now runs a precompiled validator — also O(validation), not O(recompile + validation).
+> - Component source was split into category modules with package entrypoints (`components/actions`, `components/content`, `components/data`, `components/drawing`, `components/feedback`, `components/input`, `components/layout`, `components/navigation`).
+> - Architecture and package metadata now distinguish 38 manifest catalog components from 39 runtime custom elements (`forgeui-error` is internal).
 >
 > The rest of this document is preserved as a point-in-time audit.
 
@@ -145,12 +147,9 @@ If path (a) is taken and deps are removed from the IIFE, the IIFE budget should 
 
 ## Next steps
 
-1. **Decide path (a) vs (b)** for the architecture doc's size claim. If (a), the Ajv precompilation work is the single highest-ROI change (~25 KB gzip saved).
-2. **Wire `size-limit` into CI** with the budgets above. See Prompt 10.
-3. **Split `src/components/index.ts`** into per-component ESM entry points (e.g., `@nedast/forgeui-runtime/components/chart`) so consumers can tree-shake and so we can measure per-component cost. The architecture doc §10 already promises this but it is not implemented.
-4. **Fix the npm description.** `@nedast/forgeui-runtime/package.json` says "Zero dependencies, 40KB gzip." Both claims are false for the IIFE. Either make them true or remove the claim.
-5. **Assign tiers to forgeui-error and forgeui-drawing.** These 2 components were added after the 18/19 core/extended split was documented. They need catalog-tier assignment and test coverage.
-6. **Investigate @nedast/forgeui-connect at 103 KB gzip.** The MCP SDK is likely the bulk of this. If the MCP SDK tree-shakes poorly, consider a slimmer stdio-only build.
+1. **Keep enforcing the IIFE budget in CI.** Current gate: `npm run ci:size`.
+2. **Measure category entrypoint costs.** Component modules now have package entrypoints; the next audit should report category-level costs instead of the old monolith.
+3. **Investigate @nedast/forgeui-connect size.** The MCP SDK is likely the bulk of this. If the MCP SDK tree-shakes poorly, consider a slimmer stdio-only build.
 
 ---
 

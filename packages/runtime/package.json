@@ -70,7 +70,7 @@
     "access": "public"
   },
   "peerDependencies": {
-    "ajv": "^8.17.0",
+    "ajv": "^8.20.0",
     "lit": "^3.2.0",
     "tinybase": "^5.4.0"
   },

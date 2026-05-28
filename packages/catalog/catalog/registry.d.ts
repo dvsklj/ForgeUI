@@ -5,7 +5,7 @@
  * Generates LLM system prompts and JSON Schemas from the catalog.
  */
 import type { ComponentType, ComponentCategory } from '../types/index.js';
-/** Category mapping for all 39 components */
+/** Category mapping for all 38 manifest components */
 export declare const componentCategories: Record<ComponentType, ComponentCategory>;
 /** Components grouped by category */
 export declare const componentsByCategory: Record<ComponentCategory, ComponentType[]>;
