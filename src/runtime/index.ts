@@ -27,6 +27,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
+type PersistenceState = 'disabled' | 'loading' | 'ready' | 'failed';
+
 export class ForgeUIApp extends LitElement {
   static styles = [tokenStyles, surfaceStyles];
 
@@ -213,10 +215,14 @@ export class ForgeUIApp extends LitElement {
 
     const mode = this._persistenceModeFor(manifest);
 
-    if (mode === 'none') return;
+    if (mode === 'none') {
+      this._emitPersist('disabled', null);
+      return;
+    }
 
     // Create and start persister
     this._persister = createForgePersister(this._store, manifest.id, mode);
+    this._emitPersist('loading', this._persister.getStatus());
     try {
       await this._persister.start();
       const migrationResult = applySchemaMigrations(this._store, manifest.schema);
@@ -233,9 +239,13 @@ export class ForgeUIApp extends LitElement {
       } else {
         applyForgeUISchemaToStore(this._store, manifest.schema);
       }
-    } catch {
+      const status = this._persister.getStatus();
+      this._emitPersist(status.error ? 'failed' : 'ready', status);
+    } catch (err) {
       // IndexedDB unavailable — app still works in-memory
       applyForgeUISchemaToStore(this._store, manifest.schema);
+      const status = this._persister?.getStatus() ?? null;
+      this._emitPersist('failed', status, err instanceof Error ? err.message : String(err));
       this._persister = null;
     }
   }
@@ -249,6 +259,14 @@ export class ForgeUIApp extends LitElement {
   /** Get persistence status. */
   getPersistenceStatus(): PersisterStatus | null {
     return this._persister?.getStatus() ?? null;
+  }
+
+  private _emitPersist(state: PersistenceState, status: PersisterStatus | null, error?: string) {
+    this.dispatchEvent(new CustomEvent('forgeui-persistence', {
+      detail: { state, status, error },
+      bubbles: true,
+      composed: true,
+    }));
   }
 
   private _handleAction(actionId: string, payload?: Record<string, unknown>) {

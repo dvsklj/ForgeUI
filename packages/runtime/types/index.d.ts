@@ -202,6 +202,11 @@ export interface ForgeEvents {
         ok: false;
         error: string;
     }>;
+    'forgeui-persistence': CustomEvent<{
+        state: 'disabled' | 'loading' | 'ready' | 'failed';
+        status: unknown;
+        error?: string;
+    }>;
     'forgeui-state-change': CustomEvent<{
         path: string;
         value: unknown;

@@ -212,6 +212,12 @@ Delete an app.
 { "action": "save", "ok": false, "error": "message" }
 ```
 
+`forgeui-persistence`: emitted when persistence is disabled, loading, ready, or failed.
+
+```json
+{ "state": "ready", "status": { "mode": "indexeddb", "isPersisting": true } }
+```
+
 ## Manifest Schema
 
 ```jsonc
