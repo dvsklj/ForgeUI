@@ -7,6 +7,8 @@
  *   - forgeui_create_app        — Create an app from a manifest, returns URL
  *   - forgeui_update_app        — Update an existing app (full or JSON Merge Patch)
  *   - forgeui_validate_manifest — Validate a manifest without creating an app
+ *   - forgeui_read_app_data     — Read permitted app table rows
+ *   - forgeui_query_app_data    — Query permitted app table aggregates
  *   - forgeui_component_docs    — Return the component catalog for LLM prompts
  *
  * Usage (stdio):
@@ -32,7 +34,10 @@ import {
   patchApp,
   deleteApp,
   generateAppId,
+  readAppData,
+  queryAppData,
 } from '../server/db.js';
+import type { QueryAppDataRequest } from '../server/db.js';
 import type { ForgeUIManifest } from '../types/index.js';
 
 // ─── Create Server ─────────────────────────────────────────
@@ -214,6 +219,89 @@ server.tool(
     } catch (err: any) {
       return {
         content: [{ type: 'text', text: `Error fetching catalog: ${err.message}` }],
+        isError: true,
+      };
+    }
+  }
+);
+
+// ─── forgeui_read_app_data ───────────────────────────────────────
+
+server.tool(
+  'forgeui_read_app_data',
+  'Read raw rows from tables permitted by manifest.dataAccess. Data access must be explicitly enabled and requested tables must be listed in dataAccess.readable.',
+  {
+    app_id: z.string().describe('The app ID to read.'),
+    tables: z.array(z.string()).optional().describe('Tables to read. Defaults to all readable schema tables.'),
+    limit: z.number().int().min(1).max(100).optional().describe('Max rows per table, capped at 100. Default: 20.'),
+    since: z.string().refine((value) => Number.isFinite(Date.parse(value)), {
+      message: 'since must be a Date.parse()-parseable date/time string.',
+    }).optional().describe('Optional Date.parse()-parseable lower bound for common row timestamp fields.'),
+  },
+  async ({ app_id, tables, limit, since }) => {
+    try {
+      const result = readAppData(app_id, { tables, limit, since });
+      if (!result) {
+        return {
+          content: [{ type: 'text', text: `App "${app_id}" not found.` }],
+          isError: true,
+        };
+      }
+
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify(result, null, 2),
+        }],
+      };
+    } catch (err: any) {
+      return {
+        content: [{ type: 'text', text: `Error reading app data: ${err.message}` }],
+        isError: true,
+      };
+    }
+  }
+);
+
+// ─── forgeui_query_app_data ──────────────────────────────────────
+
+const appDataQuerySchema = z.object({
+  table: z.string().describe('Readable table to query.'),
+  aggregate: z.enum(['count', 'max', 'min', 'avg', 'sum', 'distinct']).describe('Aggregate to compute.'),
+  column: z.string().optional().describe('Required for max, min, avg, sum, and distinct.'),
+  groupBy: z.string().optional().describe('Optional column to group results by.'),
+  where: z.record(z.unknown()).optional().describe('Optional exact-match row filters.'),
+}).refine((query) => query.aggregate === 'count' || Boolean(query.column), {
+  message: 'column is required for max, min, avg, sum, and distinct aggregates.',
+  path: ['column'],
+});
+
+server.tool(
+  'forgeui_query_app_data',
+  'Query aggregate summaries from tables permitted by manifest.dataAccess. Supports count, max, min, avg, sum, and distinct, with optional exact-match where filters and groupBy.',
+  {
+    app_id: z.string().describe('The app ID to query.'),
+    queries: z.array(appDataQuerySchema).min(1).max(20).describe('Aggregate queries to run.'),
+  },
+  async ({ app_id, queries }) => {
+    try {
+      const result = queryAppData(app_id, queries as QueryAppDataRequest[]);
+      if (!result) {
+        return {
+          content: [{ type: 'text', text: `App "${app_id}" not found.` }],
+          isError: true,
+        };
+      }
+
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify(result, null, 2),
+        }],
+      };
+    } catch (err: any) {
+      return {
+        content: [{ type: 'text', text: `Error querying app data: ${err.message}` }],
         isError: true,
       };
     }
