@@ -335,6 +335,7 @@ const runtimeComponentEntrypoints = smokeRun('smoke-runtime-component-entrypoint
 console.log('index:', import.meta.resolve('@nedast/forgeui-runtime/components/index'));
 console.log('actions:', import.meta.resolve('@nedast/forgeui-runtime/components/actions'));
 console.log('chart:', import.meta.resolve('@nedast/forgeui-runtime/components/chart'));
+console.log('chart-legend:', import.meta.resolve('@nedast/forgeui-runtime/components/chart-legend'));
 console.log('content:', import.meta.resolve('@nedast/forgeui-runtime/components/content'));
 console.log('data:', import.meta.resolve('@nedast/forgeui-runtime/components/data'));
 console.log('date-range-picker:', import.meta.resolve('@nedast/forgeui-runtime/components/date-range-picker'));
@@ -349,10 +350,10 @@ console.log('table:', import.meta.resolve('@nedast/forgeui-runtime/components/ta
 console.log('OK');
 `);
 if (runtimeComponentEntrypoints.ok) {
-  console.log(`  ✅ resolve '@nedast/forgeui-runtime/components/{index,actions,chart,content,data,date-range-picker,drawing,feedback,input,layout,navigation,page-header,segmented-control,table}'`);
+  console.log(`  ✅ resolve '@nedast/forgeui-runtime/components/{index,actions,chart,chart-legend,content,data,date-range-picker,drawing,feedback,input,layout,navigation,page-header,segmented-control,table}'`);
   console.log(`     ${runtimeComponentEntrypoints.stdout.replace(/\n/g, '; ')}`);
 } else {
-  console.log(`  ❌ resolve '@nedast/forgeui-runtime/components/{index,actions,chart,content,data,date-range-picker,drawing,feedback,input,layout,navigation,page-header,segmented-control,table}' FAILED`);
+  console.log(`  ❌ resolve '@nedast/forgeui-runtime/components/{index,actions,chart,chart-legend,content,data,date-range-picker,drawing,feedback,input,layout,navigation,page-header,segmented-control,table}' FAILED`);
   console.log(`     stderr: ${runtimeComponentEntrypoints.stderr.slice(0, 300)}`);
   smokeFindings.push('@nedast/forgeui-runtime: per-component entrypoint resolution failed');
 }

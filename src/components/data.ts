@@ -407,6 +407,77 @@ export class ForgeChart extends ForgeUIElement {
 }
 customElements.define('forgeui-chart', ForgeChart);
 
+export class ForgeChartLegend extends ForgeUIElement {
+  static get styles() { return css`
+    :host { display:block; min-width:0; }
+    .title { color:var(--forgeui-color-text); font-size:var(--forgeui-text-sm);
+      font-weight:var(--forgeui-weight-semibold); margin-bottom:var(--forgeui-space-xs); overflow-wrap:anywhere; }
+    ul { display:flex; flex-wrap:wrap; gap:var(--forgeui-space-xs) var(--forgeui-space-md);
+      list-style:none; margin:0; padding:0; min-width:0; }
+    :host([orientation="vertical"]) ul { flex-direction:column; align-items:flex-start; }
+    li { display:inline-flex; align-items:center; gap:var(--forgeui-space-xs); min-width:0;
+      color:var(--forgeui-color-text-secondary); font-size:var(--forgeui-text-sm); line-height:var(--forgeui-leading-normal); }
+    .swatch { width:0.75rem; height:0.75rem; flex:0 0 0.75rem; border-radius:2px; background:var(--forgeui-color-primary); }
+    .label { color:var(--forgeui-color-text); overflow-wrap:anywhere; }
+    .value { color:var(--forgeui-color-text-tertiary); overflow-wrap:anywhere; }
+    .empty { color:var(--forgeui-color-text-tertiary); font-size:var(--forgeui-text-sm); }
+  `; }
+  private _palette = [
+    'var(--forgeui-color-primary)',
+    'var(--forgeui-color-success)',
+    'var(--forgeui-color-warning)',
+    'var(--forgeui-color-error)',
+    'var(--forgeui-color-info)',
+    'var(--forgeui-color-chart-6)',
+    'var(--forgeui-color-chart-7)',
+    'var(--forgeui-color-chart-8)',
+    'var(--forgeui-color-chart-9)',
+    'var(--forgeui-color-chart-10)',
+  ];
+  private _itemValue(item: unknown, key: string, fallback: string): string {
+    if (item && typeof item === 'object') {
+      const record = item as Record<string, unknown>;
+      return String(record[key] ?? record[fallback] ?? '');
+    }
+    return String(item ?? '');
+  }
+  render() {
+    const title = this.getString('title', '');
+    let rawItems = this.getProp('items') ?? this.getProp('data') ?? [];
+    const dataPath = this.getString('dataPath', '');
+    if (!('items' in (this.props || {})) && !('data' in (this.props || {})) && dataPath && this.store?.hasTable(dataPath)) {
+      rawItems = Object.values(this.store.getTable(dataPath));
+    }
+    const items = Array.isArray(rawItems) ? rawItems : [];
+    const labelKey = this.getString('labelKey', 'label');
+    const valueKey = this.getString('valueKey', 'value');
+    const colorKey = this.getString('colorKey', 'color');
+    const orientation = this.getString('orientation', '') || this.getString('direction', 'horizontal');
+    const showValues = this.getBool('showValues', true);
+    const emptyMessage = this.getString('emptyMessage', 'No legend items');
+    if (orientation === 'vertical') this.setAttribute('orientation', 'vertical');
+    else this.removeAttribute('orientation');
+    return html`
+      ${title ? html`<div class="title">${title}</div>` : nothing}
+      ${items.length === 0 ? html`<div class="empty">${emptyMessage}</div>` : html`
+        <ul aria-label=${title || 'Chart legend'}>
+          ${items.map((item, index) => {
+            const label = this._itemValue(item, labelKey, 'name');
+            const value = this._itemValue(item, valueKey, 'value');
+            const color = this._itemValue(item, colorKey, 'color') || this._palette[index % this._palette.length];
+            return html`<li>
+              <span class="swatch" style="background:${color}" aria-hidden="true"></span>
+              <span class="label">${label || `Series ${index + 1}`}</span>
+              ${showValues && value ? html`<span class="value">${value}</span>` : nothing}
+            </li>`;
+          })}
+        </ul>
+      `}
+    `;
+  }
+}
+customElements.define('forgeui-chart-legend', ForgeChartLegend);
+
 export class ForgeStatCard extends ForgeUIElement {
   static get styles() { return css`
     :host { display:block; min-width:0; }

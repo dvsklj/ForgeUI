@@ -26,6 +26,12 @@ export declare class ForgeChart extends ForgeUIElement {
     _niceMax(v: number): number;
     render(): import("lit-html").TemplateResult<1>;
 }
+export declare class ForgeChartLegend extends ForgeUIElement {
+    static get styles(): import("lit").CSSResult;
+    private _palette;
+    private _itemValue;
+    render(): import("lit-html").TemplateResult<1>;
+}
 export declare class ForgeStatCard extends ForgeUIElement {
     static get styles(): import("lit").CSSResult;
     private _trendClass;

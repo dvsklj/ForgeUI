@@ -7,7 +7,7 @@
 
 import type { ComponentType, ComponentCategory } from '../types/index.js';
 
-/** Category mapping for all 50 manifest components */
+/** Category mapping for all 51 manifest components */
 export const componentCategories: Record<ComponentType, ComponentCategory> = {
   Stack: 'layout', Grid: 'layout', Card: 'layout', Container: 'layout', PageHeader: 'layout',
   Tabs: 'layout', Accordion: 'layout', Divider: 'layout', Spacer: 'layout', Repeater: 'layout',
@@ -20,7 +20,7 @@ export const componentCategories: Record<ComponentType, ComponentCategory> = {
   
   Button: 'action', ButtonGroup: 'action', Link: 'action',
   
-  Table: 'data', List: 'data', Chart: 'data', Metric: 'data', StatCard: 'data', KpiGrid: 'data',
+  Table: 'data', List: 'data', Chart: 'data', ChartLegend: 'data', Metric: 'data', StatCard: 'data', KpiGrid: 'data',
   
   Alert: 'feedback', Dialog: 'feedback', Progress: 'feedback', Toast: 'feedback',
   
@@ -35,7 +35,7 @@ export const componentsByCategory: Record<ComponentCategory, ComponentType[]> = 
   content: ['Text', 'Image', 'Icon', 'Badge', 'Avatar', 'EmptyState'],
   input: ['Form', 'FieldGroup', 'TextInput', 'Textarea', 'NumberInput', 'Select', 'Combobox', 'MultiSelect', 'RadioGroup', 'Checkbox', 'Toggle', 'DatePicker', 'DateRangePicker', 'Slider', 'FileUpload'],
   action: ['Button', 'ButtonGroup', 'Link'],
-  data: ['Table', 'List', 'Chart', 'Metric', 'StatCard', 'KpiGrid'],
+  data: ['Table', 'List', 'Chart', 'ChartLegend', 'Metric', 'StatCard', 'KpiGrid'],
   feedback: ['Alert', 'Dialog', 'Progress', 'Toast'],
   navigation: ['Breadcrumb', 'Stepper', 'SearchBox', 'SegmentedControl', 'Pagination'],
   drawing: ['Drawing'],

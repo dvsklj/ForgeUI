@@ -42,6 +42,7 @@ const defs: Record<ComponentType, string[]> = {
   Table: [...SHARED, 'dataPath', 'data', 'columns', 'pageSize', 'searchable', 'selectable', 'emptyMessage', 'rowAction', 'caption'],
   List: [...SHARED, 'dataPath', 'template', 'emptyMessage', 'dividers', 'items'],
   Chart: [...SHARED, ...BASE_TEXT, 'title', 'dataPath', 'xKey', 'yKey', 'labelKey', 'valueKey', 'chartType', 'color', 'colorScheme', 'height', 'data', 'yFormat'],
+  ChartLegend: [...SHARED, 'title', 'items', 'data', 'dataPath', 'labelKey', 'valueKey', 'colorKey', 'orientation', 'direction', 'showValues', 'emptyMessage'],
   Metric: [...SHARED, ...BASE_TEXT, 'format', 'goal', 'trend', 'trendLabel', 'prefix', 'suffix', 'unit', 'subtitle'],
   StatCard: [...SHARED, ...BASE_TEXT, 'trend', 'trendLabel', 'unit', 'subtitle'],
   KpiGrid: [...SHARED, 'columns', 'gap'],

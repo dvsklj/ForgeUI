@@ -1,6 +1,6 @@
 # Component Catalog
 
-All 50 manifest components available in Forge, organized by category.
+All 51 manifest components available in Forge, organized by category.
 
 ---
 
@@ -218,6 +218,38 @@ Data visualization using recharts.
 | `color` | string | `"var(--forgeui-color-primary)"` | Primary chart color |
 | `yFormat` | string | — | Y-axis prefix (e.g. `"$"`, `"%"`) |
 | `height` | number | `300` | Chart height in px |
+
+### ChartLegend
+
+Legend for chart series or dashboard segments.
+
+```json
+{
+  "type": "ChartLegend",
+  "props": {
+    "title": "Channels",
+    "items": [
+      { "label": "Web", "value": 42, "color": "var(--forgeui-color-primary)" },
+      { "label": "Sales", "value": 17, "color": "var(--forgeui-color-success)" }
+    ],
+    "orientation": "horizontal",
+    "showValues": true
+  }
+}
+```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | string | — | Optional legend title |
+| `items` | array | `[]` | Legend items as strings or objects |
+| `data` | array | `[]` | Data points, same shape as `items` |
+| `dataPath` | string | — | Store table to render when `items` and `data` are omitted |
+| `labelKey` | string | `"label"` | Label field for object items |
+| `valueKey` | string | `"value"` | Value field for object items |
+| `colorKey` | string | `"color"` | Color field for object items |
+| `orientation` | string | `"horizontal"` | `"horizontal"` or `"vertical"` |
+| `showValues` | boolean | `true` | Show item values |
+| `emptyMessage` | string | `"No legend items"` | Empty-state message |
 
 ### Metric
 

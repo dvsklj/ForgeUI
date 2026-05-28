@@ -130,6 +130,7 @@ function buildDefaultPrompt(): string {
     '  Table(dataPath, columns: [{key, label, sortable?, format?}], pageSize?, searchable?, emptyMessage?)',
     '  List(dataPath, template: elementId, emptyMessage?, dividers?)',
     '  Chart(variant: "line"|"bar"|"donut"|"area"|"scatter"|"pie", dataPath, xKey?, yKey?, colorScheme?, height?)',
+    '  ChartLegend(items|data, labelKey?, valueKey?, colorKey?, orientation?, showValues?)',
     '  Metric(label, value|$binding, format: "number"|"currency"|"percent", goal?, trend?: "up"|"down"|"flat", prefix?, suffix?)',
     '  StatCard(label, value|$binding, trend?, trendLabel?, subtitle?, unit?)',
     '  KpiGrid(columns?, gap?, children) — responsive KPI card grid.',
