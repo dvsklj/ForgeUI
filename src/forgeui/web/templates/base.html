@@ -14,6 +14,7 @@
     <meta name="description" content="{{ description }}">
     {% if csrf_token %}<meta name="csrf-token" content="{{ csrf_token }}">{% endif %}
     <title>{{ title }} · ForgeUI</title>
+    <link rel="icon" type="image/svg+xml" href="{{ static_prefix }}/favicon.svg?v={{ asset_version }}">
     <link rel="stylesheet" href="{{ static_prefix }}/forgeui.css?v={{ asset_version }}">
     {% if tailwind_cdn_url %}<script src="{{ tailwind_cdn_url }}"{% if tailwind_sri %} integrity="{{ tailwind_sri }}" crossorigin="anonymous"{% endif %}></script>{% endif %}
     {% if htmx_cdn_url %}<script defer src="{{ htmx_cdn_url }}"{% if htmx_sri %} integrity="{{ htmx_sri }}" crossorigin="anonymous"{% endif %}></script>{% endif %}
@@ -23,11 +24,12 @@
     {% if show_shell_header %}
     <header class="forge-shell-header" aria-label="Dashboard controls">
       <a class="forge-wordmark" href="{{ home_url }}" aria-label="ForgeUI home">Forge<span>UI</span></a>
-      <div class="forge-theme-controls" role="group" aria-label="Color theme">
-        <button type="button" class="forge-theme-button" data-forge-theme="light" aria-label="Use light theme" title="Light theme">{{ theme_icons.light }}<span class="forge-sr-only">Light</span></button>
-        <button type="button" class="forge-theme-button" data-forge-theme="system" aria-label="Follow system theme" title="System theme">{{ theme_icons.system }}<span class="forge-sr-only">System</span></button>
-        <button type="button" class="forge-theme-button" data-forge-theme="dark" aria-label="Use dark theme" title="Dark theme">{{ theme_icons.dark }}<span class="forge-sr-only">Dark</span></button>
-      </div>
+      <button type="button" class="forge-theme-button" data-forge-theme-toggle aria-label="Switch color theme" title="System theme">
+        <span data-forge-theme-icon="light">{{ theme_icons.light }}</span>
+        <span data-forge-theme-icon="system">{{ theme_icons.system }}</span>
+        <span data-forge-theme-icon="dark">{{ theme_icons.dark }}</span>
+        <span class="forge-sr-only" data-forge-theme-label>System theme</span>
+      </button>
     </header>
     {% endif %}
     <main

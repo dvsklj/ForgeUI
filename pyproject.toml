@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "forgeui"
-version = "0.1.0a1"
+version = "0.1.0a2"
 description = "Safe, model-generated dashboards rendered by FastAPI, Jinja2, and HTMX."
 readme = "README.md"
 license = "MIT"
@@ -74,8 +74,8 @@ dev = [
   "beautifulsoup4>=4.13,<5",
   "hypothesis>=6.125,<7",
   "mypy>=1.14,<2",
-  "pytest>=8.3,<9",
-  "pytest-asyncio>=0.25,<1",
+  "pytest>=9.0.3,<10",
+  "pytest-asyncio>=1,<2",
   "pytest-cov>=6,<7",
   "pytest-playwright>=0.6,<1",
   "respx>=0.22,<1",

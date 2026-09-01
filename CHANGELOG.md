@@ -3,9 +3,23 @@
 All notable changes to ForgeUI are documented here. Versions follow
 [PEP 440](https://peps.python.org/pep-0440/).
 
+## 0.1.0a2 — 2026-09-01
+
+First published public alpha.
+
+### Fixed
+
+- Raised light-theme timeline timestamp contrast above the WCAG AA text threshold.
+- Made the shell wordmark a 44-pixel touch target at mobile widths.
+- Added a small self-hosted favicon so standalone pages do not generate a missing-asset request.
+- Replaced the segmented theme selector with one compact system-default light/dark toggle.
+- Added trusted axis titles, tick labels, scales, and formatted summaries to operational charts.
+- Added hover/focus chart inspection with bounded keyboard stops and an accessible data summary.
+- Added explicit dashboard drill-down affordances and host-allowlisted navigation destination IDs.
+
 ## 0.1.0a1 — 2026-09-01
 
-First public alpha.
+Initial release candidate.
 
 ### Added
 

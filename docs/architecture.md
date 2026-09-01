@@ -18,7 +18,7 @@ trusted registered source / server state
 ```
 
 The model owns only content and declarative structure. The server owns templates, component
-implementation, theme tokens, frozen contract/source/capability registries, persisted state,
+implementation, theme tokens, frozen contract/source/capability/destination registries, persisted state,
 database access, and the Ollama endpoint.
 
 ## Supported integration boundary

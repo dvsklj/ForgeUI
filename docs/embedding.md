@@ -38,6 +38,10 @@ source. Host authentication middleware can set a verified `Principal` on
 `request.state.forgeui_principal`; registered source and capability authorizers receive it. See
 [data contracts, sources, and capabilities](data-sources.md).
 
+`RuntimeRegistries.destinations` is the host-owned allowlist for navigation IDs. Manifests never
+contain route paths or URLs. The reference runtime exposes `overview` and `devices`; a host may
+replace that set with its own stable identifiers.
+
 ## Put one ForgeUI card on an existing page
 
 Every saved manifest element is an addressable, validated subtree. Use the element ID in the
@@ -61,6 +65,19 @@ The tiny optional host helper validates the message origin and adjusts iframe he
 rendered card changes size. The iframe keeps ForgeUI's CSS, theme tokens, scripts, CSP, and state
 separate from the host page. This is the recommended integration when the existing application has
 its own Tailwind configuration or component styles.
+
+Declared drill-downs inside an embed emit a validated `forgeui:navigate` custom event on the iframe.
+The host remains responsible for mapping the opaque destination ID to its router:
+
+```html
+<script>
+  document.querySelector("[data-forgeui-embed]").addEventListener("forgeui:navigate", (event) => {
+    const routes = {devices: "/devices", overview: "/overview"};
+    const route = routes[event.detail.destination];
+    if (route) window.location.assign(route);
+  });
+</script>
+```
 
 Append `?element=ELEMENT_ID` to `/embed`, `/artifact`, or any
 `/views/{surface}` route. An unknown element returns 404. The selected subtree still uses the saved

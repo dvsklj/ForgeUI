@@ -46,6 +46,7 @@ def _system_prompt(request: GenerationRequest, policy: ManifestPolicy) -> str:
         "data_source": request.data_source,
         "allowed_paths": sorted(policy.paths_for(request.data_contract)),
         "allowed_capabilities": sorted(policy.capabilities),
+        "allowed_destinations": sorted(policy.destinations),
         "catalog": catalog,
     }
     return (
@@ -56,7 +57,10 @@ def _system_prompt(request: GenerationRequest, policy: ManifestPolicy) -> str:
         "types. Use only the supplied catalog, typed JSON expressions, declared writable state, "
         "and registered actions. Reference values through allowed data/item paths; do not copy "
         "the supplied dataset into the manifest. Use exactly the supplied data contract and "
-        "source IDs. Keep every element reachable from root. "
+        "source IDs. Keep every element reachable from root. When a card, metric, chart, table, "
+        "status list, or timeline has an obvious drill-down, define a navigate action using only "
+        "an allowed destination and attach its ID to the element action field. Never invent a "
+        "destination or mark an element interactive without a declared action. "
         f"{selected}\n\nFORGE_CONTRACT:\n"
         + json.dumps(rules, ensure_ascii=False, separators=(",", ":"))
     )

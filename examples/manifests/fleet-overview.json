@@ -136,6 +136,7 @@
     },
     "metric-critical": {
       "type": "metric",
+      "action": "go-devices",
       "props": {
         "label": "Critical",
         "value": {"kind": "ref", "path": "data.summary.critical"},
@@ -165,10 +166,15 @@
     },
     "fleet-trend": {
       "type": "line-chart",
+      "action": "go-devices",
       "props": {
         "title": "Fleet resource trend",
         "data": {"kind": "ref", "path": "data.series"},
         "kind": "line",
+        "x_key": "timestamp",
+        "x_axis_label": "Report time",
+        "y_axis_label": "Utilization",
+        "value_format": "percent",
         "series": [
           {"label": "CPU", "value": "cpu"},
           {"label": "Memory", "value": "memory"}
@@ -224,6 +230,7 @@
     },
     "device-table": {
       "type": "table",
+      "action": "go-devices",
       "props": {
         "data": {"kind": "ref", "path": "data.devices"},
         "filter_state": "state.status",
@@ -273,6 +280,10 @@
     "refresh-fleet": {
       "type": "refresh_source",
       "source": "device-health"
+    },
+    "go-devices": {
+      "type": "navigate",
+      "destination": "devices"
     }
   }
 }

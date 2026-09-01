@@ -11,12 +11,17 @@ from forgeui.surfaces import PersistenceMode, SurfaceMode
 from forgeui.validation import validate_manifest
 
 
-def _manifest(elements: Mapping[str, object], root: str = "root") -> ForgeManifest:
+def _manifest(
+    elements: Mapping[str, object],
+    root: str = "root",
+    actions: Mapping[str, object] | None = None,
+) -> ForgeManifest:
     candidate = {
         "metadata": {"title": "Fleet report"},
         "design": {"name": "ops-compact"},
         "root": root,
         "elements": elements,
+        "actions": actions or {},
     }
     report = validate_manifest(candidate)
     assert report.valid, report.issues
@@ -98,14 +103,17 @@ def test_expression_failure_is_an_inert_visible_fallback() -> None:
 def test_document_shell_has_theme_controls() -> None:
     manifest = _manifest({"root": {"type": "text", "props": {"text": "Ready"}}})
     output = Renderer().render_document(manifest)
-    assert 'data-forge-theme="system"' in output
+    assert 'data-theme="system"' in output
     assert "forgeui.css" in output
     assert "forge-main" in output
     assert output.count('class="forge-theme-icon"') == 3
-    assert 'aria-label="Follow system theme"' in output
-    assert 'title="Light theme"' in output
+    assert output.count('class="forge-theme-button"') == 1
+    assert "data-forge-theme-toggle" in output
+    assert 'aria-label="Switch color theme"' in output
     assert 'title="System theme"' in output
-    assert 'title="Dark theme"' in output
+    assert 'data-forge-theme-icon="light"' in output
+    assert 'data-forge-theme-icon="system"' in output
+    assert 'data-forge-theme-icon="dark"' in output
     assert "<script>" not in output
 
 
@@ -307,17 +315,64 @@ def test_single_point_chart_has_a_visible_theme_owned_marker() -> None:
                 "props": {
                     "title": "CPU",
                     "data": {"kind": "ref", "path": "data.series"},
+                    "x_key": "timestamp",
+                    "x_axis_label": "Report time",
+                    "y_axis_label": "Utilization",
+                    "value_format": "percent",
                     "series": [{"label": "CPU", "value": "cpu"}],
                 },
             }
         }
     )
 
-    output = render_manifest(manifest, data={"series": [{"cpu": 0.5}]})
+    output = render_manifest(
+        manifest,
+        data={"series": [{"timestamp": "2026-07-24T08:30:00+00:00", "cpu": 0.5}]},
+    )
 
     assert "forge-chart-point" in output
     assert "forge-chart-series--1" in output
+    assert "forge-chart-axis-title" in output
+    assert "Report time" in output
+    assert "Utilization" in output
+    assert "08:30" in output
+    assert "50%" in output
+    assert 'data-forge-chart-label="CPU — 08:30: 50%"' in output
+    assert output.count("data-forge-chart-point") == 1
+    assert 'tabindex="0" role="img" aria-label="CPU — 08:30: 50%"' in output
+    assert "data-forge-chart-tooltip" in output
     assert 'stroke="#' not in output
+
+
+def test_actionable_dashboard_surfaces_render_explicit_safe_drilldowns() -> None:
+    manifest = _manifest(
+        {
+            "root": {"type": "page", "children": ["metric", "chart"]},
+            "metric": {
+                "type": "metric",
+                "action": "go-devices",
+                "props": {"label": "Critical", "value": 2, "status": "critical"},
+            },
+            "chart": {
+                "type": "line-chart",
+                "action": "go-devices",
+                "props": {
+                    "title": "CPU",
+                    "data": {"kind": "ref", "path": "data.series"},
+                    "series": [{"label": "CPU", "value": "cpu"}],
+                },
+            },
+        },
+        actions={"go-devices": {"type": "navigate", "destination": "devices"}},
+    )
+
+    output = render_manifest(manifest, data={"series": [{"cpu": 0.5}]})
+
+    assert output.count('data-forge-action="go-devices"') == 2
+    assert 'aria-label="View details for Critical"' in output
+    assert 'aria-label="View details for CPU"' in output
+    assert output.count("forge-surface-action-icon") == 2
+    assert "href=" not in output
 
 
 def test_trusted_display_formats_produce_finished_operational_values() -> None:

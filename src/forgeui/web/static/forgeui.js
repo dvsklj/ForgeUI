@@ -2,7 +2,8 @@
   "use strict";
   const key = "forgeui-theme";
   const root = document.documentElement;
-  const controls = () => document.querySelectorAll("[data-forge-theme]");
+  const systemTheme = window.matchMedia("(prefers-color-scheme: dark)");
+  const themeControl = () => document.querySelector("[data-forge-theme-toggle]");
   const main = () => document.querySelector("#forge-main");
   const csrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
   const stateSnapshot = () => {
@@ -22,11 +23,57 @@
     item.textContent = message;
     region.replaceChildren(item);
   };
+  const updateThemeControl = () => {
+    const control = themeControl();
+    if (!control) return;
+    const selected = root.dataset.theme || "system";
+    const resolved = selected === "system" ? (systemTheme.matches ? "dark" : "light") : selected;
+    const next = resolved === "dark" ? "light" : "dark";
+    const current = selected === "system" ? "System" : selected[0].toUpperCase() + selected.slice(1);
+    root.dataset.resolvedTheme = resolved;
+    control.dataset.nextTheme = next;
+    control.setAttribute("aria-label", `Switch to ${next} theme`);
+    control.setAttribute("title", `${current} theme · switch to ${next}`);
+    const label = control.querySelector("[data-forge-theme-label]");
+    if (label) label.textContent = `${current} theme. Switch to ${next} theme.`;
+  };
   const setTheme = (theme) => {
     const value = ["light", "dark", "system"].includes(theme) ? theme : "system";
     root.dataset.theme = value;
     try { localStorage.setItem(key, value); } catch (_) { /* storage is optional */ }
-    controls().forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.forgeTheme === value)));
+    updateThemeControl();
+  };
+  const navigateDestination = (destination) => {
+    if (typeof destination !== "string" || !/^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$/.test(destination)) {
+      toast("The requested destination is unavailable.");
+      return;
+    }
+    if (window.parent !== window && ["embed", "chat"].includes(root.dataset.forgeSurface)) {
+      window.parent.postMessage({type: "forgeui:navigate", destination}, "*");
+    }
+    window.location.hash = destination;
+  };
+  const chartTarget = (node) => node?.closest?.("[data-forge-chart-point], [data-forge-chart-legend]");
+  const activateChartTarget = (target) => {
+    const chart = target?.closest?.(".forge-chart");
+    if (!chart) return;
+    chart.dataset.forgeChartActiveSeries = target.dataset.forgeChartSeries || "";
+    const tooltip = chart.querySelector("[data-forge-chart-tooltip]");
+    const label = target.dataset.forgeChartLabel;
+    if (tooltip && label) {
+      tooltip.textContent = label;
+      tooltip.hidden = false;
+    }
+  };
+  const clearChartTarget = (target) => {
+    const chart = target?.closest?.(".forge-chart");
+    if (!chart) return;
+    delete chart.dataset.forgeChartActiveSeries;
+    const tooltip = chart.querySelector("[data-forge-chart-tooltip]");
+    if (tooltip) {
+      tooltip.textContent = "";
+      tooltip.hidden = true;
+    }
   };
   const applyTriggers = (triggers) => {
     if (!triggers || typeof triggers !== "object") return;
@@ -40,7 +87,7 @@
       const notice = triggers["forgeui:toast"];
       if (notice) toast(notice.message, notice.level);
       const navigation = triggers["forgeui:navigate"];
-      if (navigation) window.location.hash = navigation.destination;
+      if (navigation) navigateDestination(navigation.destination);
     } catch (_) {
       toast("The dashboard response could not be applied.");
     }
@@ -144,13 +191,18 @@
   };
   if ("ResizeObserver" in window) new ResizeObserver(notifyParentSize).observe(document.body);
   window.addEventListener("load", notifyParentSize);
+  systemTheme.addEventListener("change", () => {
+    if (root.dataset.theme === "system") updateThemeControl();
+  });
   window.addEventListener("message", (event) => {
     if (event.source === window.parent && event.data?.type === "forgeui:measure") notifyParentSize();
   });
   try { setTheme(localStorage.getItem(key) || root.dataset.theme || "system"); } catch (_) { setTheme(root.dataset.theme || "system"); }
   document.addEventListener("click", (event) => {
-    const theme = event.target.closest("[data-forge-theme]");
-    if (theme) { setTheme(theme.dataset.forgeTheme); return; }
+    const theme = event.target.closest("[data-forge-theme-toggle]");
+    if (theme) { setTheme(theme.dataset.nextTheme); return; }
+    const destination = event.target.closest("[data-forge-destination]");
+    if (destination) { navigateDestination(destination.dataset.forgeDestination); return; }
     const close = event.target.closest("[data-forge-dialog-close]");
     if (close) { close.closest("dialog")?.close(); return; }
     const pager = event.target.closest("[data-forge-state-delta]");
@@ -187,6 +239,28 @@
       postDashboard(url, {version: Number(target.dataset.forgeStateVersion || "0"), event: {}});
     }
   });
+  document.addEventListener("pointerover", (event) => {
+    const target = chartTarget(event.target);
+    if (target) activateChartTarget(target);
+  });
+  document.addEventListener("pointerout", (event) => {
+    const target = chartTarget(event.target);
+    if (target && !target.contains(event.relatedTarget)) clearChartTarget(target);
+  });
+  document.addEventListener("focusin", (event) => {
+    const target = chartTarget(event.target);
+    if (target) activateChartTarget(target);
+  });
+  document.addEventListener("focusout", (event) => {
+    const target = chartTarget(event.target);
+    if (target && !target.contains(event.relatedTarget)) clearChartTarget(target);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    document.querySelectorAll(".forge-chart[data-forge-chart-active-series]").forEach((chart) => {
+      clearChartTarget(chart.querySelector("[data-forge-chart-point], [data-forge-chart-legend]"));
+    });
+  });
   document.addEventListener("change", (event) => {
     const control = event.target.closest("[name^='state.']");
     if (!control || control.closest("form[data-forge-action]")) return;
@@ -218,7 +292,7 @@
     if (token) event.detail.headers["X-CSRF-Token"] = token;
   });
   document.addEventListener("htmx:afterSwap", () => {
-    controls().forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.forgeTheme === root.dataset.theme)));
+    updateThemeControl();
     notifyParentSize();
   });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", startLocalPolling);

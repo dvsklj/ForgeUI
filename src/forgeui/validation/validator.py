@@ -20,6 +20,7 @@ from forgeui.domain.models import (
     ForgeManifest,
     IncrementStateAction,
     InvokeCapabilityAction,
+    NavigateAction,
     OpenDialogAction,
     RefreshDataAction,
     SetStateAction,
@@ -50,6 +51,7 @@ class ManifestPolicy:
     contracts: Mapping[str, frozenset[str]]
     sources: Mapping[str, str]
     capabilities: frozenset[str] = field(default_factory=frozenset)
+    destinations: frozenset[str] = field(default_factory=frozenset)
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -61,6 +63,7 @@ class ManifestPolicy:
         )
         object.__setattr__(self, "sources", MappingProxyType(dict(self.sources)))
         object.__setattr__(self, "capabilities", frozenset(self.capabilities))
+        object.__setattr__(self, "destinations", frozenset(self.destinations))
 
     def paths_for(self, contract: str) -> frozenset[str]:
         return self.contracts.get(contract, frozenset())
@@ -70,6 +73,7 @@ DEFAULT_MANIFEST_POLICY = ManifestPolicy(
     contracts={"device-health/1": DEVICE_HEALTH_PATHS},
     sources={"device-health": "device-health/1"},
     capabilities=frozenset({"device-note.create", "incident.acknowledge"}),
+    destinations=frozenset({"overview", "devices"}),
 )
 
 
@@ -401,6 +405,14 @@ def _validate_actions(
                     "an action may refresh only the manifest's registered data source",
                 )
             )
+        if isinstance(action, NavigateAction) and action.destination not in policy.destinations:
+            issues.append(
+                ValidationIssue(
+                    "unknown_destination",
+                    f"{path}.destination",
+                    "navigation destination is not registered for this ForgeUI instance",
+                )
+            )
 
 
 def _validate_collection_fields(
@@ -426,6 +438,8 @@ def _validate_collection_fields(
                 if isinstance(column, Mapping) and isinstance(column.get("key"), str):
                     fields.append((f"columns[{index}].key", str(column["key"])))
     if component_type in {"line-chart", "bar-chart", "donut-chart"}:
+        if isinstance(props.get("x_key"), str):
+            fields.append(("x_key", str(props["x_key"])))
         series = props.get("series")
         if isinstance(series, list):
             for index, item in enumerate(series):
@@ -489,12 +503,46 @@ def _validate_semantics(
                     f"{element.type} is not available in {manifest.design.name}",
                 )
             )
-        if element.action is not None and element.action not in manifest.actions:
-            issues.append(
-                ValidationIssue(
-                    "missing_action", f"{path}.action", "element action is not declared"
+        if element.action is not None:
+            action = manifest.actions.get(element.action)
+            if action is None:
+                issues.append(
+                    ValidationIssue(
+                        "missing_action", f"{path}.action", "element action is not declared"
+                    )
                 )
-            )
+            elif not component_registry.get(element.type).supports_action:
+                issues.append(
+                    ValidationIssue(
+                        "action_not_supported",
+                        f"{path}.action",
+                        f"{element.type} does not expose an interactive action affordance",
+                    )
+                )
+            elif element.type not in {"button", "form"} and not isinstance(action, NavigateAction):
+                issues.append(
+                    ValidationIssue(
+                        "surface_action_requires_navigation",
+                        f"{path}.action",
+                        "dashboard surface drill-downs require a registered navigate action",
+                    )
+                )
+        if element.type == "breadcrumbs":
+            items = element.props.get("items")
+            if isinstance(items, list):
+                for index, item in enumerate(items):
+                    if (
+                        isinstance(item, Mapping)
+                        and item.get("destination") not in policy.destinations
+                    ):
+                        issues.append(
+                            ValidationIssue(
+                                "unknown_destination",
+                                f"{path}.props.items[{index}].destination",
+                                "breadcrumb destination is not registered for this "
+                                "ForgeUI instance",
+                            )
+                        )
         for binding_key in ("state_path", "page_state", "filter_state"):
             binding_path = element.props.get(binding_key)
             if isinstance(binding_path, str) and binding_path not in writable:
@@ -600,4 +648,6 @@ def manifest_json_schema(
     restrict("RefreshDataAction", "source", sorted(policy.sources))
     restrict("SubmitFormAction", "capability", sorted(policy.capabilities))
     restrict("InvokeCapabilityAction", "capability", sorted(policy.capabilities))
+    restrict("NavigateAction", "destination", sorted(policy.destinations))
+    restrict("BreadcrumbItem", "destination", sorted(policy.destinations))
     return schema

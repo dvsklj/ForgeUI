@@ -45,8 +45,8 @@ adds essentially ForgeUI's own package files rather than another framework copy.
 For a locally built wheel:
 
 ```dockerfile
-COPY dist/forgeui-0.1.0a1-py3-none-any.whl /tmp/
-RUN pip install --no-cache-dir '/tmp/forgeui-0.1.0a1-py3-none-any.whl[web,ollama]'
+COPY dist/forgeui-0.1.0a2-py3-none-any.whl /tmp/
+RUN pip install --no-cache-dir '/tmp/forgeui-0.1.0a2-py3-none-any.whl[web,ollama]'
 ```
 
 Published releases use the same extras syntax from PyPI. Private company integrations should live

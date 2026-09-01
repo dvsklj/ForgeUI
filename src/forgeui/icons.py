@@ -11,7 +11,12 @@ from typing import Final, Literal
 
 from markupsafe import Markup
 
-IconClass = Literal["forge-icon", "forge-theme-icon", "forge-button-icon"]
+IconClass = Literal[
+    "forge-icon",
+    "forge-theme-icon",
+    "forge-button-icon",
+    "forge-surface-action-icon",
+]
 
 _HEROICON_PATHS: Final = MappingProxyType(
     {

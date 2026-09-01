@@ -1,5 +1,8 @@
 {% set p = component.props %}
 {% set element_id = 'forge-element-' ~ component.element_id %}
+{% macro drilldown(aria_label='View related details') -%}
+{% if component.action %}<button type="button" class="forge-surface-action" data-forge-action="{{ component.action }}" aria-label="{{ aria_label }}"><span>View details</span>{{ component.action_icon }}</button>{% endif %}
+{%- endmacro %}
 {% if component.type == 'page' %}
 <div id="{{ element_id }}" class="forge-page">{{ children }}</div>
 {% elif component.type == 'container' %}
@@ -9,7 +12,7 @@
 {% elif component.type == 'grid' %}
 <div id="{{ element_id }}" class="forge-grid forge-grid--{{ p.columns }} forge-gap--{{ p.gap }}">{{ children }}</div>
 {% elif component.type == 'card' %}
-<section id="{{ element_id }}" class="forge-card forge-card--{{ p.tone }}">{% if p.title %}<h2 class="forge-card-title">{{ p.title }}</h2>{% endif %}{{ children }}</section>
+<section id="{{ element_id }}" class="forge-card forge-card--{{ p.tone }}{% if component.action %} forge-has-action{% endif %}">{% if p.title %}<h2 class="forge-card-title">{{ p.title }}</h2>{% endif %}{{ children }}{{ drilldown('View details for ' ~ p.title if p.title else 'View card details') }}</section>
 {% elif component.type == 'section' %}
 <section id="{{ element_id }}" class="forge-section">{% if p.title %}<header class="forge-section-header"><h2>{{ p.title }}</h2>{% if p.description %}<p>{{ p.description }}</p>{% endif %}</header>{% endif %}{{ children }}</section>
 {% elif component.type == 'page-header' %}
@@ -29,21 +32,21 @@
 {% elif component.type == 'key-value' %}
 <dl id="{{ element_id }}" class="forge-key-value">{% for row in extra.rows %}<div><dt>{{ row.label }}</dt><dd>{{ row.value }}</dd></div>{% endfor %}</dl>
 {% elif component.type == 'metric' %}
-<article id="{{ element_id }}" class="forge-metric forge-metric--{{ p.status }}"><p>{{ p.label }}</p><strong>{{ p.value }}</strong>{% if p.detail %}<small>{{ p.detail }}</small>{% endif %}</article>
+<article id="{{ element_id }}" class="forge-metric forge-metric--{{ p.status }}{% if component.action %} forge-has-action{% endif %}"><p>{{ p.label }}</p><strong>{{ p.value }}</strong>{% if p.detail %}<small>{{ p.detail }}</small>{% endif %}{{ drilldown('View details for ' ~ p.label) }}</article>
 {% elif component.type == 'alert' %}
-<section id="{{ element_id }}" class="forge-alert forge-alert--{{ p.level }}" role="{% if p.level in ['warning', 'error'] %}alert{% else %}status{% endif %}"><strong>{{ p.title }}</strong><p>{{ p.message }}</p></section>
+<section id="{{ element_id }}" class="forge-alert forge-alert--{{ p.level }}{% if component.action %} forge-has-action{% endif %}" role="{% if p.level in ['warning', 'error'] %}alert{% else %}status{% endif %}"><strong>{{ p.title }}</strong><p>{{ p.message }}</p>{{ drilldown('View details for ' ~ p.title) }}</section>
 {% elif component.type == 'progress' %}
-<div id="{{ element_id }}" class="forge-progress"><div class="forge-progress-label"><span>{{ p.label }}</span><output>{{ extra.display_value }}</output></div><progress value="{{ p.value }}" max="{{ p.maximum }}">{{ p.value }} / {{ p.maximum }}</progress></div>
+<div id="{{ element_id }}" class="forge-progress{% if component.action %} forge-has-action{% endif %}"><div class="forge-progress-label"><span>{{ p.label }}</span><output>{{ extra.display_value }}</output></div><progress value="{{ p.value }}" max="{{ p.maximum }}">{{ p.value }} / {{ p.maximum }}</progress>{{ drilldown('View details for ' ~ p.label) }}</div>
 {% elif component.type == 'empty-state' %}
-<section id="{{ element_id }}" class="forge-empty-state" role="status"><h2>{{ p.title }}</h2><p>{{ p.message }}</p></section>
+<section id="{{ element_id }}" class="forge-empty-state{% if component.action %} forge-has-action{% endif %}" role="status"><h2>{{ p.title }}</h2><p>{{ p.message }}</p>{{ drilldown('View details for ' ~ p.title) }}</section>
 {% elif component.type == 'table' %}
-<div id="{{ element_id }}" class="forge-table-wrap" tabindex="0"><table class="forge-table"><thead><tr>{% for column in p.columns %}<th scope="col">{{ column.label }}</th>{% endfor %}</tr></thead><tbody>{% for row in extra.rows %}<tr>{% for column in p.columns %}<td{% if column.emphasis %} class="forge-emphasis"{% endif %}>{{ row.get(column.key, '—') }}</td>{% endfor %}</tr>{% else %}<tr><td colspan="{{ p.columns|length }}">{{ p.empty_message }}</td></tr>{% endfor %}</tbody></table></div>
+<div id="{{ element_id }}" class="forge-table-wrap{% if component.action %} forge-has-action{% endif %}" tabindex="0"><table class="forge-table"><thead><tr>{% for column in p.columns %}<th scope="col">{{ column.label }}</th>{% endfor %}</tr></thead><tbody>{% for row in extra.rows %}<tr>{% for column in p.columns %}<td{% if column.emphasis %} class="forge-emphasis"{% endif %}>{{ row.get(column.key, '—') }}</td>{% endfor %}</tr>{% else %}<tr><td colspan="{{ p.columns|length }}">{{ p.empty_message }}</td></tr>{% endfor %}</tbody></table>{{ drilldown('View table details') }}</div>
 {% elif component.type == 'status-list' %}
-<ol id="{{ element_id }}" class="forge-status-list">{% for row in extra.rows %}<li><span class="forge-status-dot forge-status-dot--{{ row.get('status', row.get('severity', 'neutral')) }}" aria-hidden="true"></span><div><strong>{{ row.get('name', row.get('device_id', 'Item')) }}</strong><span>{{ row.get('message', row.get('status', '')) }}</span></div></li>{% else %}<li>{{ p.empty_message }}</li>{% endfor %}</ol>
+<div id="{{ element_id }}" class="forge-list-surface{% if component.action %} forge-has-action{% endif %}"><ol class="forge-status-list">{% for row in extra.rows %}<li><span class="forge-status-dot forge-status-dot--{{ row.get('status', row.get('severity', 'neutral')) }}" aria-hidden="true"></span><div><strong>{{ row.get('name', row.get('device_id', 'Item')) }}</strong><span>{{ row.get('message', row.get('status', '')) }}</span></div></li>{% else %}<li>{{ p.empty_message }}</li>{% endfor %}</ol>{{ drilldown('View status details') }}</div>
 {% elif component.type == 'timeline' %}
-<ol id="{{ element_id }}" class="forge-timeline">{% for row in extra.rows %}<li><time>{{ row.display_time }}</time><p>{{ row.get('message', row.get('name', 'Activity')) }}</p></li>{% else %}<li>{{ p.empty_message }}</li>{% endfor %}</ol>
+<div id="{{ element_id }}" class="forge-list-surface{% if component.action %} forge-has-action{% endif %}"><ol class="forge-timeline">{% for row in extra.rows %}<li><time>{{ row.display_time }}</time><p>{{ row.get('message', row.get('name', 'Activity')) }}</p></li>{% else %}<li>{{ p.empty_message }}</li>{% endfor %}</ol>{{ drilldown('View timeline details') }}</div>
 {% elif component.type in ['line-chart', 'bar-chart', 'donut-chart', 'sparkline'] %}
-<figure id="{{ element_id }}" class="forge-chart forge-chart--{{ component.type }}">{% if p.get('title') %}<figcaption>{{ p.get('title') }}</figcaption>{% elif p.get('label') %}<figcaption>{{ p.get('label') }}</figcaption>{% endif %}<ul class="forge-chart-legend" aria-label="Chart series">{% for row in extra.chart_rows %}<li class="forge-chart-series--{{ loop.index }}"><span class="forge-chart-swatch" aria-hidden="true"></span>{{ row.label }}</li>{% endfor %}</ul>{{ extra.chart_svg }}<details class="forge-chart-summary"><summary>Data summary</summary><table><thead><tr><th>Series</th><th>Latest</th><th>Range</th></tr></thead><tbody>{% for row in extra.chart_rows %}<tr><th scope="row">{{ row.label }}</th><td>{{ row.latest }}</td><td>{{ row.minimum }}–{{ row.maximum }}</td></tr>{% endfor %}</tbody></table></details></figure>
+<figure id="{{ element_id }}" class="forge-chart forge-chart--{{ component.type }}{% if component.action %} forge-has-action{% endif %}">{% if p.get('title') %}<figcaption>{{ p.get('title') }}</figcaption>{% elif p.get('label') %}<figcaption>{{ p.get('label') }}</figcaption>{% endif %}<ul class="forge-chart-legend" aria-label="Chart series">{% for row in extra.chart_rows %}<li class="forge-chart-series--{{ loop.index }}" data-forge-chart-legend data-forge-chart-series="{{ loop.index }}" tabindex="0"><span class="forge-chart-swatch" aria-hidden="true"></span>{{ row.label }}</li>{% endfor %}</ul>{{ extra.chart_svg }}<div class="forge-chart-tooltip-slot"><output class="forge-chart-tooltip" data-forge-chart-tooltip hidden></output></div><details class="forge-chart-summary"><summary>Data summary</summary><table><thead><tr><th>Series</th><th>Latest</th><th>Range</th></tr></thead><tbody>{% for row in extra.chart_rows %}<tr><th scope="row">{{ row.label }}</th><td>{{ row.latest }}</td><td>{{ row.minimum }}–{{ row.maximum }}</td></tr>{% endfor %}</tbody></table></details>{{ drilldown('View details for ' ~ (p.get('title') or p.get('label') or 'chart')) }}</figure>
 {% elif component.type == 'button' %}
 <button id="{{ element_id }}" type="button" class="forge-button forge-button--{{ p.style }}"{% if p.disabled %} disabled{% endif %}{% if component.action %} data-forge-action="{{ component.action }}"{% endif %}>{{ p.label }}</button>
 {% elif component.type == 'modal' %}
@@ -71,7 +74,7 @@
 {% elif component.type == 'date-range' %}
 <label id="{{ element_id }}" class="forge-input-label"><span class="forge-sr-only">{{ p.label }}</span><select class="forge-input" name="{{ p.state_path }}">{% for choice in ['24h', '7d', '30d'] %}<option value="{{ choice }}"{% if choice == extra.state_value or (not extra.state_value and choice == p.preset) %} selected{% endif %}>Last {{ choice }}</option>{% endfor %}</select></label>
 {% elif component.type == 'breadcrumbs' %}
-<nav id="{{ element_id }}" class="forge-breadcrumbs" aria-label="Breadcrumb"><ol>{% for item in p.get('items') %}<li><span>{{ item.label }}</span></li>{% endfor %}</ol></nav>
+<nav id="{{ element_id }}" class="forge-breadcrumbs" aria-label="Breadcrumb"><ol>{% for item in p.get('items') %}<li><button type="button" data-forge-destination="{{ item.destination }}">{{ item.label }}</button></li>{% endfor %}</ol></nav>
 {% elif component.type == 'pagination' %}
 <nav id="{{ element_id }}" class="forge-pagination" aria-label="Pagination"><button type="button" class="forge-button forge-button--quiet" data-forge-state-path="{{ p.page_state }}" data-forge-state-delta="-1"{% if extra.state_value|int <= 1 %} disabled{% endif %}>Previous</button><span>Page {{ extra.state_value }} of {{ extra.max_page }}</span><button type="button" class="forge-button forge-button--quiet" data-forge-state-path="{{ p.page_state }}" data-forge-state-delta="1"{% if extra.state_value|int >= extra.max_page|int %} disabled{% endif %}>Next</button></nav>
 {% elif component.type == 'toast' %}

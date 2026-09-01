@@ -1,11 +1,11 @@
 # Package footprint
 
-Measured from the locked Python 3.12 build for `0.1.0a1` on 1 September 2026:
+Measured from the locked Python 3.12 build for `0.1.0a2` on 1 September 2026:
 
 | Boundary | Size |
 | --- | ---: |
-| ForgeUI wheel | 120,609 bytes (117.8 KiB) |
-| Source distribution | about 256.3 KiB |
+| ForgeUI wheel | 124,415 bytes (121.5 KiB) |
+| Source distribution | 268,750 bytes (262.5 KiB) |
 | Installed ForgeUI package (base imports) | about 0.8 MiB |
 | Installed ForgeUI package (all imports/bytecode) | about 1.1 MiB |
 | Cold base environment (`forgeui`) | about 10.3 MiB |
@@ -23,7 +23,7 @@ Ollama transport, and standalone serving are optional `web`, `http`, `ollama`, a
 `app` installs the complete reference-service set. These environment figures are deliberately
 pessimistic cold installs. In a typical FastAPI container, pip reuses compatible Pydantic and
 Jinja2 packages already in the environment, so the incremental cost of core ForgeUI is principally
-its 117.8 KiB wheel and roughly 0.8-1.1 MiB extracted package.
+its 121.5 KiB wheel and roughly 0.8-1.1 MiB extracted package.
 
 For a single dashboard card that receives trusted application data and calls `render_manifest`,
 install only the base package. Use `web` when ForgeUI owns routes, revisions, or persistence; add
@@ -53,8 +53,8 @@ They also enforce gzip transfer budgets of 6 KiB for CSS, 4 KiB for dashboard Ja
 source-level minification that would make the UI harder to maintain.
 
 The post-build CI smoke test separately caps the compressed wheel at 128 KiB, then installs that
-wheel into clean base, mounted-web, and complete environments. The current 117.8 KiB wheel uses
-about 92% of that budget. New integrations should therefore stay optional and avoid vendored
+wheel into clean base, mounted-web, and complete environments. The current 121.5 KiB wheel uses
+about 95% of that budget. New integrations should therefore stay optional and avoid vendored
 client libraries or browser frameworks.
 
 The Docker image size is not listed because it must be measured from an actual built image and the

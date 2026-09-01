@@ -98,6 +98,7 @@ def test_custom_runtime_policy_controls_contract_source_fields_and_schema() -> N
         contracts={"ai-search/1": frozenset({"data.results", "data.results.title", "item.title"})},
         sources={"ai-search.latest": "ai-search/1"},
         capabilities=frozenset({"search.export"}),
+        destinations=frozenset({"search-result"}),
     )
     candidate = valid_manifest()
     candidate["data"] = {"contract": "ai-search/1", "source": "ai-search.latest"}
@@ -119,6 +120,9 @@ def test_custom_runtime_policy_controls_contract_source_fields_and_schema() -> N
     declaration = schema["$defs"]["DataContractDeclaration"]["properties"]
     assert declaration["contract"]["enum"] == ["ai-search/1"]
     assert declaration["source"]["enum"] == ["ai-search.latest"]
+    assert schema["$defs"]["NavigateAction"]["properties"]["destination"]["enum"] == [
+        "search-result"
+    ]
 
 
 def test_limits_and_dry_render_error_are_reported() -> None:
@@ -170,6 +174,44 @@ def test_bounded_state_actions_and_modal_targets_are_validated() -> None:
         }
     )
     assert validate_manifest(candidate).valid
+
+
+def test_only_registered_destinations_and_actionable_components_can_navigate() -> None:
+    candidate = valid_manifest()
+    candidate["actions"]["go-devices"] = {  # type: ignore[index]
+        "type": "navigate",
+        "destination": "devices",
+    }
+    candidate["elements"]["devices"]["action"] = "go-devices"  # type: ignore[index]
+    assert validate_manifest(candidate).valid
+
+    unknown = valid_manifest()
+    unknown["actions"]["go-secret"] = {  # type: ignore[index]
+        "type": "navigate",
+        "destination": "secret",
+    }
+    assert "unknown_destination" in codes(unknown)
+
+    unsupported = valid_manifest()
+    unsupported["elements"]["title"]["action"] = "clear-query"  # type: ignore[index]
+    assert "action_not_supported" in codes(unsupported)
+
+    non_navigation = valid_manifest()
+    non_navigation["elements"]["devices"]["action"] = "clear-query"  # type: ignore[index]
+    assert "surface_action_requires_navigation" in codes(non_navigation)
+
+
+def test_breadcrumb_destinations_use_the_same_host_allowlist() -> None:
+    candidate = valid_manifest()
+    candidate["elements"]["page"]["children"].append("breadcrumbs")  # type: ignore[index]
+    candidate["elements"]["breadcrumbs"] = {  # type: ignore[index]
+        "type": "breadcrumbs",
+        "props": {"items": [{"label": "Fleet", "destination": "devices"}]},
+    }
+    assert validate_manifest(candidate).valid
+
+    candidate["elements"]["breadcrumbs"]["props"]["items"][0]["destination"] = "secret"  # type: ignore[index]
+    assert "unknown_destination" in codes(candidate)
 
 
 def test_removed_compatibility_names_are_rejected() -> None:

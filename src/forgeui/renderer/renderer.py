@@ -73,6 +73,7 @@ class _ComponentView:
     type: str
     props: Mapping[str, Any]
     action: str | None
+    action_icon: Markup | None
 
 
 def _template_directory() -> Path:
@@ -85,7 +86,7 @@ def _asset_version() -> str:
     digest = sha256()
     static_directory = _template_directory().parent / "static"
     try:
-        for filename in ("forgeui.css", "forgeui.js", "forgeui-embed.js"):
+        for filename in ("forgeui.css", "forgeui.js", "forgeui-embed.js", "favicon.svg"):
             digest.update((static_directory / filename).read_bytes())
     except OSError:
         return __version__
@@ -283,7 +284,17 @@ class Renderer:
             return self._failure(element_id, "Component properties are malformed.")
         children = self._render_children(manifest, element_id, context, trail | {element_id})
         extra = self._component_extra(element.type, props, context)
-        view = _ComponentView(element_id, element.type, props, element.action)
+        view = _ComponentView(
+            element_id,
+            element.type,
+            props,
+            element.action,
+            (
+                render_heroicon("chevron-right", class_name="forge-surface-action-icon")
+                if element.action
+                else None
+            ),
+        )
         try:
             # The registry supplies this path; no manifest value can select it.
             result = self.environment.get_template(spec.template).render(
@@ -589,34 +600,138 @@ class Renderer:
                     number = 0.0
                 numeric.append(number if math.isfinite(number) else 0.0)
             values.append(numeric)
+        value_format = str(props.get("value_format", "number"))
         maximum = max((abs(number) for line in values for number in line), default=1.0) or 1.0
-        svg = self._chart_svg(component_type, values, labels, maximum)
+        if value_format == "percent":
+            maximum = max(maximum, 1.0)
+        x_key = props.get("x_key")
+        x_values = (
+            [
+                self._chart_x_value(_as_mapping(_normalise_data(point)).get(str(x_key), ""))
+                for point in points
+            ]
+            if x_key
+            else []
+        )
+        if component_type == "line-chart":
+            chart_kind = "area" if props.get("kind") == "area" else "line"
+        elif component_type == "bar-chart":
+            chart_kind = "bar"
+        elif component_type == "donut-chart":
+            chart_kind = "donut"
+        else:
+            chart_kind = "line"
+        x_axis_label = str(props.get("x_axis_label", "Observation"))
+        y_axis_label = str(props.get("y_axis_label", "Value"))
+        svg = self._chart_svg(
+            chart_kind,
+            values,
+            labels,
+            maximum,
+            x_values,
+            x_axis_label,
+            y_axis_label,
+            value_format,
+        )
+        formatter = self._format_percent if value_format == "percent" else self._format_number
         table_rows = [
             {
                 "label": labels[index],
-                "minimum": min(line, default=0),
-                "maximum": max(line, default=0),
-                "latest": line[-1] if line else 0,
+                "minimum": formatter(min(line, default=0)),
+                "maximum": formatter(max(line, default=0)),
+                "latest": formatter(line[-1] if line else 0),
             }
             for index, line in enumerate(values)
         ]
         return {"chart_svg": svg, "chart_rows": table_rows}
 
     @staticmethod
+    def _chart_x_value(value: object) -> str:
+        if isinstance(value, str):
+            try:
+                parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+                return parsed.strftime("%H:%M")
+            except ValueError:
+                return value if len(value) <= 16 else f"{value[:15]}…"
+        return str(value)
+
+    @staticmethod
     def _chart_svg(
-        kind: str, values: list[list[float]], labels: list[str], maximum: float
+        kind: str,
+        values: list[list[float]],
+        labels: list[str],
+        maximum: float,
+        x_values: list[str],
+        x_axis_label: str,
+        y_axis_label: str,
+        value_format: str,
     ) -> Markup:
-        width, height, inset = 560, 180, 14
+        width, height = 560, 210
+        left, right, top, bottom = 52, 14, 14, 44
+        plot_width = width - left - right
+        plot_height = height - top - bottom
+        aria_label = escape(f"{y_axis_label} by {x_axis_label}; {len(values)} series")
+
+        def point_label(series_index: int, point_index: int, value: float) -> str:
+            observation = (
+                x_values[point_index]
+                if point_index < len(x_values) and x_values[point_index]
+                else f"Observation {point_index + 1}"
+            )
+            formatted = (
+                Renderer._format_percent(value)
+                if value_format == "percent"
+                else Renderer._format_number(value)
+            )
+            return f"{labels[series_index]} — {observation}: {formatted}"
+
         lines: list[str] = [
             (
                 f'<svg class="forge-chart-svg" viewBox="0 0 {width} {height}" role="img" '
-                f'aria-label="Chart with {len(values)} series">'
-            ),
-            (
-                f'<line x1="{inset}" y1="{height - inset}" x2="{width - inset}" '
-                f'y2="{height - inset}" class="forge-chart-axis"/>'
+                f'aria-label="{aria_label}">'
             ),
         ]
+        if kind != "donut":
+            for fraction in (0.0, 0.5, 1.0):
+                y = top + plot_height * (1 - fraction)
+                raw_tick = maximum * fraction
+                tick = f"{raw_tick * 100:.0f}%" if value_format == "percent" else f"{raw_tick:g}"
+                lines.extend(
+                    (
+                        f'<line x1="{left}" y1="{y:.2f}" x2="{width - right}" '
+                        f'y2="{y:.2f}" class="forge-chart-grid"/>',
+                        f'<text x="{left - 8}" y="{y + 4:.2f}" text-anchor="end" '
+                        f'class="forge-chart-label">{escape(tick)}</text>',
+                    )
+                )
+            lines.append(
+                f'<line x1="{left}" y1="{top + plot_height}" x2="{width - right}" '
+                f'y2="{top + plot_height}" class="forge-chart-axis"/>'
+            )
+            point_count = max((len(line) for line in values), default=0)
+            if point_count and x_values:
+                tick_indexes = sorted({0, point_count // 2, point_count - 1})
+                for index in tick_indexes:
+                    if index >= len(x_values):
+                        continue
+                    x = left + plot_width * index / max(point_count - 1, 1)
+                    anchor = (
+                        "start" if index == 0 else "end" if index == point_count - 1 else "middle"
+                    )
+                    lines.append(
+                        f'<text x="{x:.2f}" y="{height - 23}" text-anchor="{anchor}" '
+                        f'class="forge-chart-label">{escape(x_values[index])}</text>'
+                    )
+            lines.extend(
+                (
+                    f'<text x="{left + plot_width / 2:.2f}" y="{height - 5}" '
+                    f'text-anchor="middle" class="forge-chart-axis-title">'
+                    f"{escape(x_axis_label)}</text>",
+                    f'<text x="12" y="{top + plot_height / 2:.2f}" text-anchor="middle" '
+                    f'transform="rotate(-90 12 {top + plot_height / 2:.2f})" '
+                    f'class="forge-chart-axis-title">{escape(y_axis_label)}</text>',
+                )
+            )
         for series_index, line in enumerate(values):
             if not line:
                 continue
@@ -624,37 +739,48 @@ class Renderer:
             count = max(len(line) - 1, 1)
             coordinates = [
                 (
-                    inset + (width - 2 * inset) * index / count,
-                    height - inset - (height - 2 * inset) * max(min(value / maximum, 1.0), -1.0),
+                    left + plot_width * index / count,
+                    top + plot_height * (1 - max(min(value / maximum, 1.0), -1.0)),
                 )
                 for index, value in enumerate(line)
             ]
-            if kind in {"bar-chart"}:
-                bar_width = max(
-                    2.0, (width - 2 * inset) / max(len(line), 1) / max(len(values), 1) - 2
-                )
+            if kind == "bar":
+                bar_width = max(2.0, plot_width / max(len(line), 1) / max(len(values), 1) - 2)
                 for index, (_, y) in enumerate(coordinates):
                     x = (
-                        inset
-                        + (width - 2 * inset) * index / max(len(line), 1)
+                        left
+                        + plot_width * index / max(len(line), 1)
                         + series_index * (bar_width + 2)
                     )
-                    bar_height = max(0.0, height - inset - y)
+                    bar_height = max(0.0, top + plot_height - y)
+                    label = escape(point_label(series_index, index, line[index]))
+                    focus = (
+                        f' tabindex="0" role="img" aria-label="{label}"'
+                        if index == len(line) - 1
+                        else ' aria-hidden="true"'
+                    )
                     lines.append(
                         f'<rect class="forge-chart-series {series_class} forge-chart-fill" '
+                        f'data-forge-chart-point data-forge-chart-series="{series_index + 1}" '
+                        f'data-forge-chart-label="{label}"{focus} '
                         f'x="{x:.2f}" y="{y:.2f}" width="{bar_width:.2f}" '
-                        f'height="{bar_height:.2f}"/>'
+                        f'height="{bar_height:.2f}"><title>{label}</title></rect>'
                     )
-            elif kind == "donut-chart":
+            elif kind == "donut":
                 total = sum(max(value, 0) for value in line) or 1.0
                 fraction = min(max(max(line, default=0), 0) / total, 1.0)
                 radius, circumference = 58, 2 * math.pi * 58
                 offset = circumference * (1 - fraction)
+                label = escape(point_label(series_index, len(line) - 1, line[-1]))
                 lines.append(
                     f'<circle class="forge-chart-series {series_class} forge-chart-line" '
+                    f'data-forge-chart-point data-forge-chart-series="{series_index + 1}" '
+                    f'data-forge-chart-label="{label}" tabindex="0" role="img" '
+                    f'aria-label="{label}" '
                     f'cx="280" cy="90" r="{radius}" fill="none" '
                     f'stroke-width="24" stroke-dasharray="{circumference:.2f}" '
-                    f'stroke-dashoffset="{offset:.2f}" transform="rotate(-90 280 90)"/>'
+                    f'stroke-dashoffset="{offset:.2f}" transform="rotate(-90 280 90)">'
+                    f"<title>{label}</title></circle>"
                 )
                 break
             else:
@@ -662,11 +788,12 @@ class Renderer:
                     (f"M {x:.2f} {y:.2f}" if index == 0 else f"L {x:.2f} {y:.2f}")
                     for index, (x, y) in enumerate(coordinates)
                 )
-                if kind in {"area", "chart"} and len(coordinates) > 1:
+                if kind == "area" and len(coordinates) > 1:
                     first_x, _ = coordinates[0]
                     last_x, _ = coordinates[-1]
                     area = (
-                        f"{path} L {last_x:.2f} {height - inset} L {first_x:.2f} {height - inset} Z"
+                        f"{path} L {last_x:.2f} {top + plot_height} "
+                        f"L {first_x:.2f} {top + plot_height} Z"
                     )
                     lines.append(
                         f'<path class="forge-chart-series {series_class} forge-chart-area" '
@@ -676,11 +803,19 @@ class Renderer:
                     f'<path class="forge-chart-series {series_class} forge-chart-line" '
                     f'd="{path}" fill="none" stroke-width="2"/>'
                 )
-                if len(coordinates) == 1:
-                    x, y = coordinates[0]
+                for index, (x, y) in enumerate(coordinates):
+                    label = escape(point_label(series_index, index, line[index]))
+                    focus = (
+                        f' tabindex="0" role="img" aria-label="{label}"'
+                        if index == len(coordinates) - 1
+                        else ' aria-hidden="true"'
+                    )
                     lines.append(
                         f'<circle class="forge-chart-series {series_class} forge-chart-point" '
-                        f'cx="{x:.2f}" cy="{y:.2f}" r="4"/>'
+                        f'data-forge-chart-point data-forge-chart-series="{series_index + 1}" '
+                        f'data-forge-chart-label="{label}"{focus} '
+                        f'cx="{x:.2f}" cy="{y:.2f}" r="3.5">'
+                        f"<title>{label}</title></circle>"
                     )
         lines.append("</svg>")
         return _trusted_markup("".join(lines))

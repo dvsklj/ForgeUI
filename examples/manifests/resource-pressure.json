@@ -110,10 +110,15 @@
     },
     "pressure-chart": {
       "type": "bar-chart",
+      "action": "go-devices",
       "props": {
         "title": "Pressure by device",
         "data": {"kind": "ref", "path": "data.devices"},
         "kind": "bar",
+        "x_key": "name",
+        "x_axis_label": "Device",
+        "y_axis_label": "Utilization",
+        "value_format": "percent",
         "series": [
           {"label": "CPU", "value": "cpu"},
           {"label": "Memory", "value": "memory"},
@@ -123,10 +128,15 @@
     },
     "availability-chart": {
       "type": "line-chart",
+      "action": "go-devices",
       "props": {
         "title": "Online devices",
         "data": {"kind": "ref", "path": "data.series"},
         "kind": "area",
+        "x_key": "timestamp",
+        "x_axis_label": "Report time",
+        "y_axis_label": "Online devices",
+        "value_format": "number",
         "series": [
           {"label": "Online", "value": "online_count"}
         ]
@@ -134,6 +144,7 @@
     },
     "pressure-table": {
       "type": "table",
+      "action": "go-devices",
       "props": {
         "data": {"kind": "ref", "path": "data.devices"},
         "columns": [
@@ -155,5 +166,10 @@
       }
     }
   },
-  "actions": {}
+  "actions": {
+    "go-devices": {
+      "type": "navigate",
+      "destination": "devices"
+    }
+  }
 }

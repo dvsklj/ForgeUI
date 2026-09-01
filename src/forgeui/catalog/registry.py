@@ -192,6 +192,10 @@ class ChartProps(Props):
     title: TextValue
     data: RefExpr
     kind: Literal["bar", "line", "area"] = "bar"
+    x_key: DataKey | None = None
+    x_axis_label: ShortText = "Observation"
+    y_axis_label: ShortText = "Value"
+    value_format: Literal["number", "percent"] = "number"
     series: list[ChartSeries] = Field(min_length=1, max_length=6)
 
 
@@ -368,6 +372,7 @@ class ComponentSpec:
     template: str
     profiles: frozenset[str]
     accepts_children: bool = False
+    supports_action: bool = False
     prompt: str = ""
 
 
@@ -407,6 +412,7 @@ class ComponentRegistry:
                 "type": spec.name,
                 "props": spec.props_model.model_json_schema(),
                 "children": spec.accepts_children,
+                "action": spec.supports_action,
                 "profiles": sorted(spec.profiles),
                 "note": spec.prompt,
             }
@@ -435,7 +441,8 @@ class ComponentRegistry:
                     "if": {"properties": {"type": {"const": spec.name}}},
                     "then": {
                         "properties": {
-                            "props": {"$ref": f"#/$defs/Props_{spec.name.replace('-', '_')}"}
+                            "props": {"$ref": f"#/$defs/Props_{spec.name.replace('-', '_')}"},
+                            **({} if spec.supports_action else {"action": False}),
                         }
                     },
                 }
@@ -454,10 +461,19 @@ def _spec(
     props: type[Props],
     *,
     children: bool = False,
+    action: bool = False,
     profiles: frozenset[str] = ALL_PROFILES,
     note: str = "",
 ) -> ComponentSpec:
-    return ComponentSpec(name, props, "components/_component.html", profiles, children, note)
+    return ComponentSpec(
+        name,
+        props,
+        "components/_component.html",
+        profiles,
+        accepts_children=children,
+        supports_action=action,
+        prompt=note,
+    )
 
 
 component_registry = ComponentRegistry(
@@ -468,7 +484,7 @@ component_registry = ComponentRegistry(
         _spec("stack", StackProps, children=True),
         _spec("inline", InlineProps, children=True),
         _spec("grid", GridProps, children=True),
-        _spec("card", CardProps, children=True),
+        _spec("card", CardProps, children=True, action=True),
         _spec("section", SectionProps, children=True),
         _spec("divider", EmptyProps),
         _spec("repeat", RepeatProps, children=True, profiles=DATA_PROFILES),
@@ -477,29 +493,44 @@ component_registry = ComponentRegistry(
         _spec("badge", BadgeProps),
         _spec("icon", IconProps),
         _spec("key-value", KeyValueProps),
-        _spec("metric", MetricProps),
-        _spec("alert", AlertProps),
-        _spec("progress", ProgressProps),
-        _spec("empty-state", EmptyStateProps),
-        _spec("table", TableProps, profiles=DATA_PROFILES, note="Data must be a data.* reference."),
-        _spec("status-list", StatusListProps, profiles=DATA_PROFILES),
-        _spec("timeline", TimelineProps, profiles=DATA_PROFILES),
-        _spec("sparkline", SparklineProps, profiles=DATA_PROFILES),
+        _spec("metric", MetricProps, action=True),
+        _spec("alert", AlertProps, action=True),
+        _spec("progress", ProgressProps, action=True),
+        _spec("empty-state", EmptyStateProps, action=True),
         _spec(
-            "line-chart", ChartProps, profiles=DATA_PROFILES, note="At most six declarative series."
+            "table",
+            TableProps,
+            action=True,
+            profiles=DATA_PROFILES,
+            note="Data must be a data.* reference.",
+        ),
+        _spec("status-list", StatusListProps, action=True, profiles=DATA_PROFILES),
+        _spec("timeline", TimelineProps, action=True, profiles=DATA_PROFILES),
+        _spec("sparkline", SparklineProps, action=True, profiles=DATA_PROFILES),
+        _spec(
+            "line-chart",
+            ChartProps,
+            action=True,
+            profiles=DATA_PROFILES,
+            note="At most six declarative series.",
         ),
         _spec(
-            "bar-chart", ChartProps, profiles=DATA_PROFILES, note="At most six declarative series."
+            "bar-chart",
+            ChartProps,
+            action=True,
+            profiles=DATA_PROFILES,
+            note="At most six declarative series.",
         ),
         _spec(
             "donut-chart",
             ChartProps,
+            action=True,
             profiles=DATA_PROFILES,
             note="At most six declarative series.",
         ),
-        _spec("button", ButtonProps),
+        _spec("button", ButtonProps, action=True),
         _spec("modal", DialogProps, children=True),
-        _spec("form", FormProps, children=True),
+        _spec("form", FormProps, children=True, action=True),
         _spec("field-group", FieldGroupProps, children=True),
         _spec("field", FieldProps, children=True),
         _spec("text-input", TextInputProps),

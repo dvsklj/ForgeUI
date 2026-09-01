@@ -82,8 +82,12 @@ The discriminated action types are `set_state`, `toggle_state`, `increment_state
 `close_modal`, `toast`, `submit_form`, `navigate`, and `invoke_capability`.
 
 State actions write only declared writable paths and preserve their declared JSON type. Dialog and
-form actions target registered elements. Navigation is limited to `overview`, `devices`, or
-`incidents`. Capabilities are fixed identifiers (`device-note.create` and
+form actions target registered elements. Navigation accepts only destination IDs registered by the
+host policy; the reference runtime exposes `overview` and `devices`. Cards, metrics, charts,
+tables, status lists, and timelines show a keyboard-accessible drill-down only when their element
+declares a registered `navigate` action. Other action types remain available only through explicit
+buttons and forms; unsupported action/component combinations fail validation instead of rendering
+an ambiguous affordance. Capabilities are fixed identifiers (`device-note.create` and
 `incident.acknowledge`) and only run if the host registers a trusted handler; an unregistered one
 returns a typed denial. No action can run shell commands, SQL, arbitrary HTTP, or browser code.
 

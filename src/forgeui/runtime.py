@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from pydantic import BaseModel
@@ -19,6 +20,8 @@ from forgeui.sources import DataContractRegistry, DataSourceRegistry, SourceCont
 from forgeui.sources.registry import JsonObject
 from forgeui.validation import ManifestPolicy
 
+_DESTINATION_ID = re.compile(r"^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$")
+
 
 @dataclass(frozen=True, slots=True)
 class RuntimeRegistries:
@@ -31,10 +34,17 @@ class RuntimeRegistries:
     contracts: DataContractRegistry
     sources: DataSourceRegistry
     capabilities: CapabilityRegistry
+    destinations: frozenset[str] = frozenset({"overview", "devices"})
 
     def __post_init__(self) -> None:
         if self.sources.contracts is not self.contracts:
             raise ValueError("data sources and contracts must use the same registry")
+        if len(self.destinations) > 256 or any(
+            len(destination) > 120 or not _DESTINATION_ID.fullmatch(destination)
+            for destination in self.destinations
+        ):
+            raise ValueError("navigation destinations must be bounded runtime identifiers")
+        object.__setattr__(self, "destinations", frozenset(self.destinations))
 
     @property
     def policy(self) -> ManifestPolicy:
@@ -42,6 +52,7 @@ class RuntimeRegistries:
             contracts=self.contracts.policy_paths,
             sources=self.sources.source_contracts,
             capabilities=self.capabilities.names,
+            destinations=self.destinations,
         )
 
     def freeze(self) -> RuntimeRegistries:
