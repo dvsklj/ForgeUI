@@ -45,7 +45,8 @@ One-time maintainer setup:
 1. Enable MFA on the maintainer's PyPI account.
 2. In PyPI's pending Trusted Publisher form, register project `forgeui`, owner `dvsklj`, repository
    `ForgeUI`, workflow `publish.yml`, and environment `pypi`.
-3. Create a GitHub environment named `pypi` and require a maintainer's deployment approval.
+3. Create a GitHub environment named `pypi`. Require a maintainer's deployment approval when the
+   repository visibility and GitHub plan support environment protection rules.
 4. Protect `main` and release tags so the publishing workflow cannot be changed by an unreviewed
    contribution.
 
@@ -59,6 +60,10 @@ For each release:
 
 The workflow rejects a tag whose version does not match `pyproject.toml`. Once published, users
 install the release with ordinary pip commands; no GitHub access is needed.
+
+Without an environment reviewer, publishing starts immediately after a matching GitHub release is
+published. Enable the reviewer protection before the first public release, or treat permission to
+publish a GitHub release as permission to publish the corresponding PyPI version.
 
 At the time this guide was written, PyPI's JSON endpoint returned no existing `forgeui` project.
 That is not a permanent reservation: configure the pending publisher before the first release and
