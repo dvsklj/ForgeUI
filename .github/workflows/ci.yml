@@ -21,10 +21,12 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run mypy src/forgeui
+      - run: uv run bandit -q -r src/forgeui
       - run: >-
           uv run pytest -q -m "not browser and not docker and not ollama"
           --cov=forgeui --cov-report=term-missing:skip-covered
       - run: uv build
+      - run: uv run twine check dist/*
       - name: Smoke-test base, HTTP adapter, mounted-web, and complete wheels
         run: |
           WHEEL=$(find dist -name 'forgeui-*.whl' -print -quit)
@@ -58,3 +60,22 @@ jobs:
           uv pip install --python "$PACKAGE_SMOKE_DIR/app/bin/python" "${WHEEL}[app]"
           "$PACKAGE_SMOKE_DIR/app/bin/python" -c \
             "from forgeui.app import create_app; from forgeui.data import Database; from forgeui.llm import OllamaProvider"
+
+  compatibility:
+    name: Python ${{ matrix.python-version }} compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10.0.1
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+      - run: uv sync --frozen --all-extras
+      - run: uv run pytest -q -m "not browser and not docker and not ollama"

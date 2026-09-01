@@ -59,7 +59,7 @@ class Database:
                 cursor.close()
 
     def create_schema(self) -> None:
-        """Create the greenfield release schema. Existing records are untouched."""
+        """Create the release schema. Existing records are untouched."""
 
         Base.metadata.create_all(self.engine)
 

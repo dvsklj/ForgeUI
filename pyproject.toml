@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "forgeui"
-version = "0.1.0"
+version = "0.1.0a1"
 description = "Safe, model-generated dashboards rendered by FastAPI, Jinja2, and HTMX."
 readme = "README.md"
 license = "MIT"
@@ -34,10 +34,12 @@ dependencies = [
 ]
 
 [project.urls]
+Changelog = "https://github.com/dvsklj/ForgeUI/blob/main/CHANGELOG.md"
 Documentation = "https://github.com/dvsklj/ForgeUI/tree/main/docs"
 Homepage = "https://github.com/dvsklj/ForgeUI"
 Issues = "https://github.com/dvsklj/ForgeUI/issues"
 Repository = "https://github.com/dvsklj/ForgeUI.git"
+Security = "https://github.com/dvsklj/ForgeUI/security/policy"
 
 [project.optional-dependencies]
 web = [
@@ -68,6 +70,7 @@ app = [
   "uvicorn>=0.34,<1",
 ]
 dev = [
+  "bandit[toml]>=1.9,<2",
   "beautifulsoup4>=4.13,<5",
   "hypothesis>=6.125,<7",
   "mypy>=1.14,<2",
@@ -77,6 +80,7 @@ dev = [
   "pytest-playwright>=0.6,<1",
   "respx>=0.22,<1",
   "ruff>=0.9,<1",
+  "twine>=7,<8",
 ]
 
 [project.scripts]

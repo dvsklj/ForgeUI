@@ -116,7 +116,7 @@ def _trusted_markup(value: str) -> Markup:
     never pass a raw manifest or data value here.
     """
 
-    return Markup(value)  # noqa: S704 - centralized trusted-renderer boundary
+    return Markup(value)  # nosec B704  # noqa: S704 - reviewed trusted-renderer boundary
 
 
 class Renderer:

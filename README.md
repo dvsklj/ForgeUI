@@ -5,16 +5,19 @@ strict component catalog and four complete design profiles; it cannot supply HTM
 CSS, URLs, SQL, file paths, or executable expressions. Device health is the built-in reference
 contract; hosts can register their own strict data contracts, sources, and capabilities.
 
-The default presentation uses compact system typography, deep-teal accents, cool neutral surfaces,
-restrained 6 px radii, dense data tables, and a charcoal application shell. The attached legacy
-project informed that visual direction only; ForgeUI does not preserve its runtime, API, manifest,
-or component contracts. Light, dark, and system themes are built in, and model-selected profiles
-may change composition and density only through trusted combinations.
+The project is currently an alpha. Pin exact or compatible pre-release versions while the public
+API and `forgeui/1` contract are being exercised by early adopters.
 
-It runs on FastAPI, Jinja2, HTMX, Tailwind's browser CDN, SQLite, and a separately configured
-Ollama model (default: `qwen3.5:9b`). A bounded Google A2UI v0.9.1 snapshot importer is the only
-external UI protocol boundary. Invalid candidates are parsed, validated, dry-rendered, and repaired
-at most twice. Only a valid result becomes an immutable manifest revision.
+The default presentation uses compact system typography, deep-teal accents, cool neutral surfaces,
+restrained 6 px radii, dense data tables, and a charcoal application shell. Light, dark, and system
+themes are built in, and model-selected profiles may change composition and density only through
+trusted combinations.
+
+It runs on FastAPI, Jinja2, HTMX, trusted self-hosted CSS with an optional Tailwind CDN mode,
+SQLite, and a separately configured Ollama model (default: `qwen3.5:9b`). A bounded Google A2UI
+v0.9.1 snapshot importer is the only external UI protocol boundary. Invalid candidates are parsed,
+validated, dry-rendered, and repaired at most twice. Only a valid result becomes an immutable
+manifest revision.
 
 ## Install as a package
 
@@ -42,8 +45,8 @@ adds essentially ForgeUI's own package files rather than another framework copy.
 For a locally built wheel:
 
 ```dockerfile
-COPY dist/forgeui-0.1.0-py3-none-any.whl /tmp/
-RUN pip install --no-cache-dir '/tmp/forgeui-0.1.0-py3-none-any.whl[web,ollama]'
+COPY dist/forgeui-0.1.0a1-py3-none-any.whl /tmp/
+RUN pip install --no-cache-dir '/tmp/forgeui-0.1.0a1-py3-none-any.whl[web,ollama]'
 ```
 
 Published releases use the same extras syntax from PyPI. Private company integrations should live
@@ -184,6 +187,7 @@ exact Ollama model tag suitable for your hardware via `FORGEUI_OLLAMA_MODEL`.
 ## Documentation
 
 - [Architecture](docs/architecture.md)
+- [Implementation plan and acceptance gates](docs/implementation-plan.md)
 - [Manifest contract](docs/manifest.md)
 - [Component catalog and profiles](docs/components.md)
 - [Runtime surfaces and state modes](docs/surfaces.md)
@@ -194,6 +198,8 @@ exact Ollama model tag suitable for your hardware via `FORGEUI_OLLAMA_MODEL`.
 - [HTTP API](docs/api.md)
 - [Security controls and boundaries](docs/security.md)
 - [Deployment and operations](docs/deployment.md)
+- [Security policy](SECURITY.md)
+- [Changelog](CHANGELOG.md)
 
 ## Current operational boundaries
 

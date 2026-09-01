@@ -10,6 +10,12 @@ def test_public_distribution_exposes_expected_install_layers() -> None:
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
 
     assert project["name"] == "forgeui"
+    assert project["version"] == "0.1.0a1"
+    assert (
+        f'__version__ = "{project["version"]}"'
+        in (ROOT / "src" / "forgeui" / "__init__.py").read_text()
+    )
+    assert "Development Status :: 3 - Alpha" in project["classifiers"]
     assert set(project["optional-dependencies"]) >= {"web", "http", "ollama", "serve", "app"}
     assert project["urls"]["Repository"] == "https://github.com/dvsklj/ForgeUI.git"
     assert (ROOT / "src" / "forgeui" / "py.typed").is_file()
@@ -23,6 +29,8 @@ def test_release_workflow_uses_isolated_oidc_publishing() -> None:
     assert "environment:\n      name: pypi" in workflow
     assert "id-token: write" in workflow
     assert "pypa/gh-action-pypi-publish@release/v1" in workflow
+    assert "uv run twine check dist/*" in workflow
+    assert "Smoke-test the exact release wheel" in workflow
     assert "PYPI_TOKEN" not in workflow
     assert workflow.index("uv build") < workflow.index("pypa/gh-action-pypi-publish")
 

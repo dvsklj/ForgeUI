@@ -5,9 +5,9 @@ Pydantic props, a fixed Jinja template, schema/prompt documentation, and allowed
 Models select a profile ID, never individual colors, fonts, classes, CSS, or SVG paths.
 
 All profiles inherit a compact ForgeUI foundation: system typography, deep-teal accents,
-cool-neutral surfaces, restrained 6 px radii, dense operational tables, and a charcoal shell. The
-legacy checkout was used only as a visual reference. A profile can safely alter emphasis, density,
-and composition without replacing that visual identity or exposing low-level styling to a model.
+cool-neutral surfaces, restrained 6 px radii, dense operational tables, and a charcoal shell. A
+profile can safely alter emphasis, density, and composition without replacing that visual identity
+or exposing low-level styling to a model.
 
 ## Profiles
 

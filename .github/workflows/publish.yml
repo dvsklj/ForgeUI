@@ -32,10 +32,12 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run mypy src/forgeui
+      - run: uv run bandit -q -r src/forgeui
       - run: >-
           uv run pytest -q -m "not browser and not docker and not ollama"
           --cov=forgeui --cov-report=term-missing:skip-covered
       - run: uv build
+      - run: uv run twine check dist/*
       - name: Enforce wheel budget
         run: |
           WHEEL=$(find dist -name 'forgeui-*.whl' -print -quit)
@@ -44,6 +46,14 @@ jobs:
             echo "Wheel size $WHEEL_BYTES bytes exceeds the 128 KiB budget"
             exit 1
           fi
+      - name: Smoke-test the exact release wheel
+        run: |
+          WHEEL=$(find dist -name 'forgeui-*.whl' -print -quit)
+          RELEASE_SMOKE_DIR=$(mktemp -d)
+          uv venv "$RELEASE_SMOKE_DIR/venv"
+          uv pip install --python "$RELEASE_SMOKE_DIR/venv/bin/python" "${WHEEL}[app]"
+          "$RELEASE_SMOKE_DIR/venv/bin/python" -c \
+            "from forgeui import __version__; from forgeui.app import create_app; assert __version__ == '${GITHUB_REF_NAME#v}'"
       - name: Store distributions
         uses: actions/upload-artifact@v7.0.1
         with:

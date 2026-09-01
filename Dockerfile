@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # Build a small, reproducible runtime image from the committed uv lockfile.
-FROM ghcr.io/astral-sh/uv:0.7.16 AS uv
+FROM ghcr.io/astral-sh/uv:0.12.8 AS uv
 
 FROM python:3.12-slim AS builder
 
@@ -10,7 +10,7 @@ ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_NO_CACHE=1
 
-COPY pyproject.toml uv.lock README.md ./
+COPY pyproject.toml uv.lock README.md LICENSE THIRD_PARTY_NOTICES.md ./
 RUN uv sync --frozen --no-dev --extra app --no-install-project
 
 COPY src ./src

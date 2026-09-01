@@ -110,7 +110,7 @@ def render_heroicon(
 
     source_name = _SEMANTIC_ICON_NAMES.get(name, "signal")
     path = _HEROICON_PATHS[source_name]
-    return Markup(  # noqa: S704 - both SVG path and class are server-owned constants
+    return Markup(  # nosec B704  # noqa: S704 - fixed, server-owned SVG and class values
         f'<svg class="{class_name}" viewBox="0 0 24 24" aria-hidden="true" '
         'focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" '
         'stroke-linecap="round" stroke-linejoin="round">'

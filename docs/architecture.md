@@ -24,9 +24,9 @@ database access, and the Ollama endpoint.
 ## Supported integration boundary
 
 ForgeUI targets one implementation stack: FastAPI, HTML/Jinja2, HTMX, trusted Tailwind delivery,
-SQLite, and a separately hosted Ollama model. It does not load or emulate the legacy TypeScript,
-Lit, TinyBase, Web Component, browser-persistence, manifest, or server APIs. The old checkout is a
-visual reference, not a compatibility suite.
+SQLite, and a separately hosted Ollama model. Its supported public boundaries are the `forgeui/1`
+manifest, Python package APIs, documented HTTP endpoints, and the Google A2UI importer described
+below.
 
 Google A2UI is supported through a pinned v0.9.1 JSONL snapshot importer. The importer translates a
 small allowlist of A2UI Basic Catalog components into `forgeui/1`, rejects active content and

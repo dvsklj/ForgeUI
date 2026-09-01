@@ -175,7 +175,8 @@ def evaluate_expression(expression: Expression, namespaces: Mapping[str, Any]) -
                     return datetime.fromisoformat(timestamp.replace("Z", "+00:00")).isoformat()
                 except ValueError as exc:
                     raise EvaluationError("datetime requires an ISO-8601 timestamp") from exc
-        assert isinstance(node, OpExpr)
+        if not isinstance(node, OpExpr):
+            raise EvaluationError("unsupported expression node")
         if node.op == "not":
             _arity(node.op, values, 1)
             return not bool(values[0])

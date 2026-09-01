@@ -1,8 +1,7 @@
-# ForgeUI greenfield refactor plan
+# ForgeUI implementation plan
 
-This plan was produced after a read-only audit of the attached legacy checkout. That checkout is a
-visual and product reference only. The new project retains the declarative-product idea, not its
-TypeScript implementation, runtime, APIs, manifests, or compatibility surface.
+This plan defines ForgeUI's product boundaries, architecture, delivery phases, and acceptance
+gates as a standalone Python project.
 
 ## Product objective
 
@@ -40,7 +39,7 @@ jobs, and bounded Google A2UI importer call the same validation and rendering bo
 
 ## Decisions
 
-### Retain and strengthen
+### Core guarantees
 
 - Flat ID-indexed manifests, graph validation, a finite component registry, declarative state,
   conditions, repeaters, actions, app CRUD, server-side revisions, SQLite, design tokens,
@@ -50,14 +49,14 @@ jobs, and bounded Google A2UI importer call the same validation and rendering bo
   prompt documentation, and catalog tests.
 - Model JSON repair is a real bounded pipeline. Invalid candidates are never saved or rendered.
 
-### Replace
+### Design choices
 
-- String expressions become a typed JSON AST with allowlisted operations and bounded complexity.
-- Browser-owned persistence becomes server-owned state with optimistic concurrency.
-- Arbitrary design tokens become four complete, tested profiles: `ops-compact`, `signal-cards`,
+- Expressions use a typed JSON AST with allowlisted operations and bounded complexity.
+- State is server-owned and uses optimistic concurrency.
+- Styling is limited to four complete, tested profiles: `ops-compact`, `signal-cards`,
   `executive-summary`, and `calm-neutral`.
-- Browser chart libraries become trusted server-generated SVG with an accessible table summary.
-- Arbitrary external calls become operator-registered data sources and capabilities.
+- Charts use trusted server-generated SVG with an accessible table summary.
+- External operations use operator-registered data sources and capabilities.
 
 ### Exclude
 
