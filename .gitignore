@@ -13,7 +13,7 @@ dist/
 htmlcov/
 playwright-report/
 test-results/
-data/
+/data/
 *.db
 *.db-shm
 *.db-wal

@@ -6,3 +6,4 @@
 - [0004 — Trusted data sources and capabilities](0004-trusted-integrations.md)
 - [0005 — CDN development mode and self-hosted deployment mode](0005-assets.md)
 - [0006 — Bounded model repair](0006-bounded-repair.md)
+- [0007 — Distribution and integration package boundaries](0007-distribution-boundaries.md)

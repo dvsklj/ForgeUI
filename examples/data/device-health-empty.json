@@ -1,0 +1,18 @@
+{
+  "contract": "device-health/1",
+  "generated_at": "2026-07-24T08:30:00+00:00",
+  "stale": false,
+  "summary": {
+    "total": 0,
+    "healthy": 0,
+    "warning": 0,
+    "critical": 0,
+    "offline": 0,
+    "fleet_cpu": 0.0,
+    "fleet_memory": 0.0,
+    "fleet_disk": 0.0
+  },
+  "devices": [],
+  "series": [],
+  "incidents": []
+}

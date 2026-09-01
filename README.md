@@ -6,7 +6,7 @@ CSS, URLs, SQL, file paths, or executable expressions. Device health is the buil
 contract; hosts can register their own strict data contracts, sources, and capabilities.
 
 The default presentation uses compact system typography, deep-teal accents, cool neutral surfaces,
-restrained 8 px radii, dense data tables, and a charcoal application shell. The attached legacy
+restrained 6 px radii, dense data tables, and a charcoal application shell. The attached legacy
 project informed that visual direction only; ForgeUI does not preserve its runtime, API, manifest,
 or component contracts. Light, dark, and system themes are built in, and model-selected profiles
 may change composition and density only through trusted combinations.
@@ -45,6 +45,11 @@ For a locally built wheel:
 COPY dist/forgeui-0.1.0-py3-none-any.whl /tmp/
 RUN pip install --no-cache-dir '/tmp/forgeui-0.1.0-py3-none-any.whl[web,ollama]'
 ```
+
+Published releases use the same extras syntax from PyPI. Private company integrations should live
+in a separate package that depends on a compatible ForgeUI minor series, for example
+`forgeui[web]>=0.1,<0.2`, and explicitly supplies its trusted runtime registries to
+`mount_forgeui`. See [distribution and private packages](docs/distribution.md).
 
 ## Standalone development quick start
 
@@ -185,6 +190,7 @@ exact Ollama model tag suitable for your hardware via `FORGEUI_OLLAMA_MODEL`.
 - [Embedding into an existing application](docs/embedding.md)
 - [Custom data contracts, sources, and capabilities](docs/data-sources.md)
 - [Package footprint and enforced size budgets](docs/footprint.md)
+- [Distribution, PyPI releases, and private integration packages](docs/distribution.md)
 - [HTTP API](docs/api.md)
 - [Security controls and boundaries](docs/security.md)
 - [Deployment and operations](docs/deployment.md)

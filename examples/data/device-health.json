@@ -1,0 +1,135 @@
+{
+  "contract": "device-health/1",
+  "generated_at": "2026-07-24T08:30:00+00:00",
+  "stale": false,
+  "summary": {
+    "total": 6,
+    "healthy": 3,
+    "warning": 1,
+    "critical": 1,
+    "offline": 1,
+    "fleet_cpu": 0.47,
+    "fleet_memory": 0.58,
+    "fleet_disk": 0.63
+  },
+  "devices": [
+    {
+      "id": "edge-zrh-01",
+      "name": "Zurich Gateway 01",
+      "platform": "Linux arm64",
+      "status": "healthy",
+      "cpu": 0.24,
+      "memory": 0.41,
+      "disk": 0.52,
+      "temperature": 43.2,
+      "latency": 12.0,
+      "last_seen": "2026-07-24T08:29:54+00:00",
+      "active_alert_count": 0
+    },
+    {
+      "id": "edge-zrh-02",
+      "name": "Zurich Gateway 02",
+      "platform": "Linux arm64",
+      "status": "warning",
+      "cpu": 0.78,
+      "memory": 0.83,
+      "disk": 0.68,
+      "temperature": 76.4,
+      "latency": 24.0,
+      "last_seen": "2026-07-24T08:29:41+00:00",
+      "active_alert_count": 2
+    },
+    {
+      "id": "edge-gva-01",
+      "name": "Geneva Sensor Hub",
+      "platform": "Linux x86_64",
+      "status": "critical",
+      "cpu": 0.94,
+      "memory": 0.91,
+      "disk": 0.88,
+      "temperature": 91.7,
+      "latency": 61.0,
+      "last_seen": "2026-07-24T08:28:58+00:00",
+      "active_alert_count": 4
+    },
+    {
+      "id": "edge-bsl-01",
+      "name": "Basel Relay 01",
+      "platform": "FreeBSD amd64",
+      "status": "healthy",
+      "cpu": 0.18,
+      "memory": 0.32,
+      "disk": 0.44,
+      "temperature": 39.8,
+      "latency": 19.0,
+      "last_seen": "2026-07-24T08:29:49+00:00",
+      "active_alert_count": 0
+    },
+    {
+      "id": "edge-lug-01",
+      "name": "Lugano Gateway",
+      "platform": "Linux arm64",
+      "status": "offline",
+      "cpu": 0.0,
+      "memory": 0.0,
+      "disk": 0.71,
+      "temperature": 0.0,
+      "latency": 300000.0,
+      "last_seen": "2026-07-24T07:48:10+00:00",
+      "active_alert_count": 1
+    },
+    {
+      "id": "edge-brn-01",
+      "name": "Bern Control Node",
+      "platform": "Linux x86_64",
+      "status": "healthy",
+      "cpu": 0.33,
+      "memory": 0.49,
+      "disk": 0.55,
+      "temperature": 48.1,
+      "latency": 16.0,
+      "last_seen": "2026-07-24T08:29:56+00:00",
+      "active_alert_count": 0
+    }
+  ],
+  "series": [
+    {"timestamp": "2026-07-24T07:35:00+00:00", "cpu": 0.31, "memory": 0.45, "online_count": 6},
+    {"timestamp": "2026-07-24T07:40:00+00:00", "cpu": 0.35, "memory": 0.47, "online_count": 6},
+    {"timestamp": "2026-07-24T07:45:00+00:00", "cpu": 0.36, "memory": 0.48, "online_count": 6},
+    {"timestamp": "2026-07-24T07:50:00+00:00", "cpu": 0.41, "memory": 0.51, "online_count": 5},
+    {"timestamp": "2026-07-24T07:55:00+00:00", "cpu": 0.44, "memory": 0.53, "online_count": 5},
+    {"timestamp": "2026-07-24T08:00:00+00:00", "cpu": 0.49, "memory": 0.56, "online_count": 5},
+    {"timestamp": "2026-07-24T08:05:00+00:00", "cpu": 0.52, "memory": 0.59, "online_count": 5},
+    {"timestamp": "2026-07-24T08:10:00+00:00", "cpu": 0.55, "memory": 0.61, "online_count": 5},
+    {"timestamp": "2026-07-24T08:15:00+00:00", "cpu": 0.51, "memory": 0.6, "online_count": 5},
+    {"timestamp": "2026-07-24T08:20:00+00:00", "cpu": 0.48, "memory": 0.59, "online_count": 5},
+    {"timestamp": "2026-07-24T08:25:00+00:00", "cpu": 0.46, "memory": 0.58, "online_count": 5},
+    {"timestamp": "2026-07-24T08:30:00+00:00", "cpu": 0.47, "memory": 0.58, "online_count": 5}
+  ],
+  "incidents": [
+    {
+      "id": "inc-1042",
+      "device_id": "edge-gva-01",
+      "severity": "critical",
+      "message": "Thermal threshold exceeded for nine minutes",
+      "opened": "2026-07-24T08:21:00+00:00",
+      "status": "open"
+    },
+    {
+      "id": "inc-1041",
+      "device_id": "edge-zrh-02",
+      "severity": "warning",
+      "message": "Sustained memory pressure above eighty percent",
+      "opened": "2026-07-24T08:12:00+00:00",
+      "status": "acknowledged"
+    },
+    {
+      "id": "inc-1039",
+      "device_id": "edge-lug-01",
+      "severity": "critical",
+      "message": "Device has not reported within the expected interval",
+      "opened": "2026-07-24T07:53:00+00:00",
+      "status": "open"
+    }
+  ]
+}

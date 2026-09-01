@@ -1,0 +1,54 @@
+{
+  "contract": "device-health/1",
+  "generated_at": "2026-07-24T06:00:00+00:00",
+  "stale": true,
+  "summary": {
+    "total": 2,
+    "healthy": 0,
+    "warning": 0,
+    "critical": 0,
+    "offline": 2,
+    "fleet_cpu": 0.0,
+    "fleet_memory": 0.0,
+    "fleet_disk": 0.61
+  },
+  "devices": [
+    {
+      "id": "edge-zrh-01",
+      "name": "Zurich Gateway 01",
+      "platform": "Linux arm64",
+      "status": "offline",
+      "cpu": 0.0,
+      "memory": 0.0,
+      "disk": 0.52,
+      "temperature": 0.0,
+      "latency": 300000.0,
+      "last_seen": "2026-07-24T05:58:00+00:00",
+      "active_alert_count": 1
+    },
+    {
+      "id": "edge-zrh-02",
+      "name": "Zurich Gateway 02",
+      "platform": "Linux arm64",
+      "status": "offline",
+      "cpu": 0.0,
+      "memory": 0.0,
+      "disk": 0.7,
+      "temperature": 0.0,
+      "latency": 300000.0,
+      "last_seen": "2026-07-24T05:57:30+00:00",
+      "active_alert_count": 1
+    }
+  ],
+  "series": [],
+  "incidents": [
+    {
+      "id": "inc-1044",
+      "device_id": "edge-zrh-01",
+      "severity": "critical",
+      "message": "Snapshot is stale and current device health is unknown",
+      "opened": "2026-07-24T06:05:00+00:00",
+      "status": "open"
+    }
+  ]
+}
