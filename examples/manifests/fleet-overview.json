@@ -1,0 +1,278 @@
+{
+  "spec": "forgeui/1",
+  "metadata": {
+    "title": "Fleet Overview",
+    "description": "Exception-first health, capacity, and incident view for the device fleet."
+  },
+  "design": {
+    "name": "ops-compact",
+    "color_mode": "system"
+  },
+  "context": {
+    "locale": "en-US",
+    "timezone": "UTC",
+    "refresh_seconds": 60
+  },
+  "data": {
+    "contract": "device-health/1",
+    "source": "device-health"
+  },
+  "state": {
+    "values": {
+      "status": "all",
+      "page": 1
+    },
+    "writable": [
+      "state.status",
+      "state.page"
+    ]
+  },
+  "root": "page",
+  "elements": {
+    "page": {
+      "type": "page",
+      "children": [
+        "header",
+        "stale-alert",
+        "controls",
+        "summary-grid",
+        "trend-grid",
+        "device-section",
+        "incident-section"
+      ]
+    },
+    "header": {
+      "type": "page-header",
+      "props": {
+        "title": "Fleet health",
+        "subtitle": "Live operating state across all connected device groups"
+      }
+    },
+    "stale-alert": {
+      "type": "alert",
+      "props": {
+        "title": "Device data is stale",
+        "message": "The latest snapshot is older than the configured reporting interval.",
+        "level": "warning"
+      },
+      "visible": {
+        "kind": "ref",
+        "path": "data.stale"
+      }
+    },
+    "controls": {
+      "type": "inline",
+      "props": {
+        "gap": "sm",
+        "align": "center",
+        "wrap": true
+      },
+      "children": [
+        "status-filter",
+        "refresh-button"
+      ]
+    },
+    "status-filter": {
+      "type": "select",
+      "props": {
+        "state_path": "state.status",
+        "options": [
+          {"value": "all", "label": "All devices"},
+          {"value": "healthy", "label": "Healthy"},
+          {"value": "warning", "label": "Warning"},
+          {"value": "critical", "label": "Critical"},
+          {"value": "offline", "label": "Offline"}
+        ]
+      }
+    },
+    "refresh-button": {
+      "type": "button",
+      "props": {
+        "label": "Refresh snapshot",
+        "style": "secondary"
+      },
+      "action": "refresh-fleet"
+    },
+    "summary-grid": {
+      "type": "grid",
+      "props": {
+        "columns": 4,
+        "gap": "sm"
+      },
+      "children": [
+        "metric-total",
+        "metric-healthy",
+        "metric-warning",
+        "metric-critical",
+        "metric-offline"
+      ]
+    },
+    "metric-total": {
+      "type": "metric",
+      "props": {
+        "label": "Total",
+        "value": {"kind": "ref", "path": "data.summary.total"},
+        "detail": "Registered devices",
+        "status": "neutral"
+      }
+    },
+    "metric-healthy": {
+      "type": "metric",
+      "props": {
+        "label": "Healthy",
+        "value": {"kind": "ref", "path": "data.summary.healthy"},
+        "detail": "Reporting normally",
+        "status": "healthy"
+      }
+    },
+    "metric-warning": {
+      "type": "metric",
+      "props": {
+        "label": "Warning",
+        "value": {"kind": "ref", "path": "data.summary.warning"},
+        "detail": "Needs attention",
+        "status": "warning"
+      }
+    },
+    "metric-critical": {
+      "type": "metric",
+      "props": {
+        "label": "Critical",
+        "value": {"kind": "ref", "path": "data.summary.critical"},
+        "detail": "Immediate action",
+        "status": "critical"
+      }
+    },
+    "metric-offline": {
+      "type": "metric",
+      "props": {
+        "label": "Offline",
+        "value": {"kind": "ref", "path": "data.summary.offline"},
+        "detail": "Outside report window",
+        "status": "critical"
+      }
+    },
+    "trend-grid": {
+      "type": "grid",
+      "props": {
+        "columns": 2,
+        "gap": "lg"
+      },
+      "children": [
+        "fleet-trend",
+        "capacity-card"
+      ]
+    },
+    "fleet-trend": {
+      "type": "line-chart",
+      "props": {
+        "title": "Fleet resource trend",
+        "data": {"kind": "ref", "path": "data.series"},
+        "kind": "line",
+        "series": [
+          {"label": "CPU", "value": "cpu"},
+          {"label": "Memory", "value": "memory"}
+        ]
+      }
+    },
+    "capacity-card": {
+      "type": "card",
+      "props": {
+        "title": "Current capacity",
+        "tone": "subtle"
+      },
+      "children": [
+        "fleet-cpu",
+        "fleet-memory",
+        "fleet-disk"
+      ]
+    },
+    "fleet-cpu": {
+      "type": "progress",
+      "props": {
+        "label": "CPU",
+        "value": {"kind": "ref", "path": "data.summary.fleet_cpu"},
+        "maximum": 1.0
+      }
+    },
+    "fleet-memory": {
+      "type": "progress",
+      "props": {
+        "label": "Memory",
+        "value": {"kind": "ref", "path": "data.summary.fleet_memory"},
+        "maximum": 1.0
+      }
+    },
+    "fleet-disk": {
+      "type": "progress",
+      "props": {
+        "label": "Disk",
+        "value": {"kind": "ref", "path": "data.summary.fleet_disk"},
+        "maximum": 1.0
+      }
+    },
+    "device-section": {
+      "type": "section",
+      "props": {
+        "title": "Devices",
+        "description": "Status and pressure readings from the latest snapshot"
+      },
+      "children": [
+        "device-table",
+        "device-pagination"
+      ]
+    },
+    "device-table": {
+      "type": "table",
+      "props": {
+        "data": {"kind": "ref", "path": "data.devices"},
+        "filter_state": "state.status",
+        "filter_key": "status",
+        "page_state": "state.page",
+        "page_size": 5,
+        "columns": [
+          {"key": "name", "label": "Device", "emphasis": true},
+          {"key": "platform", "label": "Platform"},
+          {"key": "status", "label": "Status", "format": "status"},
+          {"key": "cpu", "label": "CPU", "format": "percent"},
+          {"key": "memory", "label": "Memory", "format": "percent"},
+          {"key": "last_seen", "label": "Last seen", "format": "datetime"}
+        ],
+        "empty_message": "No devices match this status filter."
+      }
+    },
+    "device-pagination": {
+      "type": "pagination",
+      "props": {
+        "page_state": "state.page",
+        "page_size": 5,
+        "data": {"kind": "ref", "path": "data.devices"},
+        "filter_state": "state.status",
+        "filter_key": "status"
+      }
+    },
+    "incident-section": {
+      "type": "section",
+      "props": {
+        "title": "Incident timeline",
+        "description": "Open and recently acknowledged fleet events"
+      },
+      "children": [
+        "incident-timeline"
+      ]
+    },
+    "incident-timeline": {
+      "type": "timeline",
+      "props": {
+        "data": {"kind": "ref", "path": "data.incidents"},
+        "empty_message": "No incidents are active."
+      }
+    }
+  },
+  "actions": {
+    "refresh-fleet": {
+      "type": "refresh_source",
+      "source": "device-health"
+    }
+  }
+}

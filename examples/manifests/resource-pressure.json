@@ -1,0 +1,159 @@
+{
+  "spec": "forgeui/1",
+  "metadata": {
+    "title": "Thermal and Resource Pressure",
+    "description": "Visual triage of heat, saturation, and latency across the fleet."
+  },
+  "design": {
+    "name": "signal-cards",
+    "color_mode": "system"
+  },
+  "context": {
+    "locale": "en-US",
+    "timezone": "UTC",
+    "refresh_seconds": 30
+  },
+  "data": {
+    "contract": "device-health/1",
+    "source": "device-health"
+  },
+  "state": {
+    "values": {
+      "status": "all",
+      "page": 1
+    },
+    "writable": [
+      "state.status",
+      "state.page"
+    ]
+  },
+  "root": "page",
+  "elements": {
+    "page": {
+      "type": "page",
+      "children": [
+        "header",
+        "headline-grid",
+        "pressure-grid",
+        "pressure-table",
+        "active-alerts"
+      ]
+    },
+    "header": {
+      "type": "page-header",
+      "props": {
+        "title": "Thermal and resource pressure",
+        "subtitle": "Find hot, saturated, and slow devices before service degrades"
+      }
+    },
+    "headline-grid": {
+      "type": "grid",
+      "props": {
+        "columns": 3,
+        "gap": "md"
+      },
+      "children": [
+        "cpu-metric",
+        "memory-metric",
+        "disk-metric"
+      ]
+    },
+    "cpu-metric": {
+      "type": "metric",
+      "props": {
+        "label": "Fleet CPU",
+        "value": {
+          "kind": "call",
+          "name": "percent",
+          "args": [{"kind": "ref", "path": "data.summary.fleet_cpu"}]
+        },
+        "detail": "Average utilization",
+        "status": "neutral"
+      }
+    },
+    "memory-metric": {
+      "type": "metric",
+      "props": {
+        "label": "Fleet memory",
+        "value": {
+          "kind": "call",
+          "name": "percent",
+          "args": [{"kind": "ref", "path": "data.summary.fleet_memory"}]
+        },
+        "detail": "Average utilization",
+        "status": "warning"
+      }
+    },
+    "disk-metric": {
+      "type": "metric",
+      "props": {
+        "label": "Fleet disk",
+        "value": {
+          "kind": "call",
+          "name": "percent",
+          "args": [{"kind": "ref", "path": "data.summary.fleet_disk"}]
+        },
+        "detail": "Average allocation",
+        "status": "warning"
+      }
+    },
+    "pressure-grid": {
+      "type": "grid",
+      "props": {
+        "columns": 2,
+        "gap": "lg"
+      },
+      "children": [
+        "pressure-chart",
+        "availability-chart"
+      ]
+    },
+    "pressure-chart": {
+      "type": "bar-chart",
+      "props": {
+        "title": "Pressure by device",
+        "data": {"kind": "ref", "path": "data.devices"},
+        "kind": "bar",
+        "series": [
+          {"label": "CPU", "value": "cpu"},
+          {"label": "Memory", "value": "memory"},
+          {"label": "Disk", "value": "disk"}
+        ]
+      }
+    },
+    "availability-chart": {
+      "type": "line-chart",
+      "props": {
+        "title": "Online devices",
+        "data": {"kind": "ref", "path": "data.series"},
+        "kind": "area",
+        "series": [
+          {"label": "Online", "value": "online_count"}
+        ]
+      }
+    },
+    "pressure-table": {
+      "type": "table",
+      "props": {
+        "data": {"kind": "ref", "path": "data.devices"},
+        "columns": [
+          {"key": "name", "label": "Device", "emphasis": true},
+          {"key": "status", "label": "Status", "format": "status"},
+          {"key": "temperature", "label": "Temperature", "format": "temperature"},
+          {"key": "cpu", "label": "CPU", "format": "percent"},
+          {"key": "memory", "label": "Memory", "format": "percent"},
+          {"key": "latency", "label": "Latency", "format": "duration-ms"}
+        ],
+        "empty_message": "No resource readings are available."
+      }
+    },
+    "active-alerts": {
+      "type": "status-list",
+      "props": {
+        "data": {"kind": "ref", "path": "data.incidents"},
+        "empty_message": "No pressure alerts are active."
+      }
+    }
+  },
+  "actions": {}
+}

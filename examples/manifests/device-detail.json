@@ -1,0 +1,232 @@
+{
+  "spec": "forgeui/1",
+  "metadata": {
+    "title": "Device Detail",
+    "description": "Quiet diagnostic view for one selected device and its incidents."
+  },
+  "design": {
+    "name": "calm-neutral",
+    "color_mode": "system"
+  },
+  "context": {
+    "locale": "en-US",
+    "timezone": "UTC",
+    "refresh_seconds": 60
+  },
+  "data": {
+    "contract": "device-health/1",
+    "source": "device-health"
+  },
+  "state": {
+    "values": {
+      "device_id": "edge-zrh-01",
+      "note": "",
+      "note_open": false
+    },
+    "writable": [
+      "state.device_id",
+      "state.note",
+      "state.note_open"
+    ]
+  },
+  "root": "page",
+  "elements": {
+    "page": {
+      "type": "page",
+      "children": [
+        "breadcrumbs",
+        "header",
+        "device-repeat",
+        "incident-section",
+        "note-modal"
+      ]
+    },
+    "breadcrumbs": {
+      "type": "breadcrumbs",
+      "props": {
+        "items": [
+          {"label": "Fleet", "destination": "overview"},
+          {"label": "Devices", "destination": "devices"}
+        ]
+      }
+    },
+    "header": {
+      "type": "page-header",
+      "props": {
+        "title": "Device diagnostic",
+        "subtitle": "Health, resource pressure, and recent activity"
+      }
+    },
+    "device-repeat": {
+      "type": "repeat",
+      "props": {
+        "data": {"kind": "ref", "path": "data.devices"},
+        "filter_state": "state.device_id",
+        "filter_key": "id",
+        "empty_message": "The selected device is unavailable."
+      },
+      "children": [
+        "device-card"
+      ]
+    },
+    "device-card": {
+      "type": "card",
+      "props": {
+        "title": {"kind": "ref", "path": "item.name"},
+        "tone": "default"
+      },
+      "children": [
+        "device-status",
+        "device-platform",
+        "device-pressure",
+        "device-facts",
+        "note-button"
+      ]
+    },
+    "device-status": {
+      "type": "text",
+      "props": {
+        "text": {
+          "kind": "call",
+          "name": "concat",
+          "args": [
+            {"kind": "literal", "value": "Status: "},
+            {"kind": "ref", "path": "item.status"}
+          ]
+        },
+        "tone": "default"
+      }
+    },
+    "device-platform": {
+      "type": "text",
+      "props": {
+        "text": {"kind": "ref", "path": "item.platform"},
+        "tone": "muted"
+      }
+    },
+    "device-pressure": {
+      "type": "grid",
+      "props": {
+        "columns": 3,
+        "gap": "md"
+      },
+      "children": [
+        "device-cpu",
+        "device-memory",
+        "device-disk"
+      ]
+    },
+    "device-cpu": {
+      "type": "progress",
+      "props": {
+        "label": "CPU",
+        "value": {"kind": "ref", "path": "item.cpu"},
+        "maximum": 1.0
+      }
+    },
+    "device-memory": {
+      "type": "progress",
+      "props": {
+        "label": "Memory",
+        "value": {"kind": "ref", "path": "item.memory"},
+        "maximum": 1.0
+      }
+    },
+    "device-disk": {
+      "type": "progress",
+      "props": {
+        "label": "Disk",
+        "value": {"kind": "ref", "path": "item.disk"},
+        "maximum": 1.0
+      }
+    },
+    "device-facts": {
+      "type": "key-value",
+      "props": {
+        "items": [
+          {"label": "Temperature", "value": {"kind": "ref", "path": "item.temperature"}, "format": "temperature"},
+          {"label": "Latency", "value": {"kind": "ref", "path": "item.latency"}, "format": "duration-ms"},
+          {"label": "Last seen", "value": {"kind": "ref", "path": "item.last_seen"}, "format": "datetime"},
+          {"label": "Active alerts", "value": {"kind": "ref", "path": "item.active_alert_count"}, "format": "number"}
+        ]
+      }
+    },
+    "note-button": {
+      "type": "button",
+      "props": {
+        "label": "Add operator note",
+        "style": "secondary"
+      },
+      "action": "open-note"
+    },
+    "incident-section": {
+      "type": "section",
+      "props": {
+        "title": "Recent incidents",
+        "description": "Events associated with the selected device"
+      },
+      "children": [
+        "incident-timeline"
+      ]
+    },
+    "incident-timeline": {
+      "type": "timeline",
+      "props": {
+        "data": {"kind": "ref", "path": "data.incidents"},
+        "filter_state": "state.device_id",
+        "filter_key": "device_id",
+        "empty_message": "This device has no recent incidents."
+      }
+    },
+    "note-modal": {
+      "type": "modal",
+      "props": {
+        "title": "Add operator note",
+        "description": "The note is recorded in the device audit trail."
+      },
+      "children": [
+        "note-form"
+      ]
+    },
+    "note-form": {
+      "type": "form",
+      "props": {
+        "title": "Operator note",
+        "submit_label": "Save note"
+      },
+      "children": [
+        "note-field"
+      ],
+      "action": "save-note"
+    },
+    "note-field": {
+      "type": "field-group",
+      "props": {
+        "legend": "Note",
+        "description": "Use a concise operational description."
+      },
+      "children": [
+        "note-input"
+      ]
+    },
+    "note-input": {
+      "type": "textarea",
+      "props": {
+        "state_path": "state.note",
+        "placeholder": "What changed or needs follow-up?",
+        "rows": 4
+      }
+    }
+  },
+  "actions": {
+    "open-note": {
+      "type": "open_modal",
+      "target": "note-modal"
+    },
+    "save-note": {
+      "type": "submit_form",
+      "form": "note-form",
+      "capability": "device-note.create"
+    }
+  }
+}

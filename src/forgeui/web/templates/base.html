@@ -1,0 +1,51 @@
+<!doctype html>
+<html
+  lang="en"
+  data-theme="{{ color_mode }}"
+  data-forge-profile="{{ profile }}"
+  data-forge-surface="{{ surface_mode }}"
+  data-forge-persistence="{{ persistence_mode }}"
+  class="no-js"
+>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description" content="{{ description }}">
+    {% if csrf_token %}<meta name="csrf-token" content="{{ csrf_token }}">{% endif %}
+    <title>{{ title }} · ForgeUI</title>
+    <link rel="stylesheet" href="{{ static_prefix }}/forgeui.css?v={{ asset_version }}">
+    {% if tailwind_cdn_url %}<script src="{{ tailwind_cdn_url }}"{% if tailwind_sri %} integrity="{{ tailwind_sri }}" crossorigin="anonymous"{% endif %}></script>{% endif %}
+    {% if htmx_cdn_url %}<script defer src="{{ htmx_cdn_url }}"{% if htmx_sri %} integrity="{{ htmx_sri }}" crossorigin="anonymous"{% endif %}></script>{% endif %}
+  </head>
+  <body>
+    <a class="forge-skip-link" href="#forge-main">Skip to dashboard</a>
+    {% if show_shell_header %}
+    <header class="forge-shell-header" aria-label="Dashboard controls">
+      <a class="forge-wordmark" href="{{ home_url }}" aria-label="ForgeUI home">Forge<span>UI</span></a>
+      <div class="forge-theme-controls" role="group" aria-label="Color theme">
+        <button type="button" class="forge-theme-button" data-forge-theme="light" aria-label="Use light theme" title="Light theme">{{ theme_icons.light }}<span class="forge-sr-only">Light</span></button>
+        <button type="button" class="forge-theme-button" data-forge-theme="system" aria-label="Follow system theme" title="System theme">{{ theme_icons.system }}<span class="forge-sr-only">System</span></button>
+        <button type="button" class="forge-theme-button" data-forge-theme="dark" aria-label="Use dark theme" title="Dark theme">{{ theme_icons.dark }}<span class="forge-sr-only">Dark</span></button>
+      </div>
+    </header>
+    {% endif %}
+    <main
+      id="forge-main"
+      data-forge-root
+      tabindex="-1"
+      data-forge-action-url="{{ action_url_template }}"
+      data-forge-state-url="{{ state_url_template }}"
+      data-forge-state-version="{{ state_version }}"
+      data-forge-state="{{ initial_state_json }}"
+      data-forge-persistence="{{ persistence_mode }}"
+    >
+      {% if persistence_mode == "stateless" and surface_mode != "embed" %}
+      <p class="forge-mode-note" role="status">Temporary view · changes are not saved.</p>
+      {% endif %}
+      {{ content }}
+    </main>
+    <div class="forge-toast-region" aria-live="polite" aria-atomic="true"></div>
+    <script src="{{ static_prefix }}/forgeui.js?v={{ asset_version }}" defer></script>
+  </body>
+</html>

@@ -1,0 +1,1 @@
+"""Source registry unit tests."""

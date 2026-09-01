@@ -1,0 +1,46 @@
+services:
+  forgeui:
+    build:
+      context: .
+    image: forgeui:local
+    init: true
+    ports:
+      - "127.0.0.1:${FORGEUI_PORT:-8000}:8000"
+    environment:
+      FORGEUI_ENVIRONMENT: production
+      FORGEUI_HOST: 0.0.0.0
+      FORGEUI_PORT: 8000
+      FORGEUI_DATA_DIR: /data
+      FORGEUI_DATABASE_URL: sqlite:////data/forgeui.db
+      FORGEUI_SECRET_KEY: ${FORGEUI_SECRET_KEY:?set a long random production secret in .env}
+      FORGEUI_ADMIN_TOKEN: ${FORGEUI_ADMIN_TOKEN:?set an administrator token in .env}
+      FORGEUI_ALLOW_PUBLIC_READ: ${FORGEUI_ALLOW_PUBLIC_READ:-true}
+      FORGEUI_SECURE_COOKIES: ${FORGEUI_SECURE_COOKIES:-true}
+      FORGEUI_TRUSTED_HOSTS: '${FORGEUI_TRUSTED_HOSTS:-["localhost","127.0.0.1"]}'
+      FORGEUI_OLLAMA_BASE_URL: ${FORGEUI_OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      FORGEUI_OLLAMA_MODEL: ${FORGEUI_OLLAMA_MODEL:-qwen3.5:9b}
+      FORGEUI_OLLAMA_CONNECT_TIMEOUT_SECONDS: ${FORGEUI_OLLAMA_CONNECT_TIMEOUT_SECONDS:-5}
+      FORGEUI_OLLAMA_RESPONSE_TIMEOUT_SECONDS: ${FORGEUI_OLLAMA_RESPONSE_TIMEOUT_SECONDS:-90}
+      FORGEUI_OLLAMA_MAX_CONCURRENCY: ${FORGEUI_OLLAMA_MAX_CONCURRENCY:-1}
+      FORGEUI_ASSET_MODE: ${FORGEUI_ASSET_MODE:-self-hosted}
+      FORGEUI_LOG_LEVEL: ${FORGEUI_LOG_LEVEL:-INFO}
+      FORGEUI_JSON_LOGS: ${FORGEUI_JSON_LOGS:-false}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - forgeui-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health/ready', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  forgeui-data:

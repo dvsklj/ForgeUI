@@ -1,0 +1,3 @@
+Create an exception-first fleet health dashboard. Show total, healthy, warning, critical, and
+offline counts; a CPU and memory trend; current CPU, memory, and disk pressure; a filterable device
+table; and an incident timeline. Prefer dense operations scanning and clear stale-data handling.

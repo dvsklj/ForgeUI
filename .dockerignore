@@ -1,0 +1,16 @@
+.git
+.github
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.venv
+__pycache__
+*.py[cod]
+*.db
+*.sqlite*
+.env
+data
+tests
+docs
+examples
+ForgeUI-legacy

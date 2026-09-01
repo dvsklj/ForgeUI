@@ -1,0 +1,130 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "forgeui"
+version = "0.1.0"
+description = "Safe, model-generated dashboards rendered by FastAPI, Jinja2, and HTMX."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+requires-python = ">=3.11"
+authors = [{ name = "ForgeUI contributors" }]
+dependencies = [
+  "jinja2>=3.1,<4",
+  "pydantic>=2.10,<3",
+]
+
+[project.optional-dependencies]
+web = [
+  "fastapi>=0.115,<1",
+  "itsdangerous>=2.2,<3",
+  "prometheus-client>=0.21,<1",
+  "pydantic-settings>=2.7,<3",
+  "python-multipart>=0.0.20,<1",
+  "sqlalchemy>=2.0,<3",
+]
+ollama = [
+  "httpx>=0.28,<1",
+]
+http = [
+  "httpx>=0.28,<1",
+]
+serve = [
+  "uvicorn>=0.34,<1",
+]
+app = [
+  "fastapi>=0.115,<1",
+  "httpx>=0.28,<1",
+  "itsdangerous>=2.2,<3",
+  "prometheus-client>=0.21,<1",
+  "pydantic-settings>=2.7,<3",
+  "python-multipart>=0.0.20,<1",
+  "sqlalchemy>=2.0,<3",
+  "uvicorn>=0.34,<1",
+]
+dev = [
+  "beautifulsoup4>=4.13,<5",
+  "hypothesis>=6.125,<7",
+  "mypy>=1.14,<2",
+  "pytest>=8.3,<9",
+  "pytest-asyncio>=0.25,<1",
+  "pytest-cov>=6,<7",
+  "pytest-playwright>=0.6,<1",
+  "respx>=0.22,<1",
+  "ruff>=0.9,<1",
+]
+
+[project.scripts]
+forgeui = "forgeui.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/forgeui"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/forgeui/data" = "forgeui/data"
+
+[tool.hatch.build.targets.sdist.force-include]
+"src/forgeui/data" = "src/forgeui/data"
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-config --strict-markers"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+  "browser: browser end-to-end tests",
+  "docker: Docker integration tests",
+  "ollama: tests requiring a live Ollama server",
+  "slow: slow-running tests",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["forgeui"]
+
+[tool.coverage.report]
+fail_under = 85
+show_missing = true
+skip_covered = true
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+  "A",
+  "ASYNC",
+  "B",
+  "C4",
+  "E",
+  "F",
+  "I",
+  "N",
+  "PERF",
+  "PIE",
+  "PT",
+  "PTH",
+  "RUF",
+  "S",
+  "SIM",
+  "UP",
+  "W",
+]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S105", "S106", "S311"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+packages = ["forgeui"]
+plugins = ["pydantic.mypy"]
+warn_unused_configs = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+warn_required_dynamic_aliases = true

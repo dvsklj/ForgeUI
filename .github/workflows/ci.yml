@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --frozen --all-extras
+      - run: uv run ruff format --check .
+      - run: uv run ruff check .
+      - run: uv run mypy src/forgeui
+      - run: >-
+          uv run pytest -q -m "not browser and not docker and not ollama"
+          --cov=forgeui --cov-report=term-missing:skip-covered
+      - run: uv build
+      - name: Smoke-test base, HTTP adapter, mounted-web, and complete wheels
+        run: |
+          WHEEL=$(find dist -name 'forgeui-*.whl' -print -quit)
+          WHEEL_BYTES=$(wc -c < "$WHEEL")
+          if [ "$WHEEL_BYTES" -gt $((128 * 1024)) ]; then
+            echo "Wheel size $WHEEL_BYTES bytes exceeds the 128 KiB budget"
+            exit 1
+          fi
+          PACKAGE_SMOKE_DIR=$(mktemp -d)
+          uv venv "$PACKAGE_SMOKE_DIR/base"
+          uv pip install --python "$PACKAGE_SMOKE_DIR/base/bin/python" "$WHEEL"
+          "$PACKAGE_SMOKE_DIR/base/bin/python" -c \
+            "import importlib.util; from forgeui.a2ui import adapt_a2ui_jsonl; from forgeui.renderer import Renderer; from forgeui.validation import validate_manifest; assert importlib.util.find_spec('fastapi') is None; assert importlib.util.find_spec('httpx') is None; assert importlib.util.find_spec('sqlalchemy') is None"
+          if BASE_CLI_OUTPUT=$("$PACKAGE_SMOKE_DIR/base/bin/forgeui" serve 2>&1); then
+            echo "Base CLI unexpectedly started without the app extra"
+            exit 1
+          fi
+          if ! grep -q "forgeui\[app\]" <<< "$BASE_CLI_OUTPUT"; then
+            echo "Base CLI did not explain the missing app extra"
+            exit 1
+          fi
+          uv venv "$PACKAGE_SMOKE_DIR/http"
+          uv pip install --python "$PACKAGE_SMOKE_DIR/http/bin/python" "${WHEEL}[http]"
+          "$PACKAGE_SMOKE_DIR/http/bin/python" -c \
+            "import importlib.util; from forgeui.sources.http import HttpDataSource; assert importlib.util.find_spec('sqlalchemy') is None"
+          uv venv "$PACKAGE_SMOKE_DIR/web"
+          uv pip install --python "$PACKAGE_SMOKE_DIR/web/bin/python" "${WHEEL}[web]"
+          "$PACKAGE_SMOKE_DIR/web/bin/python" -c \
+            "import importlib.util; from forgeui.app import mount_forgeui; from forgeui.data import Database; assert importlib.util.find_spec('httpx') is None"
+          uv venv "$PACKAGE_SMOKE_DIR/app"
+          uv pip install --python "$PACKAGE_SMOKE_DIR/app/bin/python" "${WHEEL}[app]"
+          "$PACKAGE_SMOKE_DIR/app/bin/python" -c \
+            "from forgeui.app import create_app; from forgeui.data import Database; from forgeui.llm import OllamaProvider"

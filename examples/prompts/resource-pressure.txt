@@ -1,0 +1,3 @@
+Create a visual resource-pressure dashboard for a device fleet. Emphasize thermal risk, CPU,
+memory, disk, latency, and changing online-device count. Include a comparison table and active
+pressure alerts. Use the signal-cards profile.

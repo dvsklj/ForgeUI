@@ -1,0 +1,3 @@
+Create a calm diagnostic view for one selected device. Show identity, platform, status, CPU,
+memory, disk, temperature, latency, last-seen time, active alerts, and recent incidents. Include a
+safe operator-note form using only the registered device-note capability.
