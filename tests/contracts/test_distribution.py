@@ -12,6 +12,7 @@ def test_public_distribution_exposes_expected_install_layers() -> None:
     assert project["name"] == "forgeui"
     assert set(project["optional-dependencies"]) >= {"web", "http", "ollama", "serve", "app"}
     assert project["urls"]["Repository"] == "https://github.com/dvsklj/ForgeUI.git"
+    assert (ROOT / "src" / "forgeui" / "py.typed").is_file()
 
 
 def test_release_workflow_uses_isolated_oidc_publishing() -> None:
