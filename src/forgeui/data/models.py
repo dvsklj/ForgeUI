@@ -123,7 +123,7 @@ class DeviceSnapshotRecord(Base):
 
     id: Mapped[str] = mapped_column(String(48), primary_key=True)
     app_id: Mapped[str | None] = mapped_column(
-        ForeignKey("apps.id", ondelete="SET NULL"), nullable=True
+        ForeignKey("apps.id", ondelete="CASCADE"), nullable=True
     )
     source: Mapped[str] = mapped_column(String(48), nullable=False, default="device-health")
     payload_json: Mapped[str] = mapped_column(Text, nullable=False)
