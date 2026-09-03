@@ -120,6 +120,12 @@ class ForgeRepository:
 
     def delete_app(self, app_id: str) -> bool:
         with self.transaction() as session:
+            # Delete snapshots explicitly as well as declaring the database cascade.
+            # This keeps databases created with the earlier SET NULL constraint from
+            # reclassifying app-private snapshots as global snapshots.
+            session.execute(
+                delete(DeviceSnapshotRecord).where(DeviceSnapshotRecord.app_id == app_id)
+            )
             result = session.execute(delete(AppRecord).where(AppRecord.id == app_id))
             return bool(cast(Any, result).rowcount)
 

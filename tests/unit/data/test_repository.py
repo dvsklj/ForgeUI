@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from forgeui.data import Database, ForgeRepository
-from forgeui.data.models import AppStateRecord
+from forgeui.data.models import AppStateRecord, CollectionRowRecord, DeviceSnapshotRecord
 
 
 @pytest.fixture
@@ -51,6 +51,40 @@ def test_delete_cascades_app_owned_rows(repository: ForgeRepository) -> None:
     assert repository.delete_app(app.id)
     assert repository.get_app(app.id) is None
     assert repository.get_state(app.id, "global", "global") is None
+
+
+def test_delete_removes_app_snapshots_without_reclassifying_them_as_global(
+    repository: ForgeRepository,
+) -> None:
+    app = repository.create_app("Private snapshot", visibility="private")
+    with repository.transaction() as session:
+        global_snapshot = repository.add_snapshot_in_session(
+            session,
+            app_id=None,
+            payload={"scope": "global"},
+            generated_at="2026-01-01T00:00:00Z",
+            rows=[],
+        )
+        private_snapshot = repository.add_snapshot_in_session(
+            session,
+            app_id=app.id,
+            payload={"scope": "private"},
+            generated_at="2026-01-02T00:00:00Z",
+            rows=[("devices", "private-device", 0, {"name": "Private device"})],
+        )
+
+    assert repository.delete_app(app.id)
+    latest_global = repository.latest_snapshot(None)
+    assert latest_global is not None
+    assert latest_global.id == global_snapshot.id
+    with repository.transaction() as session:
+        assert session.get(DeviceSnapshotRecord, private_snapshot.id) is None
+        assert (
+            session.query(CollectionRowRecord)
+            .filter(CollectionRowRecord.snapshot_id == private_snapshot.id)
+            .count()
+            == 0
+        )
 
 
 def test_sqlite_foreign_keys_are_enabled(repository: ForgeRepository) -> None:
