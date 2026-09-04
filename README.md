@@ -207,3 +207,7 @@ SQLite and the in-process job worker are intentionally single-instance: run one 
 one ForgeUI replica per database. Existing dashboards remain usable when Ollama is unavailable;
 generation does not. Browser, container, and live-Ollama tests are marked separately from the
 ordinary CI suite.
+
+## Analytics and host integration
+
+See [analytics and diagram authoring](docs/analytics.md) and the [portable integration review](docs/portable-integration-plan.md).

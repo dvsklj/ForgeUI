@@ -445,6 +445,12 @@ def _validate_collection_fields(
             for index, item in enumerate(series):
                 if isinstance(item, Mapping) and isinstance(item.get("value"), str):
                     fields.append((f"series[{index}].value", str(item["value"])))
+    if component_type == "aggregate-metric" and isinstance(props.get("value_key"), str):
+        fields.append(("value_key", str(props["value_key"])))
+    filters = props.get("filters", [])
+    for index, rule in enumerate(filters if isinstance(filters, list) else []):
+        if isinstance(rule, Mapping) and isinstance(rule.get("key"), str):
+            fields.append((f"filters[{index}].key", str(rule["key"])))
     if component_type == "sparkline" and isinstance(props.get("value"), str):
         fields.append(("value", str(props["value"])))
     if isinstance(props.get("filter_key"), str):
@@ -551,6 +557,16 @@ def _validate_semantics(
                         "state_binding_forbidden",
                         f"{path}.props.{binding_key}",
                         "interactive component must bind a declared writable state path",
+                    )
+                )
+        filters = element.props.get("filters", [])
+        for index, rule in enumerate(filters if isinstance(filters, list) else []):
+            if rule["state_path"] not in writable:
+                issues.append(
+                    ValidationIssue(
+                        "state_binding_forbidden",
+                        f"{path}.props.filters[{index}].state_path",
+                        "filter must bind declared writable state",
                     )
                 )
         _validate_expressions(

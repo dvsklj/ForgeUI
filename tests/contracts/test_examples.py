@@ -19,5 +19,11 @@ def test_device_health_fixtures_match_the_trusted_contract(path: Path) -> None:
 
 @pytest.mark.parametrize("path", sorted((ROOT / "examples" / "manifests").glob("*.json")))
 def test_example_manifests_pass_full_semantic_validation(path: Path) -> None:
-    report = validate_manifest(json.loads(path.read_text()))
+    if path.name == "sales-analytics.json":
+        from examples.analytics_host import DEMO_SNAPSHOT, build_runtime
+
+        runtime = build_runtime(lambda _: DEMO_SNAPSHOT, lambda _: True)
+        report = validate_manifest(json.loads(path.read_text()), policy=runtime.policy)
+    else:
+        report = validate_manifest(json.loads(path.read_text()))
     assert report.valid, [issue.as_dict() for issue in report.issues]

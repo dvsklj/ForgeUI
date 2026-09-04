@@ -52,7 +52,7 @@ They also enforce gzip transfer budgets of 6 KiB for CSS, 4 KiB for dashboard Ja
 1 KiB for the optional iframe helper. This keeps visual polish affordable without rewarding
 source-level minification that would make the UI harder to maintain.
 
-The post-build CI smoke test separately caps the compressed wheel at 128 KiB, then installs that
+The post-build CI smoke test separately caps the compressed wheel at 144 KiB, then installs that
 wheel into clean base, mounted-web, and complete environments. The current 121.5 KiB wheel uses
 about 95% of that budget. New integrations should therefore stay optional and avoid vendored
 client libraries or browser frameworks.

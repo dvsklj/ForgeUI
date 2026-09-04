@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "forgeui"
-version = "0.1.0a2"
+version = "0.1.0a3"
 description = "Safe, model-generated dashboards rendered by FastAPI, Jinja2, and HTMX."
 readme = "README.md"
 license = "MIT"
@@ -92,6 +92,7 @@ packages = ["src/forgeui"]
 [tool.pytest.ini_options]
 addopts = "-ra --strict-config --strict-markers"
 testpaths = ["tests"]
+pythonpath = ["."]
 asyncio_mode = "auto"
 markers = [
   "browser: browser end-to-end tests",

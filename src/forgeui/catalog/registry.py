@@ -111,6 +111,8 @@ class BadgeProps(Props):
 
 
 class MetricProps(Props):
+    format: Literal["text", "number", "percent"] = "text"
+    comparison: NumberValue | None = None
     label: TextValue
     value: TextValue | NumberValue
     detail: TextValue | None = None
@@ -167,10 +169,64 @@ class TableColumn(Props):
     format: DisplayFormat = "text"
 
 
-class TableProps(Props):
+class RowFilter(Props):
+    key: DataKey
+    state_path: StatePath
+    operator: Literal["eq", "contains", "in", "gte", "lte"] = "eq"
+
+
+class FilteredProps(Props):
+    filters: list[RowFilter] = Field(default_factory=list, max_length=8)
+
+
+class AggregateMetricProps(FilteredProps):
+    label: TextValue
+    data: RefExpr
+    operation: Literal["count", "sum", "mean", "min", "max"] = "count"
+    value_key: DataKey | None = None
+    format: Literal["number", "percent"] = "number"
+
+    @model_validator(mode="after")
+    def value_required(self) -> AggregateMetricProps:
+        if self.operation != "count" and self.value_key is None:
+            raise ValueError("numeric aggregates require value_key")
+        return self
+
+
+class DiagramNode(Props):
+    id: DataKey
+    label: ShortText
+    group: DataKey | None = None
+
+
+class DiagramEdge(Props):
+    source: DataKey
+    target: DataKey
+    label: ShortText | None = None
+
+
+class DiagramProps(Props):
+    title: SafeText
+    direction: Literal["TB", "BT", "LR", "RL"] = "TB"
+    nodes: list[DiagramNode] = Field(min_length=1, max_length=40)
+    edges: list[DiagramEdge] = Field(default_factory=list, max_length=80)
+    filter_state: StatePath | None = None
+    state_path: StatePath | None = None
+
+    @model_validator(mode="after")
+    def graph_is_valid(self) -> DiagramProps:
+        ids = {node.id for node in self.nodes}
+        if len(ids) != len(self.nodes):
+            raise ValueError("diagram node IDs must be unique")
+        if any(edge.source not in ids or edge.target not in ids for edge in self.edges):
+            raise ValueError("diagram edges must reference declared nodes")
+        return self
+
+
+class TableProps(FilteredProps):
     data: RefExpr
     columns: list[TableColumn] = Field(min_length=1, max_length=6)
-    empty_message: SafeText = "No devices match the current filters."
+    empty_message: SafeText = "No rows match the current filters."
     filter_state: StatePath | None = None
     filter_key: DataKey | None = None
     page_state: StatePath | None = None
@@ -188,7 +244,7 @@ class ChartSeries(Props):
     value: DataKey
 
 
-class ChartProps(Props):
+class ChartProps(FilteredProps):
     title: TextValue
     data: RefExpr
     kind: Literal["bar", "line", "area"] = "bar"
@@ -199,12 +255,16 @@ class ChartProps(Props):
     series: list[ChartSeries] = Field(min_length=1, max_length=6)
 
 
-class StatusListProps(Props):
+class DonutChartProps(ChartProps):
+    series: list[ChartSeries] = Field(min_length=1, max_length=1)
+
+
+class StatusListProps(FilteredProps):
     data: RefExpr
     empty_message: SafeText = "No active items."
 
 
-class TimelineProps(Props):
+class TimelineProps(FilteredProps):
     data: RefExpr
     empty_message: SafeText = "No activity to show."
     filter_state: StatePath | None = None
@@ -217,7 +277,7 @@ class TimelineProps(Props):
         return self
 
 
-class SparklineProps(Props):
+class SparklineProps(FilteredProps):
     data: RefExpr
     value: DataKey
     label: TextValue
@@ -294,7 +354,7 @@ class TabsProps(Props):
     label: TextValue
 
 
-class PaginationProps(Props):
+class PaginationProps(FilteredProps):
     page_state: StatePath
     page_size: Literal[5, 10, 25, 50, 100] = 25
     data: RefExpr | None = None
@@ -308,7 +368,7 @@ class PaginationProps(Props):
         return self
 
 
-class RepeatProps(Props):
+class RepeatProps(FilteredProps):
     data: RefExpr
     empty_message: SafeText | None = None
     filter_state: StatePath | None = None
@@ -427,9 +487,9 @@ class ComponentRegistry:
         schema = ForgeManifest.model_json_schema()
         definitions = schema.setdefault("$defs", {})
         for spec in self._specs.values():
-            definitions[f"Props_{spec.name.replace('-', '_')}"] = (
-                spec.props_model.model_json_schema()
-            )
+            props_schema = spec.props_model.model_json_schema(ref_template="#/$defs/{model}")
+            definitions.update(props_schema.pop("$defs", {}))
+            definitions[f"Props_{spec.name.replace('-', '_')}"] = props_schema
         element = definitions.get("Element")
         if isinstance(element, dict):
             properties = element.setdefault("properties", {})
@@ -494,6 +554,18 @@ component_registry = ComponentRegistry(
         _spec("icon", IconProps),
         _spec("key-value", KeyValueProps),
         _spec("metric", MetricProps, action=True),
+        _spec(
+            "aggregate-metric",
+            AggregateMetricProps,
+            action=True,
+            note="KPI over the same bounded, filtered rows as a table. Empty numeric sets show —.",
+        ),
+        _spec(
+            "mermaid",
+            DiagramProps,
+            note="Structured flowchart nodes/edges only; never Mermaid source or click directives. "
+            "filter_state filters node group; state_path enables node selection.",
+        ),
         _spec("alert", AlertProps, action=True),
         _spec("progress", ProgressProps, action=True),
         _spec("empty-state", EmptyStateProps, action=True),
@@ -523,10 +595,10 @@ component_registry = ComponentRegistry(
         ),
         _spec(
             "donut-chart",
-            ChartProps,
+            DonutChartProps,
             action=True,
             profiles=DATA_PROFILES,
-            note="At most six declarative series.",
+            note="One series of non-negative parts; each row is a slice.",
         ),
         _spec("button", ButtonProps, action=True),
         _spec("modal", DialogProps, children=True),

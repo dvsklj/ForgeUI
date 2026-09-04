@@ -61,6 +61,14 @@ def _system_prompt(request: GenerationRequest, policy: ManifestPolicy) -> str:
         "status list, or timeline has an obvious drill-down, define a navigate action using only "
         "an allowed destination and attach its ID to the element action field. Never invent a "
         "destination or mark an element interactive without a declared action. "
+        "For analytics, reuse filters on tables, charts, pagination, and aggregate-metric. "
+        "filters is a bounded list of key, state_path, operator (eq, contains, in, gte, lte); "
+        "declare writable state and controls. aggregate-metric calculates a filtered sample of "
+        "at most 100 rows, never full enterprise totals. Use metric with provider-computed values "
+        "for authoritative KPIs; format number/percent and comparison are available. Show source "
+        "freshness, units, reporting period and scope using declared data paths. Mermaid diagrams "
+        "use nodes (id, label, optional group) and edges (source, target, optional label), "
+        "never source text. filter_state filters node groups; state_path enables node selection. "
         f"{selected}\n\nFORGE_CONTRACT:\n"
         + json.dumps(rules, ensure_ascii=False, separators=(",", ":"))
     )

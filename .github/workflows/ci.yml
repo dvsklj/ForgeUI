@@ -31,8 +31,8 @@ jobs:
         run: |
           WHEEL=$(find dist -name 'forgeui-*.whl' -print -quit)
           WHEEL_BYTES=$(wc -c < "$WHEEL")
-          if [ "$WHEEL_BYTES" -gt $((128 * 1024)) ]; then
-            echo "Wheel size $WHEEL_BYTES bytes exceeds the 128 KiB budget"
+          if [ "$WHEEL_BYTES" -gt $((144 * 1024)) ]; then
+            echo "Wheel size $WHEEL_BYTES bytes exceeds the 144 KiB budget"
             exit 1
           fi
           PACKAGE_SMOKE_DIR=$(mktemp -d)
@@ -79,3 +79,19 @@ jobs:
           enable-cache: true
       - run: uv sync --frozen --all-extras
       - run: uv run pytest -q -m "not browser and not docker and not ollama"
+
+  browser:
+    name: Analytics browser interactions
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10.0.1
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --frozen --all-extras
+      - run: uv run playwright install --with-deps chromium
+      - run: uv run pytest -q -m browser

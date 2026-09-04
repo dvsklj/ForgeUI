@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.0a3 — 2026-09-05
+
+- Add a persistence-free HTML renderer adapter with capability negotiation, structured issues,
+  asset metadata and inert/events modes while preserving the existing renderer API.
+- Add shared typed filters, filtered sample KPI aggregation, metric formatting and absolute
+  comparisons. Correct negative chart geometry and donut proportions; donut charts use one series.
+- Add structured Mermaid-compatible flowcharts with safe bounded import/export, explicit syntax
+  corrections, deterministic offline SVG, accessible connections, group filtering and node selection.
+- Add generic sales analytics examples with authorized host providers and agent references
+  covering data freshness and full versus sample totals.
+- Fix nested JSON Schema references, accessible select names and narrow grid overflow.
+- Include the upstream fix deleting app-owned device snapshots securely.
+- Keep runtime dependencies unchanged; raise the wheel budget from 128 to 144 KiB for new modules.
+
+
 All notable changes to ForgeUI are documented here. Versions follow
 [PEP 440](https://peps.python.org/pep-0440/).
 

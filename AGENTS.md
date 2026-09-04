@@ -12,3 +12,7 @@
 - Agents working concurrently must have disjoint file ownership.
 - Run focused tests for changed code and report exact commands and failures.
 - Avoid vague production-readiness claims. State implemented controls, checks, and remaining risks precisely.
+
+- For analytics, KPI dashboards, or Mermaid flowcharts, read `docs/analytics.md`;
+  use the generic contract in `examples/analytics_host.py` with
+  `examples/manifests/sales-analytics.json`.

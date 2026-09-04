@@ -225,6 +225,8 @@ def test_every_catalog_component_has_a_meaningful_render(component_type: str) ->
         "icon": {"name": "activity"},
         "key-value": {"items": [{"label": "Name", "value": "One"}]},
         "metric": {"label": "Total", "value": 1},
+        "aggregate-metric": {"label": "Total", "data": {"kind": "ref", "path": "data.devices"}},
+        "mermaid": {"title": "Flow", "nodes": [{"id": "start", "label": "Start"}]},
         "alert": {"title": "Note", "message": "Detail"},
         "progress": {"label": "Usage", "value": 4},
         "empty-state": {"title": "Empty", "message": "None"},

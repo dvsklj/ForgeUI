@@ -60,3 +60,9 @@ Model-authored plain text is escaped by Jinja and cannot select a template or sa
 
 For exact props and compatibility, query `GET /api/catalog`; it is generated from the same registry
 the renderer and validator use.
+
+## Analytics additions
+
+`aggregate-metric` and structured `mermaid` flowcharts share the canonical catalog/schema.
+Common filters apply to collection components; metrics support formatting and comparisons.
+See [analytics and diagram authoring](analytics.md) for all fields and limits.

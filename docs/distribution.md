@@ -36,7 +36,7 @@ uv add 'forgeui[web,ollama]>=0.1,<0.2'
 
 ## Publishing public releases to PyPI
 
-The `publish.yml` workflow builds and tests a release, enforces the 128 KiB wheel budget, uploads
+The `publish.yml` workflow builds and tests a release, enforces the 144 KiB wheel budget, uploads
 the verified artifacts between isolated jobs, and publishes with short-lived GitHub OIDC
 credentials. It contains no PyPI API token.
 
@@ -65,9 +65,7 @@ Without an environment reviewer, publishing starts immediately after a matching 
 published. Enable the reviewer protection before the first public release, or treat permission to
 publish a GitHub release as permission to publish the corresponding PyPI version.
 
-At the time this guide was written, PyPI's JSON endpoint returned no existing `forgeui` project.
-That is not a permanent reservation: configure the pending publisher before the first release and
-confirm the name again immediately before publishing.
+ForgeUI is published on PyPI through this workflow. Verify the new version after each release.
 
 ## Installing before the first PyPI release
 

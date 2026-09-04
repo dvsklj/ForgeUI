@@ -97,3 +97,6 @@ Generation uses the same schema and semantic validation as API saves. The pipeli
 initial candidate plus no more than two repair candidates. It tracks hashes and rejects repeated
 invalid output. A candidate must parse, validate, and dry-render before persistence; failures do
 not alter the active or last-known-good revision.
+
+Analytics filters, KPI metrics and structured flowchart props are documented in
+[analytics authoring](analytics.md) and generated from the canonical component catalog.

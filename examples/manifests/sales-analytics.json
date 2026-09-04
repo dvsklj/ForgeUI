@@ -1,0 +1,245 @@
+{
+  "metadata": {
+    "title": "Sales analytics"
+  },
+  "design": {
+    "name": "calm-neutral"
+  },
+  "data": {
+    "contract": "sales-analytics/1",
+    "source": "sales.analytics"
+  },
+  "state": {
+    "values": {
+      "region": "all",
+      "node": ""
+    },
+    "writable": [
+      "state.region",
+      "state.node"
+    ]
+  },
+  "root": "page",
+  "elements": {
+    "page": {
+      "type": "page",
+      "children": [
+        "heading",
+        "scope",
+        "freshness",
+        "totals",
+        "details"
+      ]
+    },
+    "heading": {
+      "type": "page-header",
+      "props": {
+        "title": {
+          "kind": "ref",
+          "path": "data.title"
+        },
+        "subtitle": "Explore sales performance by region"
+      }
+    },
+    "scope": {
+      "type": "text",
+      "props": {
+        "text": {
+          "kind": "ref",
+          "path": "data.scope"
+        },
+        "tone": "muted"
+      }
+    },
+    "freshness": {
+      "type": "key-value",
+      "props": {
+        "items": [
+          {
+            "label": "Data as of",
+            "value": {
+              "kind": "ref",
+              "path": "data.as_of"
+            },
+            "format": "datetime"
+          }
+        ]
+      }
+    },
+    "totals": {
+      "type": "grid",
+      "props": {
+        "columns": 2
+      },
+      "children": [
+        "revenue",
+        "orders"
+      ]
+    },
+    "revenue": {
+      "type": "metric",
+      "props": {
+        "label": "August revenue \u00b7 CHF",
+        "value": {
+          "kind": "ref",
+          "path": "data.revenue"
+        },
+        "comparison": {
+          "kind": "ref",
+          "path": "data.previous_revenue"
+        },
+        "format": "number",
+        "detail": "Provider total \u00b7 comparison: July \u00b7 all permitted regions"
+      }
+    },
+    "orders": {
+      "type": "metric",
+      "props": {
+        "label": "August orders",
+        "value": {
+          "kind": "ref",
+          "path": "data.orders"
+        },
+        "format": "number",
+        "detail": "Provider total \u00b7 all permitted regions"
+      }
+    },
+    "details": {
+      "type": "card",
+      "props": {
+        "title": "Explore the regional sample"
+      },
+      "children": [
+        "region",
+        "sample",
+        "trend",
+        "rows",
+        "flow"
+      ]
+    },
+    "region": {
+      "type": "select",
+      "props": {
+        "label": "Region",
+        "state_path": "state.region",
+        "options": [
+          {
+            "value": "all",
+            "label": "All regions"
+          },
+          {
+            "value": "emea",
+            "label": "EMEA"
+          },
+          {
+            "value": "americas",
+            "label": "Americas"
+          }
+        ]
+      }
+    },
+    "sample": {
+      "type": "aggregate-metric",
+      "props": {
+        "label": "Revenue in displayed periods \u00b7 CHF",
+        "data": {
+          "kind": "ref",
+          "path": "data.rows"
+        },
+        "operation": "sum",
+        "value_key": "revenue",
+        "filters": [
+          {
+            "key": "region",
+            "state_path": "state.region",
+            "operator": "eq"
+          }
+        ]
+      }
+    },
+    "trend": {
+      "type": "bar-chart",
+      "props": {
+        "title": "Revenue by reporting row \u00b7 CHF",
+        "data": {
+          "kind": "ref",
+          "path": "data.rows"
+        },
+        "x_key": "period",
+        "x_axis_label": "Reporting period",
+        "y_axis_label": "CHF",
+        "series": [
+          {
+            "label": "Revenue",
+            "value": "revenue"
+          }
+        ],
+        "filters": [
+          {
+            "key": "region",
+            "state_path": "state.region",
+            "operator": "eq"
+          }
+        ]
+      }
+    },
+    "rows": {
+      "type": "table",
+      "props": {
+        "data": {
+          "kind": "ref",
+          "path": "data.rows"
+        },
+        "columns": [
+          {
+            "key": "region",
+            "label": "Region"
+          },
+          {
+            "key": "period",
+            "label": "Period"
+          },
+          {
+            "key": "revenue",
+            "label": "Revenue \u00b7 CHF",
+            "format": "number"
+          },
+          {
+            "key": "orders",
+            "label": "Orders",
+            "format": "number"
+          }
+        ],
+        "filters": [
+          {
+            "key": "region",
+            "state_path": "state.region",
+            "operator": "eq"
+          }
+        ]
+      }
+    },
+    "flow": {
+      "type": "mermaid",
+      "props": {
+        "title": "Regional reporting flow",
+        "direction": "LR",
+        "filter_state": "state.region",
+        "state_path": "state.node",
+        "nodes": [
+          {
+            "id": "emea",
+            "label": "EMEA sales",
+            "group": "emea"
+          },
+          {
+            "id": "americas",
+            "label": "Americas sales",
+            "group": "americas"
+          }
+        ],
+        "edges": []
+      }
+    }
+  }
+}

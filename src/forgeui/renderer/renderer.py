@@ -21,11 +21,13 @@ from markupsafe import Markup, escape
 from pydantic import BaseModel, ValidationError
 
 from forgeui import __version__
+from forgeui.analytics import aggregate, filter_rows
 from forgeui.catalog.registry import component_registry
 from forgeui.domain.models import ForgeManifest
 from forgeui.expressions import EvaluationError, evaluate_expression
 from forgeui.expressions.ast import CallExpr, ExpressionAdapter, LiteralExpr, OpExpr, RefExpr
 from forgeui.icons import render_heroicon
+from forgeui.renderer.diagrams import diagram_svg
 from forgeui.surfaces import PersistenceMode, SurfaceMode, surface_presentation
 
 MAX_RENDER_ROWS = 100
@@ -385,7 +387,75 @@ class Renderer:
         if component_type == "modal":
             return {"close_icon": render_heroicon("close", class_name="forge-button-icon")}
         if component_type in {"line-chart", "bar-chart", "donut-chart", "sparkline"}:
-            return self._chart_extra(component_type, props)
+            return self._chart_extra(
+                component_type,
+                {
+                    **props,
+                    "data": self._filter_rows(
+                        (
+                            props["data"][:MAX_RENDER_ROWS]
+                            if isinstance(props.get("data"), list)
+                            else []
+                        ),
+                        props,
+                        context,
+                    ),
+                },
+            )
+        if component_type == "metric":
+            value, previous = props.get("value"), props.get("comparison")
+            delta = None
+            if (
+                isinstance(value, (int, float))
+                and not isinstance(value, bool)
+                and isinstance(previous, (int, float))
+                and not isinstance(previous, bool)
+                and math.isfinite(value)
+                and math.isfinite(previous)
+            ):
+                difference = value - previous
+                if math.isfinite(difference):
+                    delta = ("+" if difference > 0 else "") + self._format_cell(
+                        difference,
+                        str(props.get("format", "number"))
+                        if props.get("format") != "text"
+                        else "number",
+                    )
+            return {
+                "value": self._format_cell(value, str(props.get("format", "text"))),
+                "delta": delta,
+            }
+        if component_type == "aggregate-metric":
+            raw = props.get("data", [])
+            rows = self._filter_rows(
+                raw[:MAX_RENDER_ROWS] if isinstance(raw, list) else [], props, context
+            )
+            value = aggregate(rows, str(props["operation"]), props.get("value_key"))
+            return {
+                "value": "—" if value is None else self._format_cell(value, str(props["format"]))
+            }
+        if component_type == "mermaid":
+            selected = context.state.get(str(props.get("filter_state", "")).removeprefix("state."))
+            nodes = [
+                node
+                for node in props["nodes"]
+                if selected in (None, "", "all") or node.get("group") == selected
+            ]
+            ids = {node["id"] for node in nodes}
+            edges = [
+                edge for edge in props["edges"] if edge["source"] in ids and edge["target"] in ids
+            ]
+            return {
+                "nodes": nodes,
+                "edges": edges,
+                "svg": _trusted_markup(
+                    diagram_svg(nodes, edges, str(props["direction"]), str(props["title"]))
+                ),
+                "selected": context.state.get(
+                    str(props.get("state_path", "")).removeprefix("state."), ""
+                ),
+            }
+
         if component_type == "key-value":
             items = props.get("items", [])
             rows = items if isinstance(items, list) else []
@@ -425,8 +495,8 @@ class Renderer:
         if component_type in {"status-list", "timeline"}:
             data = props.get("data", [])
             rows = data[:MAX_RENDER_ROWS] if isinstance(data, list) else []
+            rows = self._filter_rows(rows, props, context)
             if component_type == "timeline":
-                rows = self._filter_rows(rows, props, context)
                 timeline_rows: list[dict[str, Any]] = []
                 for raw_row in rows:
                     row = _as_mapping(_normalise_data(raw_row))
@@ -537,15 +607,7 @@ class Renderer:
     def _filter_rows(
         rows: list[Any], props: Mapping[str, Any], context: RenderContext
     ) -> list[Any]:
-        state_path = props.get("filter_state")
-        filter_key = props.get("filter_key")
-        if not isinstance(state_path, str) or not isinstance(filter_key, str):
-            return rows
-        state_key = state_path.split(".", 1)[1] if "." in state_path else ""
-        selected = context.state.get(state_key)
-        if selected in {None, "", "all"}:
-            return rows
-        return [row for row in rows if isinstance(row, Mapping) and row.get(filter_key) == selected]
+        return filter_rows(rows, props, context.state)
 
     @staticmethod
     def _page(props: Mapping[str, Any], context: RenderContext, row_count: int) -> int:
@@ -667,9 +729,12 @@ class Renderer:
         value_format: str,
     ) -> Markup:
         width, height = 560, 210
-        left, right, top, bottom = 52, 14, 14, 44
+        left, right, top, bottom = 70, 14, 14, 44
         plot_width = width - left - right
         plot_height = height - top - bottom
+        minimum = min(0.0, min((number for line in values for number in line), default=0.0))
+        span = maximum - minimum or 1.0
+        zero_y = top + plot_height * maximum / span
         aria_label = escape(f"{y_axis_label} by {x_axis_label}; {len(values)} series")
 
         def point_label(series_index: int, point_index: int, value: float) -> str:
@@ -694,7 +759,7 @@ class Renderer:
         if kind != "donut":
             for fraction in (0.0, 0.5, 1.0):
                 y = top + plot_height * (1 - fraction)
-                raw_tick = maximum * fraction
+                raw_tick = minimum + span * fraction
                 tick = f"{raw_tick * 100:.0f}%" if value_format == "percent" else f"{raw_tick:g}"
                 lines.extend(
                     (
@@ -714,9 +779,19 @@ class Renderer:
                 for index in tick_indexes:
                     if index >= len(x_values):
                         continue
-                    x = left + plot_width * index / max(point_count - 1, 1)
+                    x = (
+                        left + plot_width * (index + 0.5) / point_count
+                        if kind == "bar"
+                        else left + plot_width * index / max(point_count - 1, 1)
+                    )
                     anchor = (
-                        "start" if index == 0 else "end" if index == point_count - 1 else "middle"
+                        "middle"
+                        if kind == "bar"
+                        else "start"
+                        if index == 0
+                        else "end"
+                        if index == point_count - 1
+                        else "middle"
                     )
                     lines.append(
                         f'<text x="{x:.2f}" y="{height - 23}" text-anchor="{anchor}" '
@@ -740,7 +815,7 @@ class Renderer:
             coordinates = [
                 (
                     left + plot_width * index / count,
-                    top + plot_height * (1 - max(min(value / maximum, 1.0), -1.0)),
+                    top + plot_height * (maximum - value) / span,
                 )
                 for index, value in enumerate(line)
             ]
@@ -752,7 +827,8 @@ class Renderer:
                         + plot_width * index / max(len(line), 1)
                         + series_index * (bar_width + 2)
                     )
-                    bar_height = max(0.0, top + plot_height - y)
+                    bar_height = abs(zero_y - y)
+                    y = min(y, zero_y)
                     label = escape(point_label(series_index, index, line[index]))
                     focus = (
                         f' tabindex="0" role="img" aria-label="{label}"'
@@ -767,21 +843,26 @@ class Renderer:
                         f'height="{bar_height:.2f}"><title>{label}</title></rect>'
                     )
             elif kind == "donut":
-                total = sum(max(value, 0) for value in line) or 1.0
-                fraction = min(max(max(line, default=0), 0) / total, 1.0)
-                radius, circumference = 58, 2 * math.pi * 58
-                offset = circumference * (1 - fraction)
-                label = escape(point_label(series_index, len(line) - 1, line[-1]))
-                lines.append(
-                    f'<circle class="forge-chart-series {series_class} forge-chart-line" '
-                    f'data-forge-chart-point data-forge-chart-series="{series_index + 1}" '
-                    f'data-forge-chart-label="{label}" tabindex="0" role="img" '
-                    f'aria-label="{label}" '
-                    f'cx="280" cy="90" r="{radius}" fill="none" '
-                    f'stroke-width="24" stroke-dasharray="{circumference:.2f}" '
-                    f'stroke-dashoffset="{offset:.2f}" transform="rotate(-90 280 90)">'
-                    f"<title>{label}</title></circle>"
-                )
+                if any(value < 0 for value in line):
+                    raise ValueError("donut charts require non-negative values")
+                total = sum(line) or 1.0
+                if not math.isfinite(total):
+                    raise ValueError("donut total exceeds numeric range")
+                circumference = 2 * math.pi * 58
+                offset = 0.0
+                for index, value in enumerate(line):
+                    length = circumference * value / total
+                    label = escape(point_label(series_index, index, value))
+                    parts_class = f"forge-chart-series--{index % 6 + 1}"
+                    lines.append(
+                        f'<circle class="forge-chart-series {parts_class} forge-chart-line" '
+                        f'role="img" tabindex="0" aria-label="{label}" '
+                        f'cx="280" cy="90" r="58" fill="none" stroke-width="24" '
+                        f'stroke-dasharray="{length:.2f} {circumference - length:.2f}" '
+                        f'stroke-dashoffset="{-offset:.2f}" transform="rotate(-90 280 90)">'
+                        f"<title>{label}</title></circle>"
+                    )
+                    offset += length
                 break
             else:
                 path = " ".join(
@@ -791,10 +872,7 @@ class Renderer:
                 if kind == "area" and len(coordinates) > 1:
                     first_x, _ = coordinates[0]
                     last_x, _ = coordinates[-1]
-                    area = (
-                        f"{path} L {last_x:.2f} {top + plot_height} "
-                        f"L {first_x:.2f} {top + plot_height} Z"
-                    )
+                    area = f"{path} L {last_x:.2f} {zero_y} L {first_x:.2f} {zero_y} Z"
                     lines.append(
                         f'<path class="forge-chart-series {series_class} forge-chart-area" '
                         f'd="{area}"/>'

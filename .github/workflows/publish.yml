@@ -42,8 +42,8 @@ jobs:
         run: |
           WHEEL=$(find dist -name 'forgeui-*.whl' -print -quit)
           WHEEL_BYTES=$(wc -c < "$WHEEL")
-          if [ "$WHEEL_BYTES" -gt $((128 * 1024)) ]; then
-            echo "Wheel size $WHEEL_BYTES bytes exceeds the 128 KiB budget"
+          if [ "$WHEEL_BYTES" -gt $((144 * 1024)) ]; then
+            echo "Wheel size $WHEEL_BYTES bytes exceeds the 144 KiB budget"
             exit 1
           fi
       - name: Smoke-test the exact release wheel

@@ -515,7 +515,7 @@ def test_complete_manifest_revision_and_device_data_api_lifecycle() -> None:
         assert client.get("/api/health/dependencies").status_code == 200
         catalog = client.get("/api/catalog")
         assert catalog.status_code == 200
-        assert len(catalog.json()["components"]) == 46
+        assert len(catalog.json()["components"]) == 48
 
         validation = client.post(
             "/api/validate",

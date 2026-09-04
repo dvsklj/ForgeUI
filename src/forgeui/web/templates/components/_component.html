@@ -31,8 +31,18 @@
 <span id="{{ element_id }}" class="forge-icon-wrap"{% if p.label %} role="img" aria-label="{{ p.label }}"{% else %} aria-hidden="true"{% endif %}>{{ extra.icon }}</span>
 {% elif component.type == 'key-value' %}
 <dl id="{{ element_id }}" class="forge-key-value">{% for row in extra.rows %}<div><dt>{{ row.label }}</dt><dd>{{ row.value }}</dd></div>{% endfor %}</dl>
+{% elif component.type == 'aggregate-metric' %}
+<article id="{{ element_id }}" class="forge-metric{% if component.action %} forge-has-action{% endif %}"><p>{{ p.label }}</p><strong>{{ extra.value }}</strong><small>Filtered sample · up to 100 rows</small>{{ drilldown('View details for ' ~ p.label) }}</article>
+{% elif component.type == 'mermaid' %}
+<figure id="{{ element_id }}" class="forge-diagram forge-chart"><figcaption>{{ p.title }}</figcaption>
+{% if extra.nodes %}
+<div class="forge-diagram-scroll" tabindex="0" aria-label="Flow diagram">{{ extra.svg }}</div>
+<ol class="forge-sr-only forge-diagram-nodes forge-diagram--{{ p.direction }}">{% for node in extra.nodes %}<li><span class="forge-diagram-node">{{ node.label }}</span></li>{% endfor %}</ol>
+{% if p.state_path %}<label class="forge-input-label">Select node<select class="forge-input" name="{{ p.state_path }}" aria-label="Select node"><option value="">No selection</option>{% for node in extra.nodes %}<option value="{{ node.id }}"{% if node.id == extra.selected %} selected{% endif %}>{{ node.label }}</option>{% endfor %}</select></label>{% endif %}
+<div class="forge-table-wrap" tabindex="0"><table class="forge-table"><caption>Connections</caption><thead><tr><th scope="col">From</th><th scope="col">To</th><th scope="col">Relationship</th></tr></thead><tbody>{% for edge in extra.edges %}<tr><td>{% for node in extra.nodes if node.id == edge.source %}{{ node.label }}{% endfor %}</td><td>{% for node in extra.nodes if node.id == edge.target %}{{ node.label }}{% endfor %}</td><td>{{ edge.label or '→' }}</td></tr>{% else %}<tr><td colspan="3">No connections</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<p role="status">No nodes match the current filter.</p>{% endif %}</figure>
 {% elif component.type == 'metric' %}
-<article id="{{ element_id }}" class="forge-metric forge-metric--{{ p.status }}{% if component.action %} forge-has-action{% endif %}"><p>{{ p.label }}</p><strong>{{ p.value }}</strong>{% if p.detail %}<small>{{ p.detail }}</small>{% endif %}{{ drilldown('View details for ' ~ p.label) }}</article>
+<article id="{{ element_id }}" class="forge-metric forge-metric--{{ p.status }}{% if component.action %} forge-has-action{% endif %}"><p>{{ p.label }}</p><strong>{{ extra.value }}</strong>{% if extra.delta is not none %}<small class="forge-metric-comparison">{{ extra.delta }} vs comparison</small>{% endif %}{% if p.detail %}<small>{{ p.detail }}</small>{% endif %}{{ drilldown('View details for ' ~ p.label) }}</article>
 {% elif component.type == 'alert' %}
 <section id="{{ element_id }}" class="forge-alert forge-alert--{{ p.level }}{% if component.action %} forge-has-action{% endif %}" role="{% if p.level in ['warning', 'error'] %}alert{% else %}status{% endif %}"><strong>{{ p.title }}</strong><p>{{ p.message }}</p>{{ drilldown('View details for ' ~ p.title) }}</section>
 {% elif component.type == 'progress' %}
@@ -64,7 +74,7 @@
 {% elif component.type == 'number-input' %}
 <label id="{{ element_id }}" class="forge-input-label"><span class="forge-sr-only">{{ p.label }}</span><input class="forge-input" type="number" name="{{ p.state_path }}" value="{{ extra.state_value }}"{% if p.minimum is not none %} min="{{ p.minimum }}"{% endif %}{% if p.maximum is not none %} max="{{ p.maximum }}"{% endif %}></label>
 {% elif component.type == 'select' %}
-<label id="{{ element_id }}" class="forge-input-label"><span class="forge-sr-only">{{ p.label }}</span><select class="forge-input" name="{{ p.state_path }}">{% for option in p.options %}<option value="{{ option.value }}"{% if option.value == extra.state_value %} selected{% endif %}>{{ option.label }}</option>{% endfor %}</select></label>
+<label id="{{ element_id }}" class="forge-input-label"><span class="forge-sr-only">{{ p.label }}</span><select class="forge-input" name="{{ p.state_path }}" aria-label="{{ p.label }}">{% for option in p.options %}<option value="{{ option.value }}"{% if option.value == extra.state_value %} selected{% endif %}>{{ option.label }}</option>{% endfor %}</select></label>
 {% elif component.type == 'radio-group' %}
 <fieldset id="{{ element_id }}" class="forge-choice-group"><legend class="forge-sr-only">{{ p.label }}</legend>{% for option in p.options %}<label><input type="radio" name="{{ p.state_path }}" value="{{ option.value }}"{% if option.value == extra.state_value %} checked{% endif %}> {{ option.label }}</label>{% endfor %}</fieldset>
 {% elif component.type in ['checkbox', 'toggle'] %}
@@ -72,7 +82,7 @@
 {% elif component.type == 'tabs' %}
 <div id="{{ element_id }}" class="forge-tabs" role="tablist" aria-label="{{ p.label }}">{{ children }}</div>
 {% elif component.type == 'date-range' %}
-<label id="{{ element_id }}" class="forge-input-label"><span class="forge-sr-only">{{ p.label }}</span><select class="forge-input" name="{{ p.state_path }}">{% for choice in ['24h', '7d', '30d'] %}<option value="{{ choice }}"{% if choice == extra.state_value or (not extra.state_value and choice == p.preset) %} selected{% endif %}>Last {{ choice }}</option>{% endfor %}</select></label>
+<label id="{{ element_id }}" class="forge-input-label"><span class="forge-sr-only">{{ p.label }}</span><select class="forge-input" name="{{ p.state_path }}" aria-label="{{ p.label }}">{% for choice in ['24h', '7d', '30d'] %}<option value="{{ choice }}"{% if choice == extra.state_value or (not extra.state_value and choice == p.preset) %} selected{% endif %}>Last {{ choice }}</option>{% endfor %}</select></label>
 {% elif component.type == 'breadcrumbs' %}
 <nav id="{{ element_id }}" class="forge-breadcrumbs" aria-label="Breadcrumb"><ol>{% for item in p.get('items') %}<li><button type="button" data-forge-destination="{{ item.destination }}">{{ item.label }}</button></li>{% endfor %}</ol></nav>
 {% elif component.type == 'pagination' %}
