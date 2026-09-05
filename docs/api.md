@@ -81,9 +81,11 @@ jq -n --slurpfile manifest examples/manifests/fleet-overview.json \
 | `GET` | `/api/generation/{job_id}` | Read status, progress, attempt, result revision, and error code. |
 | `POST` | `/api/generation/{job_id}/cancel` | Cancel a queued or running job. |
 
-The request shape is `{brief, profile, data_contract, sample_data}`. `profile` is `choose` or one
-of the four profile IDs; the only accepted `data_contract` is `device-health/1`. The Ollama URL,
-model tag, credentials, and time limits are server configuration, never request properties.
+The request shape is `{brief, profile, data_source, data_contract, sample_data}`. `profile` is
+`choose` or one of the four profile IDs. `data_source` and `data_contract` must name a source and
+contract registered in the instance's runtime registries; the built-in pair is `device-health`
+and `device-health/1`. The Ollama URL, model tag, credentials, and time limits are server
+configuration, never request properties.
 
 ## Device health
 
