@@ -14,13 +14,12 @@ COPY pyproject.toml uv.lock README.md LICENSE THIRD_PARTY_NOTICES.md ./
 RUN uv sync --frozen --no-dev --extra app --no-install-project
 
 COPY src ./src
-RUN uv sync --frozen --no-dev --extra app
+RUN uv sync --frozen --no-dev --no-editable --extra app
 
 FROM python:3.12-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app/src \
     VIRTUAL_ENV=/opt/venv \
     PATH=/opt/venv/bin:$PATH \
     FORGEUI_DATA_DIR=/data \
@@ -33,7 +32,6 @@ RUN addgroup --system --gid 10001 forgeui \
 
 WORKDIR /app
 COPY --from=builder --chown=forgeui:forgeui /build/.venv /opt/venv
-COPY --from=builder --chown=forgeui:forgeui /build/src /app/src
 
 USER forgeui
 EXPOSE 8000

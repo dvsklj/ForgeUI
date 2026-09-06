@@ -1,13 +1,21 @@
 from __future__ import annotations
 
 from collections import deque
+from collections.abc import Iterator
 from types import SimpleNamespace
 
 import pytest
 from bs4 import BeautifulSoup
 from fastapi.testclient import TestClient
+from starlette.types import Receive, Scope, Send
 
-from forgeui.app import RATE_LIMIT_WINDOW_SECONDS, SecurityMiddleware, create_app
+from forgeui.app import (
+    RATE_LIMIT_WINDOW_SECONDS,
+    RequestLimitMiddleware,
+    SecurityMiddleware,
+    _BodyTooLargeError,
+    create_app,
+)
 from forgeui.config import Settings
 from forgeui.llm import ScriptedProvider
 
@@ -35,6 +43,88 @@ def test_security_headers_body_limit_and_csrf() -> None:
         assert client.post("/api/apps", json={"title": "No token"}).status_code == 403
         too_large = client.post("/api/apps", content=b"x" * 20_000)
         assert too_large.status_code == 413
+
+
+def _settings_with_limit(maximum: int) -> Settings:
+    return Settings(
+        environment="test",
+        database_url="sqlite:///:memory:",
+        admin_token="token",
+        max_request_bytes=maximum,
+    )
+
+
+def _stream(*parts: bytes) -> Iterator[bytes]:
+    # An iterator body makes httpx use chunked transfer encoding, so the middleware
+    # has no Content-Length to reject the request on.
+    yield from parts
+
+
+def test_streamed_body_without_content_length_is_limited() -> None:
+    limit = 16_384
+    with TestClient(create_app(_settings_with_limit(limit), ScriptedProvider([]))) as client:
+        response = client.post(
+            "/api/apps",
+            content=_stream(b"x" * limit, b"x"),
+            headers={"Authorization": "Bearer token", "Content-Type": "application/json"},
+        )
+        assert "content-length" not in {key.lower() for key in response.request.headers}
+        assert response.status_code == 413
+        assert response.json() == {"detail": "request body is too large"}
+
+
+def test_streamed_body_under_the_limit_is_accepted() -> None:
+    limit = 16_384
+    with TestClient(create_app(_settings_with_limit(limit), ScriptedProvider([]))) as client:
+        at_limit = client.post(
+            "/api/apps",
+            content=_stream(b"x" * (limit // 2), b"x" * (limit // 2)),
+            headers={"Authorization": "Bearer token", "Content-Type": "application/json"},
+        )
+        assert "content-length" not in {key.lower() for key in at_limit.request.headers}
+        assert at_limit.status_code != 413
+        created = client.post(
+            "/api/apps",
+            content=_stream(b'{"title": "St', b'reamed"}'),
+            headers={"Authorization": "Bearer token", "Content-Type": "application/json"},
+        )
+        assert created.status_code == 201
+        assert created.json()["title"] == "Streamed"
+
+
+def test_streamed_form_body_is_limited_before_csrf_parsing() -> None:
+    limit = 16_384
+    with TestClient(create_app(_settings_with_limit(limit), ScriptedProvider([]))) as client:
+        # A form post makes the security middleware read the body itself to find the
+        # CSRF field, so the limit has to hold outside the routing layer too.
+        response = client.post(
+            "/login",
+            content=_stream(b"csrf_token=" + b"x" * limit, b"x"),
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        assert response.status_code == 413
+        assert response.json() == {"detail": "request body is too large"}
+
+
+async def test_limit_after_response_started_propagates_instead_of_replacing() -> None:
+    sent: list[dict[str, object]] = []
+
+    async def app(scope: Scope, receive: Receive, send: Send) -> None:
+        del scope
+        await send({"type": "http.response.start", "status": 200, "headers": []})
+        while True:
+            await receive()
+
+    async def receive() -> dict[str, object]:
+        return {"type": "http.request", "body": b"x" * 8, "more_body": True}
+
+    async def send(message: dict[str, object]) -> None:
+        sent.append(message)
+
+    middleware = RequestLimitMiddleware(app, maximum=8)
+    with pytest.raises(_BodyTooLargeError):
+        await middleware({"type": "http", "headers": []}, receive, send)
+    assert sent == [{"type": "http.response.start", "status": 200, "headers": []}]
 
 
 @pytest.mark.parametrize(

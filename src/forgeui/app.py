@@ -24,6 +24,7 @@ from itsdangerous import BadSignature, SignatureExpired, URLSafeSerializer, URLS
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from forgeui.config import Settings, get_settings
 from forgeui.container import Container, create_container
@@ -38,43 +39,90 @@ from forgeui.web import create_router, service_error_handler
 logger = logging.getLogger(__name__)
 ADMIN_SESSION_SECONDS = 8 * 60 * 60
 RATE_LIMIT_WINDOW_SECONDS = 60.0
+WORKER_IDLE_MIN_SECONDS = 0.1
+WORKER_IDLE_MAX_SECONDS = 2.0
+_TOO_LARGE_DETAIL = "request body is too large"
 _STATELESS_RENDER_PATH = re.compile(
     r"/apps/[a-f0-9]{32}/stateless/(?:actions/[a-z][a-z0-9_-]*|state/[a-z][a-z0-9_]*)$"
 )
 
 
-class RequestLimitMiddleware(BaseHTTPMiddleware):
+class RequestLimitMiddleware:
     """Reject oversized Content-Length and streaming request bodies before handlers."""
 
-    def __init__(self, app: Any, *, maximum: int) -> None:
-        super().__init__(app)
+    def __init__(self, app: ASGIApp, *, maximum: int) -> None:
+        self.app = app
         self.maximum = maximum
 
-    async def dispatch(self, request: Request, call_next: Callable[[Request], Any]) -> Response:
-        content_length = request.headers.get("content-length")
-        if content_length and content_length.isdigit() and int(content_length) > self.maximum:
-            return JSONResponse({"detail": "request body is too large"}, status_code=413)
-        received = 0
-        original_receive = request._receive
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        if self._declared_length(scope) > self.maximum:
+            await _too_large(scope, receive, send)
+            return
 
-        async def limited_receive() -> dict[str, Any]:
-            nonlocal received
-            message = await original_receive()
+        received = 0
+        rejected = False
+        started = False
+        replaced = False
+
+        async def limited_receive() -> Message:
+            nonlocal received, rejected
+            message = await receive()
             if message["type"] == "http.request":
                 received += len(message.get("body", b""))
                 if received > self.maximum:
+                    rejected = True
                     raise _BodyTooLargeError
-            return dict(message)
+            return message
 
-        request._receive = limited_receive
+        async def reject() -> None:
+            nonlocal started, replaced
+            started = True
+            replaced = True
+            await _too_large(scope, receive, send)
+
+        async def guarded_send(message: Message) -> None:
+            nonlocal started
+            if message["type"] == "http.response.start":
+                if rejected:
+                    # Intermediate layers turn a failing receive into their own error
+                    # response; the limit is the real cause, so answer with the 413.
+                    await reject()
+                    return
+                started = True
+            elif replaced:
+                return
+            await send(message)
+
         try:
-            return cast(Response, await call_next(request))
+            await self.app(scope, limited_receive, guarded_send)
         except _BodyTooLargeError:
-            return JSONResponse({"detail": "request body is too large"}, status_code=413)
+            if not started:
+                await reject()
+            elif not replaced:
+                # The handler already committed a status line, so the limit cannot
+                # be reported as a 413 any more.
+                raise
+
+    @staticmethod
+    def _declared_length(scope: Scope) -> int:
+        for name, value in scope.get("headers", ()):
+            if name == b"content-length":
+                text = value.decode("latin-1").strip()
+                if text.isdigit():
+                    return int(text)
+        return 0
 
 
 class _BodyTooLargeError(Exception):
-    pass
+    """Raised from the wrapped receive channel once the body exceeds the limit."""
+
+
+async def _too_large(scope: Scope, receive: Receive, send: Send) -> None:
+    response = JSONResponse({"detail": _TOO_LARGE_DETAIL}, status_code=413)
+    await response(scope, receive, send)
 
 
 class MetricsMiddleware(BaseHTTPMiddleware):
@@ -352,14 +400,19 @@ async def _run_job(
 
 async def _worker(container: Container, stop: asyncio.Event) -> None:
     worker_id = f"web-{uuid.uuid4().hex}"
+    delay = WORKER_IDLE_MIN_SECONDS
     while not stop.is_set():
         job = container.jobs.claim_next(worker_id)
         if job is None:
+            # Back off while the queue stays empty so an idle process does not run a
+            # claim query ten times a second; the stop event still ends the wait early.
             try:
-                await asyncio.wait_for(stop.wait(), timeout=0.1)
+                await asyncio.wait_for(stop.wait(), timeout=delay)
             except TimeoutError:
+                delay = min(delay * 2, WORKER_IDLE_MAX_SECONDS)
                 continue
         else:
+            delay = WORKER_IDLE_MIN_SECONDS
             await _run_job(container, worker_id, job.id, stop=stop)
 
 

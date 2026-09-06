@@ -12,7 +12,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from forgeui.a2ui import A2UI_MIME_TYPE
-from forgeui.app import create_app, mount_forgeui
+from forgeui.app import WORKER_IDLE_MAX_SECONDS, create_app, mount_forgeui
 from forgeui.config import Settings
 from forgeui.llm import ScriptedProvider
 from forgeui.llm.types import ChatMessage, ProviderResponse
@@ -154,9 +154,12 @@ def test_browser_mutations_require_csrf_and_worker_persists_valid_result() -> No
         )
         assert queued.status_code == 202
         job_id = queued.json()["id"]
-        for _ in range(30):
+        # Wait on a deadline rather than a fixed iteration count: an idle worker backs
+        # off up to WORKER_IDLE_MAX_SECONDS before it claims this job.
+        deadline = time.monotonic() + WORKER_IDLE_MAX_SECONDS + 3.0
+        while True:
             job = client.get(f"/api/generation/{job_id}", headers=_admin()).json()
-            if job["status"] in {"succeeded", "failed"}:
+            if job["status"] in {"succeeded", "failed"} or time.monotonic() > deadline:
                 break
             time.sleep(0.03)
         assert job["status"] == "succeeded"
