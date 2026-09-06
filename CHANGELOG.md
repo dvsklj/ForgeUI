@@ -1,5 +1,18 @@
 # Changelog
 
+All notable changes to ForgeUI are documented here. Versions follow
+[PEP 440](https://peps.python.org/pep-0440/).
+
+## Unreleased
+
+### Fixed
+
+- Action, state, and data routes for an unknown app now return 404 instead of a logged 500; an
+  app-level handler maps every escaped service error to its client status.
+- The in-memory rate limiter sweeps buckets for clients idle for a full window, so memory no
+  longer grows with every client address ever seen.
+- `/api/health/dependencies` checks SQLite instead of always reporting it ready.
+
 ## 0.1.0a3 — 2026-09-05
 
 - Add a persistence-free HTML renderer adapter with capability negotiation, structured issues,
@@ -13,10 +26,6 @@
 - Fix nested JSON Schema references, accessible select names and narrow grid overflow.
 - Include the upstream fix deleting app-owned device snapshots securely.
 - Keep runtime dependencies unchanged; raise the wheel budget from 128 to 144 KiB for new modules.
-
-
-All notable changes to ForgeUI are documented here. Versions follow
-[PEP 440](https://peps.python.org/pep-0440/).
 
 ## 0.1.0a2 — 2026-09-01
 

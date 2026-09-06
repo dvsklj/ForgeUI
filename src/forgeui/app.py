@@ -12,6 +12,7 @@ import uuid
 from collections import defaultdict, deque
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager, suppress
+from pathlib import Path
 from time import monotonic
 from typing import Any, cast
 from urllib.parse import parse_qs
@@ -32,10 +33,11 @@ from forgeui.observability import Metrics
 from forgeui.runtime import RuntimeRegistries
 from forgeui.security import Principal
 from forgeui.services.exceptions import ServiceError
-from forgeui.web import create_router
+from forgeui.web import create_router, service_error_handler
 
 logger = logging.getLogger(__name__)
 ADMIN_SESSION_SECONDS = 8 * 60 * 60
+RATE_LIMIT_WINDOW_SECONDS = 60.0
 _STATELESS_RENDER_PATH = re.compile(
     r"/apps/[a-f0-9]{32}/stateless/(?:actions/[a-z][a-z0-9_-]*|state/[a-z][a-z0-9_]*)$"
 )
@@ -104,6 +106,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             settings.secret_key.get_secret_value(), salt="forgeui-admin"
         )
         self.buckets: dict[str, deque[float]] = defaultdict(deque)
+        self._last_sweep = monotonic()
 
     def _session(self, value: str | None) -> tuple[str, str]:
         if value:
@@ -149,14 +152,30 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             group = "generation"
         limits = {"read": 240, "mutation": 80, "login": 12, "generation": 12}
         now = monotonic()
+        self._sweep_buckets(now)
         key = f"{group}:{request.client.host if request.client else 'unknown'}"
         bucket = self.buckets[key]
-        while bucket and bucket[0] < now - 60:
+        while bucket and bucket[0] < now - RATE_LIMIT_WINDOW_SECONDS:
             bucket.popleft()
         if len(bucket) >= limits[group]:
             return False
         bucket.append(now)
         return True
+
+    def _sweep_buckets(self, now: float) -> None:
+        """Drop buckets for clients that have been idle for a full window.
+
+        Without this, every distinct client address would keep a key for the life of
+        the process, so memory would grow with the number of addresses ever seen.
+        """
+
+        if now - self._last_sweep < RATE_LIMIT_WINDOW_SECONDS:
+            return
+        self._last_sweep = now
+        cutoff = now - RATE_LIMIT_WINDOW_SECONDS
+        idle = [key for key, bucket in self.buckets.items() if not bucket or bucket[-1] < cutoff]
+        for key in idle:
+            del self.buckets[key]
 
     async def dispatch(self, request: Request, call_next: Callable[[Request], Any]) -> Response:
         if not self._rate_limit(request):
@@ -220,17 +239,6 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         if self.settings.secure_cookies:
             response.headers["Strict-Transport-Security"] = "max-age=31536000"
         return response
-
-    def set_admin_cookie(self, response: Response) -> None:
-        response.set_cookie(
-            "forgeui_admin",
-            self.admin_serializer.dumps("admin"),
-            httponly=True,
-            samesite="lax",
-            secure=self.settings.secure_cookies,
-            path="/",
-            max_age=ADMIN_SESSION_SECONDS,
-        )
 
 
 def _csp(settings: Settings, *, frame_ancestors: list[str] | None = None) -> str:
@@ -427,9 +435,10 @@ def create_app(
         )
 
     app.state.set_admin_cookie = set_admin_cookie
+    app.add_exception_handler(ServiceError, service_error_handler)
     app.mount(
         "/static",
-        StaticFiles(directory=str(__file__.replace("app.py", "web/static")), check_dir=True),
+        StaticFiles(directory=str(Path(__file__).with_name("web") / "static"), check_dir=True),
         name="static",
     )
     app.include_router(create_router(container))

@@ -55,7 +55,7 @@ For each release:
 1. Update `project.version` in `pyproject.toml` and the source-checkout fallback in
    `src/forgeui/__init__.py`.
 2. Merge the tested change to `main`.
-3. Create a GitHub release whose tag is exactly `v<project.version>`, such as `v0.1.0a2`.
+3. Create a GitHub release whose tag is exactly `v<project.version>`, such as `v0.1.0a3`.
 4. Approve the `pypi` deployment after the build job passes.
 
 The workflow rejects a tag whose version does not match `pyproject.toml`. Once published, users
@@ -72,18 +72,18 @@ ForgeUI is published on PyPI through this workflow. Verify the new version after
 Pip can install directly from a Git tag:
 
 ```bash
-python -m pip install 'forgeui[web] @ git+https://github.com/dvsklj/ForgeUI.git@v0.1.0a2'
+python -m pip install 'forgeui[web] @ git+https://github.com/dvsklj/ForgeUI.git@v0.1.0a3'
 ```
 
 For reproducible containers, build once and copy the wheel into the image:
 
 ```bash
 uv build
-python -m pip install 'dist/forgeui-0.1.0a2-py3-none-any.whl[web,ollama]'
+python -m pip install 'dist/forgeui-0.1.0a3-py3-none-any.whl[web,ollama]'
 ```
 
 ```dockerfile
-COPY dist/forgeui-0.1.0a2-py3-none-any.whl /tmp/forgeui.whl
+COPY dist/forgeui-0.1.0a3-py3-none-any.whl /tmp/forgeui.whl
 RUN python -m pip install --no-cache-dir '/tmp/forgeui.whl[web,ollama]'
 ```
 

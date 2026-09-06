@@ -154,6 +154,20 @@ def _service_error(error: ServiceError) -> HTTPException:
     return HTTPException(400, "request could not be completed")
 
 
+async def service_error_handler(_request: Request, error: Exception) -> JSONResponse:
+    """Map a service error that escaped a route into the same status a route would send.
+
+    Routes normally translate service errors themselves. This app-level handler is the
+    backstop so an app lookup outside a route's ``try`` block still produces a client
+    status rather than a logged internal server error.
+    """
+
+    if not isinstance(error, ServiceError):
+        raise error
+    translated = _service_error(error)
+    return JSONResponse({"detail": translated.detail}, status_code=translated.status_code)
+
+
 def _etag(revision_id: str | None) -> dict[str, str]:
     return {} if revision_id is None else {"ETag": f'"{revision_id}"'}
 
@@ -767,12 +781,20 @@ def create_router(container: Container, prefix: str = "") -> APIRouter:
     @api.get("/health/dependencies")
     async def health_dependencies() -> JSONResponse:
         try:
+            container.database.ping()
+            database_ready = True
+        except Exception:
+            database_ready = False
+        try:
             healthy = await container.provider.health()
         except Exception:
             healthy = False
         return JSONResponse(
-            {"database": "ready", "ollama": "ready" if healthy else "unavailable"},
-            status_code=200 if healthy else 503,
+            {
+                "database": "ready" if database_ready else "unavailable",
+                "ollama": "ready" if healthy else "unavailable",
+            },
+            status_code=200 if healthy and database_ready else 503,
         )
 
     @api.get("/metrics")
