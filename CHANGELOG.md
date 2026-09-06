@@ -3,7 +3,7 @@
 All notable changes to ForgeUI are documented here. Versions follow
 [PEP 440](https://peps.python.org/pep-0440/).
 
-## Unreleased
+## 0.1.0a4 — 2026-09-06
 
 ### Fixed
 
@@ -12,6 +12,21 @@ All notable changes to ForgeUI are documented here. Versions follow
 - The in-memory rate limiter sweeps buckets for clients idle for a full window, so memory no
   longer grows with every client address ever seen.
 - `/api/health/dependencies` checks SQLite instead of always reporting it ready.
+
+### Changed
+
+- `RequestLimitMiddleware` is a pure ASGI middleware instead of patching a private Starlette
+  request attribute: it rejects an oversized `Content-Length` up front and turns an over-limit
+  streamed body into the same 413 unless the response has already started.
+- The in-process job worker backs off its idle poll from 0.1 s to a 2 s cap while the queue is
+  empty, resetting when a job is claimed, instead of running a claim query ten times a second.
+- The Docker image installs the project non-editable, so the runtime stage no longer needs a
+  `PYTHONPATH` override or a second copy of the source tree.
+- Added unit tests for the increment, append, update-collection and delete-collection state
+  actions, toast, navigate, refresh, modal and capability results, transient-mode guards, and the
+  version-conflict path, raising `services/actions.py` from 65% to 97% line coverage.
+- The publish workflow also accepts manual `workflow_dispatch` runs on a pushed tag, and retries
+  publishing an already-released version instead of failing.
 
 ## 0.1.0a3 — 2026-09-05
 
