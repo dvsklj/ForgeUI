@@ -71,7 +71,7 @@ publish a GitHub release as permission to publish the corresponding PyPI version
 
 ForgeUI is published on PyPI through this workflow. Verify the new version after each release.
 
-## Installing before the first PyPI release
+## Installing from source or a local wheel
 
 Pip can install directly from a Git tag:
 
@@ -87,8 +87,8 @@ python -m pip install 'dist/forgeui-0.1.0a4-py3-none-any.whl[web,ollama]'
 ```
 
 ```dockerfile
-COPY dist/forgeui-0.1.0a4-py3-none-any.whl /tmp/forgeui.whl
-RUN python -m pip install --no-cache-dir '/tmp/forgeui.whl[web,ollama]'
+COPY dist/forgeui-0.1.0a4-py3-none-any.whl /tmp/
+RUN python -m pip install --no-cache-dir '/tmp/forgeui-0.1.0a4-py3-none-any.whl[web,ollama]'
 ```
 
 A release asset or internal artifact registry is preferable to building from Git inside every

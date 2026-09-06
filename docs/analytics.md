@@ -20,6 +20,7 @@ filtered sample. Missing, boolean and non-finite numeric values are excluded; an
 set shows an em dash and count shows zero. Overflow is unavailable, never a plausible total.
 Bar/line/area charts place signed values on a zero-based signed scale. Donut charts accept
 one series of non-negative row values and render proportional slices; negative parts are rejected.
+Use `x_key` for slice labels; the legend and data summary list each category and its value.
 For full-dataset statistics, weighted means, percentiles, time bucketing, or large datasets, aggregate
 in the authorized host provider and expose typed results. Never infer a full total from a sample.
 
@@ -54,7 +55,17 @@ layout and scroll. No CDN, JavaScript parser, or remote rendering service is req
 nodes. `state_path` provides a keyboard-accessible node selector. Other components can reference
 that selection through the existing state expressions/filters. Hosts may use normal typed
 ForgeUI actions for related controls. Node selection is a labelled select, not a Mermaid click
-callback. Inert exports disable controls; hosted/events surfaces wire them to the host runtime.
+callback. Inert exports disable state, action and navigation controls while keeping headings,
+tables, diagram content and expandable chart summaries accessible. Hosted/events surfaces wire
+controls to the host runtime.
+
+`HtmlRendererAdapter` merges supplied state over manifest defaults, including when the host only
+supplies data. It preserves the caller's context. Typed Pydantic rows are normalized before local
+filtering and aggregation. Invalid component data yields a local error and a render issue while
+unaffected sibling components remain available.
+Portable fragments include their own responsive container and selected design profile; the host
+continues to provide the stylesheet and theme. Direct renderer users can disable controls with
+`Renderer(interactive=False)`.
 
 Host-side `forgeui.mermaid.import_mermaid` accepts a bounded subset: flowchart/graph headers,
 ID or ID[plain label] declarations, one directed `-->` edge per statement and optional `|label|`.

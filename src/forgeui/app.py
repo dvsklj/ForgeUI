@@ -106,14 +106,20 @@ class RequestLimitMiddleware:
                 # be reported as a 413 any more.
                 raise
 
-    @staticmethod
-    def _declared_length(scope: Scope) -> int:
+    def _declared_length(self, scope: Scope) -> int:
+        maximum = str(self.maximum).encode("ascii")
+        length = 0
         for name, value in scope.get("headers", ()):
             if name == b"content-length":
-                text = value.decode("latin-1").strip()
+                text = value.strip()
                 if text.isdigit():
-                    return int(text)
-        return 0
+                    # Compare normalized decimal bytes before converting. A header can
+                    # exceed Python's integer digit limit, even with a small padded value.
+                    text = text.lstrip(b"0") or b"0"
+                    if len(text) > len(maximum) or (len(text) == len(maximum) and text > maximum):
+                        return self.maximum + 1
+                    length = max(length, int(text))
+        return length
 
 
 class _BodyTooLargeError(Exception):

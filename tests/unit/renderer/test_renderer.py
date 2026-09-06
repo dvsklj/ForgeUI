@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 import pytest
+from bs4 import BeautifulSoup
 
 from forgeui.catalog import component_registry
 from forgeui.domain.models import ForgeManifest
@@ -208,7 +209,10 @@ def test_table_filter_and_pagination_are_bounded_by_declared_state() -> None:
 
 
 @pytest.mark.parametrize("component_type", sorted(component_registry.names))
-def test_every_catalog_component_has_a_meaningful_render(component_type: str) -> None:
+@pytest.mark.parametrize("interactive", [True, False])
+def test_every_catalog_component_has_a_meaningful_render(
+    component_type: str, interactive: bool
+) -> None:
     props: dict[str, object] = {
         "page": {},
         "page-header": {"title": "Title"},
@@ -304,9 +308,19 @@ def test_every_catalog_component_has_a_meaningful_render(component_type: str) ->
         manifest,
         data={"devices": [{"name": "North"}], "incidents": [], "series": [{"cpu": 0.5}]},
         state=state,
+        renderer=Renderer(interactive=interactive),
     )
     assert 'id="forge-element-root"' in output
     assert "Dashboard component unavailable." not in output
+    if not interactive:
+        soup = BeautifulSoup(output, "html.parser")
+        assert not soup.select(
+            "[inert], [data-forge-action], [data-forge-destination], [data-forge-state-path]"
+        )
+        assert all(
+            control.has_attr("disabled")
+            for control in soup.select("button, input, textarea, select")
+        )
 
 
 def test_single_point_chart_has_a_visible_theme_owned_marker() -> None:

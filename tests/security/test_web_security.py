@@ -127,6 +127,41 @@ async def test_limit_after_response_started_propagates_instead_of_replacing() ->
     assert sent == [{"type": "http.response.start", "status": 200, "headers": []}]
 
 
+@pytest.mark.parametrize("length", [b"9" * 5000, b"0" * 5000 + b"9"], ids=["huge", "zero-padded"])
+async def test_declared_request_length_is_bounded_before_integer_conversion(length: bytes) -> None:
+    sent: list[dict[str, object]] = []
+
+    async def app(scope: Scope, receive: Receive, send: Send) -> None:
+        pytest.fail("an oversized declared request must not reach the application")
+
+    async def receive() -> dict[str, object]:
+        pytest.fail("an oversized declared request must not read the body")
+
+    async def send(message: dict[str, object]) -> None:
+        sent.append(message)
+
+    middleware = RequestLimitMiddleware(app, maximum=8)
+    await middleware({"type": "http", "headers": [(b"content-length", length)]}, receive, send)
+    assert sent[0]["status"] == 413
+
+
+async def test_zero_padded_request_length_within_limit_is_accepted() -> None:
+    called = False
+
+    async def app(scope: Scope, receive: Receive, send: Send) -> None:
+        nonlocal called
+        called = True
+
+    async def unused() -> None:
+        pytest.fail("no body reads are expected")
+
+    middleware = RequestLimitMiddleware(app, maximum=8)
+    await middleware(
+        {"type": "http", "headers": [(b"content-length", b"0" * 5000 + b"8")]}, unused, unused
+    )
+    assert called
+
+
 @pytest.mark.parametrize(
     ("method", "path", "body"),
     [

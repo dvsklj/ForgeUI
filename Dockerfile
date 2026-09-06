@@ -8,7 +8,8 @@ COPY --from=uv /uv /uvx /bin/
 WORKDIR /build
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
-    UV_NO_CACHE=1
+    UV_NO_CACHE=1 \
+    UV_PROJECT_ENVIRONMENT=/opt/venv
 
 COPY pyproject.toml uv.lock README.md LICENSE THIRD_PARTY_NOTICES.md ./
 RUN uv sync --frozen --no-dev --extra app --no-install-project
@@ -31,7 +32,7 @@ RUN addgroup --system --gid 10001 forgeui \
     && chown -R forgeui:forgeui /app /data
 
 WORKDIR /app
-COPY --from=builder --chown=forgeui:forgeui /build/.venv /opt/venv
+COPY --from=builder --chown=forgeui:forgeui /opt/venv /opt/venv
 
 USER forgeui
 EXPOSE 8000

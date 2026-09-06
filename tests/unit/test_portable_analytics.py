@@ -3,6 +3,8 @@ from __future__ import annotations
 import math
 
 import pytest
+from bs4 import BeautifulSoup
+from pydantic import BaseModel
 
 from forgeui.analytics import aggregate, filter_rows
 from forgeui.catalog.registry import DiagramProps
@@ -89,7 +91,8 @@ def test_validation_and_sample_kpi():
     )
     assert result.ok
     assert "<strong>1</strong>" in result.output
-    assert "inert" in result.output
+    assert result.interaction == "inert"
+    assert not BeautifulSoup(result.output, "html.parser").select("[inert]")
     assert "Filtered sample" in result.output
     raw = candidate()
     raw["elements"]["root"]["props"]["filters"][0]["state_path"] = "state.secret"
@@ -237,3 +240,125 @@ def test_signed_bar_geometry_and_donut_proportions():
 
 def test_oversized_numbers_are_not_valid_aggregates():
     assert aggregate([{"n": 10**1000}], "sum", "n") is None
+
+
+def test_percentage_comparison_names_percentage_points():
+    raw = candidate(
+        {"label": "Conversion", "value": 0.25, "comparison": 0.20, "format": "percent"},
+        "metric",
+    )
+    result = HtmlRendererAdapter().render(raw)
+    assert result.ok
+    assert "+5 percentage points vs comparison" in result.output
+
+
+def test_percentage_aggregate_overflow_is_unavailable():
+    raw = candidate(
+        {
+            "label": "Usage",
+            "data": {"kind": "ref", "path": "data.series"},
+            "operation": "sum",
+            "value_key": "cpu",
+            "format": "percent",
+        }
+    )
+    result = HtmlRendererAdapter().render(raw, RenderContext(data={"series": [{"cpu": 1e308}]}))
+    assert result.ok
+    assert "<strong>—</strong>" in result.output
+
+
+def test_adapter_preserves_default_state_when_host_supplies_data():
+    raw = candidate()
+    raw["state"]["values"]["query"] = "Alpha"
+    context = RenderContext(data={"devices": [{"name": "Alpha"}, {"name": "Beta"}]})
+    result = HtmlRendererAdapter().render(raw, context)
+    assert result.ok
+    assert "<strong>1</strong>" in result.output
+    assert dict(context.state) == {}
+    override = HtmlRendererAdapter().render(
+        raw, RenderContext(data=context.data, state={"query": ""})
+    )
+    assert "<strong>2</strong>" in override.output
+
+
+def test_filtered_kpi_accepts_typed_host_rows():
+    class Row(BaseModel):
+        name: str
+
+    result = HtmlRendererAdapter().render(
+        candidate(),
+        RenderContext(data={"devices": [Row(name="Alpha")]}, state={"query": "Alpha"}),
+    )
+    assert result.ok
+    assert "<strong>1</strong>" in result.output
+
+
+@pytest.mark.parametrize("kind", ["bar", "line", "area", "donut"])
+def test_large_finite_chart_values_produce_finite_geometry(kind):
+    from forgeui.renderer import Renderer
+
+    values = [[1e308, 1e308]] if kind == "donut" else [[-1e308, 1e308]]
+    svg = Renderer._chart_svg(
+        kind, values, ["Value"], 1e308, ["A", "B"], "Category", "Value", "number"
+    )
+    soup = BeautifulSoup(str(svg), "html.parser")
+    for element in soup.select("[d], [x], [y], [cx], [cy], [height], [stroke-dasharray]"):
+        for attribute in ("d", "x", "y", "cx", "cy", "height", "stroke-dasharray"):
+            value = str(element.get(attribute, "")).lower()
+            assert "inf" not in value
+            assert "nan" not in value
+    if kind == "donut":
+        circles = soup.select("circle")
+        assert circles[0]["stroke-dasharray"] == circles[1]["stroke-dasharray"]
+
+
+def test_donut_has_slice_legends_summaries_and_inspection_hooks():
+    raw = candidate(
+        {
+            "title": "CPU share",
+            "data": {"kind": "ref", "path": "data.series"},
+            "x_key": "timestamp",
+            "series": [{"label": "CPU", "value": "cpu"}],
+        },
+        "donut-chart",
+    )
+    result = HtmlRendererAdapter().render(
+        raw,
+        RenderContext(
+            data={"series": [{"timestamp": "A", "cpu": 25}, {"timestamp": "B", "cpu": 75}]}
+        ),
+        RenderOptions("events"),
+    )
+    assert result.ok
+    soup = BeautifulSoup(result.output, "html.parser")
+    assert [entry.get_text(strip=True) for entry in soup.select("[data-forge-chart-legend]")] == [
+        "A",
+        "B",
+    ]
+    assert [entry["data-forge-chart-series"] for entry in soup.select("circle")] == ["1", "2"]
+    assert len(soup.select("circle[data-forge-chart-point][data-forge-chart-label]")) == 2
+    rows = soup.select(".forge-chart-summary tbody tr")
+    assert [[cell.get_text() for cell in row.select("th, td")] for row in rows] == [
+        ["A", "25"],
+        ["B", "75"],
+    ]
+
+
+@pytest.mark.parametrize("value", [-1, 10**1000])
+def test_bad_chart_data_does_not_remove_sibling_components(value):
+    raw = candidate(
+        {
+            "title": "Invalid share",
+            "data": {"kind": "ref", "path": "data.series"},
+            "series": [{"label": "CPU", "value": "cpu"}],
+        },
+        "donut-chart",
+    )
+    raw["elements"]["chart"] = raw["elements"]["root"]
+    raw["elements"]["message"] = {"type": "text", "props": {"text": "Still available"}}
+    raw["elements"]["root"] = {"type": "page", "children": ["chart", "message"]}
+    result = HtmlRendererAdapter().render(raw, RenderContext(data={"series": [{"cpu": value}]}))
+    assert not result.ok
+    soup = BeautifulSoup(result.output, "html.parser")
+    assert soup.select_one("#forge-element-chart.forge-render-error") is not None
+    assert "Still available" in result.output

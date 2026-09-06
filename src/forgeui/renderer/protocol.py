@@ -74,7 +74,8 @@ class HtmlRendererAdapter:
 
     def __init__(self, *, policy: ManifestPolicy = DEFAULT_MANIFEST_POLICY) -> None:
         self.policy = policy
-        self._renderer = Renderer()
+        self._renderer = Renderer(interactive=False)
+        self._event_renderer = Renderer()
 
     def capabilities(self) -> RendererCapabilities:
         return RendererCapabilities(
@@ -128,16 +129,25 @@ class HtmlRendererAdapter:
                     )
         output = ""
         if not issues and validated is not None:
-            render_context = context or RenderContext(state=validated.state.values)
-            output = self._renderer.render(validated, render_context)
+            supplied = context or RenderContext()
+            render_context = RenderContext(
+                data=supplied.data,
+                state={**validated.state.values, **supplied.state},
+                item=supplied.item,
+                event=supplied.event,
+            )
+            renderer = self._event_renderer if options.interaction == "events" else self._renderer
+            output = renderer.render(validated, render_context)
             if 'class="forge-render-error"' in output:
                 issues.append(
                     RenderIssue(
                         "render", "component_failed", "$", "a component failed during rendering"
                     )
                 )
-            if options.interaction == "inert":
-                output = f"<div inert>{output}</div>"
+            output = (
+                f'<div class="forge-render-root" data-forge-profile="{validated.design.name}">'
+                f"{output}</div>"
+            )
         return RenderResult(
             output,
             caps.renderer,

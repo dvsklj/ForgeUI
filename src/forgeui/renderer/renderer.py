@@ -125,7 +125,8 @@ def _trusted_markup(value: str) -> Markup:
 class Renderer:
     """Render a validated manifest through an allowlisted Jinja environment."""
 
-    def __init__(self, template_directory: Path | None = None) -> None:
+    def __init__(self, template_directory: Path | None = None, *, interactive: bool = True) -> None:
+        self.interactive = interactive
         self.template_directory = template_directory or _template_directory()
         self.environment = Environment(
             loader=FileSystemLoader(str(self.template_directory)),
@@ -284,8 +285,11 @@ class Renderer:
             return self._failure(element_id, "A component value could not be evaluated.", exc)
         if not isinstance(props, Mapping):
             return self._failure(element_id, "Component properties are malformed.")
-        children = self._render_children(manifest, element_id, context, trail | {element_id})
-        extra = self._component_extra(element.type, props, context)
+        try:
+            children = self._render_children(manifest, element_id, context, trail | {element_id})
+            extra = self._component_extra(element.type, props, context)
+        except (KeyError, ValueError, TypeError, OverflowError) as exc:
+            return self._failure(element_id, "Component data could not be rendered.", exc)
         view = _ComponentView(
             element_id,
             element.type,
@@ -303,6 +307,7 @@ class Renderer:
                 component=view,
                 children=children,
                 extra=extra,
+                interactive=self.interactive,
             )
         except Exception as exc:  # Jinja errors remain an inert user-visible failure.
             return self._failure(element_id, "The approved component template failed safely.", exc)
@@ -415,12 +420,14 @@ class Renderer:
             ):
                 difference = value - previous
                 if math.isfinite(difference):
-                    delta = ("+" if difference > 0 else "") + self._format_cell(
-                        difference,
-                        str(props.get("format", "number"))
-                        if props.get("format") != "text"
-                        else "number",
-                    )
+                    if props.get("format") == "percent":
+                        scaled = difference * 100
+                        if math.isfinite(scaled):
+                            delta = self._format_number(scaled) + " percentage points"
+                    else:
+                        delta = self._format_number(difference)
+                    if delta is not None and difference > 0:
+                        delta = "+" + delta
             return {
                 "value": self._format_cell(value, str(props.get("format", "text"))),
                 "delta": delta,
@@ -601,13 +608,14 @@ class Renderer:
             or not math.isfinite(value)
         ):
             return str(value)
-        return f"{cls._format_number(value * 100)}%"
+        scaled = value * 100
+        return f"{cls._format_number(scaled)}%" if math.isfinite(scaled) else "—"
 
     @staticmethod
     def _filter_rows(
         rows: list[Any], props: Mapping[str, Any], context: RenderContext
     ) -> list[Any]:
-        return filter_rows(rows, props, context.state)
+        return filter_rows([_normalise_data(row) for row in rows], props, context.state)
 
     @staticmethod
     def _page(props: Mapping[str, Any], context: RenderContext, row_count: int) -> int:
@@ -705,6 +713,16 @@ class Renderer:
             }
             for index, line in enumerate(values)
         ]
+        if chart_kind == "donut":
+            table_rows = [
+                {
+                    "label": x_values[index]
+                    if x_values and x_values[index]
+                    else f"Observation {index + 1}",
+                    "value": formatter(value),
+                }
+                for index, value in enumerate(values[0] if values else [])
+            ]
         return {"chart_svg": svg, "chart_rows": table_rows}
 
     @staticmethod
@@ -733,8 +751,12 @@ class Renderer:
         plot_width = width - left - right
         plot_height = height - top - bottom
         minimum = min(0.0, min((number for line in values for number in line), default=0.0))
-        span = maximum - minimum or 1.0
-        zero_y = top + plot_height * maximum / span
+        # Normalize before subtraction/multiplication: finite endpoints can span more
+        # than the float range while still having perfectly representable geometry.
+        scale = max(abs(minimum), maximum) or 1.0
+        lower, upper = minimum / scale, maximum / scale
+        span = upper - lower or 1.0
+        zero_y = top + plot_height * (upper / span)
         aria_label = escape(f"{y_axis_label} by {x_axis_label}; {len(values)} series")
 
         def point_label(series_index: int, point_index: int, value: float) -> str:
@@ -750,17 +772,22 @@ class Renderer:
             )
             return f"{labels[series_index]} — {observation}: {formatted}"
 
+        view_box = "190 0 180 180" if kind == "donut" else f"0 0 {width} {height}"
         lines: list[str] = [
             (
-                f'<svg class="forge-chart-svg" viewBox="0 0 {width} {height}" role="img" '
+                f'<svg class="forge-chart-svg" viewBox="{view_box}" role="img" '
                 f'aria-label="{aria_label}">'
             ),
         ]
         if kind != "donut":
             for fraction in (0.0, 0.5, 1.0):
                 y = top + plot_height * (1 - fraction)
-                raw_tick = minimum + span * fraction
-                tick = f"{raw_tick * 100:.0f}%" if value_format == "percent" else f"{raw_tick:g}"
+                raw_tick = minimum * (1 - fraction) + maximum * fraction
+                tick = (
+                    Renderer._format_percent(raw_tick)
+                    if value_format == "percent"
+                    else f"{raw_tick:g}"
+                )
                 lines.extend(
                     (
                         f'<line x1="{left}" y1="{y:.2f}" x2="{width - right}" '
@@ -815,7 +842,7 @@ class Renderer:
             coordinates = [
                 (
                     left + plot_width * index / count,
-                    top + plot_height * (maximum - value) / span,
+                    top + plot_height * ((upper - value / scale) / span),
                 )
                 for index, value in enumerate(line)
             ]
@@ -845,17 +872,19 @@ class Renderer:
             elif kind == "donut":
                 if any(value < 0 for value in line):
                     raise ValueError("donut charts require non-negative values")
-                total = sum(line) or 1.0
-                if not math.isfinite(total):
-                    raise ValueError("donut total exceeds numeric range")
+                largest = max(line) or 1.0
+                shares = [value / largest for value in line]
+                total = sum(shares) or 1.0
                 circumference = 2 * math.pi * 58
                 offset = 0.0
                 for index, value in enumerate(line):
-                    length = circumference * value / total
+                    length = circumference * (shares[index] / total)
                     label = escape(point_label(series_index, index, value))
                     parts_class = f"forge-chart-series--{index % 6 + 1}"
                     lines.append(
                         f'<circle class="forge-chart-series {parts_class} forge-chart-line" '
+                        f'data-forge-chart-point data-forge-chart-series="{index % 6 + 1}" '
+                        f'data-forge-chart-label="{label}" '
                         f'role="img" tabindex="0" aria-label="{label}" '
                         f'cx="280" cy="90" r="58" fill="none" stroke-width="24" '
                         f'stroke-dasharray="{length:.2f} {circumference - length:.2f}" '

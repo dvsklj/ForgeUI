@@ -279,9 +279,12 @@ html[data-theme="dark"] [data-forge-theme-icon="dark"] {
   pointer-events: none;
 }
 
-#forge-main {
+#forge-main, .forge-render-root {
   container-name: forge-main;
   container-type: inline-size;
+}
+
+#forge-main {
   padding: clamp(12px, 2.5vw, 32px);
 }
 

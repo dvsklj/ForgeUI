@@ -7,8 +7,18 @@ All notable changes to ForgeUI are documented here. Versions follow
 
 ### Fixed
 
+- Preserve manifest state defaults when a portable render supplies host data, and normalize typed
+  host rows before filtering or aggregation.
+- Keep static exports accessible while disabling state, action and navigation controls.
+- Give portable exports the responsive layout container and selected design profile.
+- Label percentage comparisons in percentage points. Keep large finite chart geometry in range,
+  and isolate rejected component data from the rest of the dashboard.
+- Restore donut slice legends, per-category summaries and keyboard/pointer inspection metadata.
+- Synchronize the component reference and local wheel examples with 0.1.0a4.
 - Action, state, and data routes for an unknown app now return 404 instead of a logged 500; an
   app-level handler maps every escaped service error to its client status.
+- Very long `Content-Length` headers are compared against the body limit before integer
+  conversion, avoiding server errors while accepting valid zero-padded lengths.
 - The in-memory rate limiter sweeps buckets for clients idle for a full window, so memory no
   longer grows with every client address ever seen.
 - `/api/health/dependencies` checks SQLite instead of always reporting it ready.
@@ -24,12 +34,13 @@ All notable changes to ForgeUI are documented here. Versions follow
 - The in-process job worker backs off its idle poll from 0.1 s to a 2 s cap while the queue is
   empty, resetting when a job is claimed, instead of running a claim query ten times a second.
 - The Docker image installs the project non-editable, so the runtime stage no longer needs a
-  `PYTHONPATH` override or a second copy of the source tree.
+  `PYTHONPATH` override or a second copy of the source tree. Build and runtime environments use
+  the same `/opt/venv` path so installed launchers keep a valid interpreter path.
 - Added unit tests for the increment, append, update-collection and delete-collection state
   actions, toast, navigate, refresh, modal and capability results, transient-mode guards, and the
-  version-conflict path, raising `services/actions.py` from 65% to 97% line coverage.
-- The publish workflow also accepts manual `workflow_dispatch` runs on a pushed tag, and retries
-  publishing an already-released version instead of failing.
+  version-conflict path.
+- The publish workflow also accepts manual `workflow_dispatch` runs on a pushed tag, skipping
+  distribution files already published to PyPI when retried.
 
 ## 0.1.0a3 — 2026-09-05
 
