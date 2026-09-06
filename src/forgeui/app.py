@@ -193,11 +193,16 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             return False
 
     def _rate_limit(self, request: Request) -> bool:
-        group = "mutation" if request.method not in {"GET", "HEAD", "OPTIONS"} else "read"
-        if request.url.path.endswith("/login"):
-            group = "login"
-        elif "/generation" in request.url.path or "/studio/generate" in request.url.path:
-            group = "generation"
+        # The strict login/generation budgets exist to bound expensive submissions, so
+        # they only apply to unsafe methods. Reading a login page or polling a job's
+        # status is an ordinary read and must not consume those twelve attempts.
+        unsafe = request.method not in {"GET", "HEAD", "OPTIONS"}
+        group = "mutation" if unsafe else "read"
+        if unsafe:
+            if request.url.path.endswith("/login"):
+                group = "login"
+            elif "/generation" in request.url.path or "/studio/generate" in request.url.path:
+                group = "generation"
         limits = {"read": 240, "mutation": 80, "login": 12, "generation": 12}
         now = monotonic()
         self._sweep_buckets(now)

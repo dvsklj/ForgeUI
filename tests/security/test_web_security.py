@@ -180,3 +180,39 @@ def test_rate_limiter_forgets_idle_clients(monkeypatch: pytest.MonkeyPatch) -> N
     assert middleware._rate_limit(request("192.0.2.1"))
     assert set(middleware.buckets) == {"read:10.0.0.0", "read:192.0.2.1"}
     assert isinstance(middleware.buckets["read:10.0.0.0"], deque)
+
+
+def test_strict_rate_limit_groups_only_cover_unsafe_methods() -> None:
+    settings = Settings(environment="test", database_url="sqlite:///:memory:")
+    middleware = SecurityMiddleware(lambda *_args: None, settings=settings)
+
+    def request(method: str, path: str) -> object:
+        return SimpleNamespace(
+            method=method,
+            url=SimpleNamespace(path=path),
+            client=SimpleNamespace(host="10.0.0.1"),
+        )
+
+    # Polling a job's status is a read, so it must not spend the twelve generation
+    # attempts, and neither must rendering the login page.
+    assert middleware._rate_limit(request("GET", "/api/generation/x"))
+    assert middleware._rate_limit(request("GET", "/login"))
+    assert middleware._rate_limit(request("GET", "/studio/generate"))
+    assert set(middleware.buckets) == {"read:10.0.0.1"}
+    assert len(middleware.buckets["read:10.0.0.1"]) == 3
+    # Submissions keep their own strict budgets.
+    assert middleware._rate_limit(request("POST", "/api/apps/x/generation"))
+    assert middleware._rate_limit(request("POST", "/login"))
+    assert middleware._rate_limit(request("POST", "/api/apps"))
+    assert set(middleware.buckets) == {
+        "read:10.0.0.1",
+        "generation:10.0.0.1",
+        "login:10.0.0.1",
+        "mutation:10.0.0.1",
+    }
+    # The read budget outlasts the generation budget on the same path.
+    for _ in range(11):
+        assert middleware._rate_limit(request("POST", "/api/apps/x/generation"))
+    assert not middleware._rate_limit(request("POST", "/api/apps/x/generation"))
+    for _ in range(30):
+        assert middleware._rate_limit(request("GET", "/api/generation/x"))

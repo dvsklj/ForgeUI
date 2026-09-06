@@ -12,6 +12,9 @@ All notable changes to ForgeUI are documented here. Versions follow
 - The in-memory rate limiter sweeps buckets for clients idle for a full window, so memory no
   longer grows with every client address ever seen.
 - `/api/health/dependencies` checks SQLite instead of always reporting it ready.
+- The strict login and generation rate-limit budgets apply only to unsafe methods. Reading the
+  login page or polling `/api/generation/{job_id}` is an ordinary read and no longer consumes the
+  twelve-per-minute generation budget, which previously starved status polling.
 
 ### Changed
 

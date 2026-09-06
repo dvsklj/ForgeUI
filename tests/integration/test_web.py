@@ -156,12 +156,12 @@ def test_browser_mutations_require_csrf_and_worker_persists_valid_result() -> No
         job_id = queued.json()["id"]
         # Wait on a deadline rather than a fixed iteration count: an idle worker backs
         # off up to WORKER_IDLE_MAX_SECONDS before it claims this job.
-        deadline = time.monotonic() + WORKER_IDLE_MAX_SECONDS + 3.0
+        deadline = time.monotonic() + WORKER_IDLE_MAX_SECONDS + 1.0
         while True:
             job = client.get(f"/api/generation/{job_id}", headers=_admin()).json()
-            if job["status"] in {"succeeded", "failed"} or time.monotonic() > deadline:
+            if job.get("status") in {"succeeded", "failed"} or time.monotonic() > deadline:
                 break
-            time.sleep(0.03)
+            time.sleep(0.4)
         assert job["status"] == "succeeded"
         assert client.get(f"/apps/{app_id}", headers=_admin()).status_code == 200
 

@@ -45,7 +45,9 @@ last-known-good revision active.
   CSRF token for cross-origin artifact frames.
 
 Current rate limits are in-memory and process-local: read 240/minute, ordinary mutations
-80/minute, login 12/minute, and generation 12/minute per client address. Place a trusted reverse
+80/minute, login 12/minute, and generation 12/minute per client address. The login and generation
+budgets cover only unsafe methods; reading the login page or polling a job's status counts as an
+ordinary read. Buckets for clients idle for a full window are swept. Place a trusted reverse
 proxy/rate limiter in front of production traffic; the application does not trust arbitrary
 forwarded-client headers.
 

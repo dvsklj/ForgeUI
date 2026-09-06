@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from pydantic import BaseModel, ConfigDict, Field
 from starlette.responses import Response
 
-from forgeui.app import mount_forgeui
+from forgeui.app import WORKER_IDLE_MAX_SECONDS, mount_forgeui
 from forgeui.config import Settings
 from forgeui.llm import ScriptedProvider
 from forgeui.runtime import RuntimeRegistries
@@ -191,11 +191,14 @@ def test_custom_contract_source_host_principal_and_mount_work_end_to_end() -> No
         )
         assert queued.status_code == 202, queued.text
         job_id = queued.json()["id"]
-        for _ in range(30):
+        # Wait on a deadline rather than a fixed iteration count: an idle worker backs
+        # off up to WORKER_IDLE_MAX_SECONDS before it claims this job.
+        deadline = time.monotonic() + WORKER_IDLE_MAX_SECONDS + 1.0
+        while True:
             job = client.get(f"/forgeui/api/generation/{job_id}", headers=admin).json()
-            if job["status"] in {"succeeded", "failed"}:
+            if job.get("status") in {"succeeded", "failed"} or time.monotonic() > deadline:
                 break
-            time.sleep(0.03)
+            time.sleep(0.1)
         assert job["status"] == "succeeded"
         system_prompt = provider.calls[0][0][0].content
         assert '"data_contract":"ai-search/1"' in system_prompt
