@@ -1781,7 +1781,7 @@ html[data-forge-surface="chat"] body {
   *::before,
   *::after {
     scroll-behavior: auto !important;
-    transition-duration: .01ms !important;
+    transition-duration: 0s !important;
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
   }

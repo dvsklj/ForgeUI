@@ -37,6 +37,17 @@ property-level reference. The catalog validates each element's props by its decl
 - `root`, all children, action references, forms, and dialog targets must exist. Cycles and
   unreachable elements are errors. A `repeat` has exactly one template child.
 
+Layout props are also strict catalog data. Grid counts, spans, and responsive counts are bounded
+integers; `auto`, ratios, spacing, density, and alignment use predefined enum tokens. `grid-item`
+must be a direct grid child, card slots must be direct ordered children with one body, and a
+`content-group` must have one child plus a description or caption. Auto-fit grids use
+`column_span: 1`; use explicit numeric or responsive columns for spanning items. A disclosure is
+passive native markup and cannot declare an action.
+
+Validation may return an `empty_layout` warning for a container that has no potentially visible
+content. Warnings include a path and repair message, preserve `report.valid`, and do not block a
+dry render. Errors remain blocking and are rejected before persistence or rendering.
+
 ## Data and state
 
 The only first-release data declaration is `device-health/1` from the trusted

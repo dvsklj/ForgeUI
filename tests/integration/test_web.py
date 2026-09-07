@@ -518,7 +518,7 @@ def test_complete_manifest_revision_and_device_data_api_lifecycle() -> None:
         assert client.get("/api/health/dependencies").status_code == 200
         catalog = client.get("/api/catalog")
         assert catalog.status_code == 200
-        assert len(catalog.json()["components"]) == 48
+        assert len(catalog.json()["components"]) == 54
 
         validation = client.post(
             "/api/validate",
@@ -681,8 +681,10 @@ def test_mounted_app_generates_prefixed_embed_assets_and_routes() -> None:
         )
         assert embed.status_code == 200
         assert 'href="/tools/forgeui/static/forgeui.css?' in embed.text
+        assert 'href="/tools/forgeui/static/forgeui-layout.css?' in embed.text
         assert 'src="/tools/forgeui/static/forgeui.js?' in embed.text
         assert client.get("/tools/forgeui/static/forgeui-embed.js").status_code == 200
+        assert client.get("/tools/forgeui/static/forgeui-layout.css").status_code == 200
 
 
 def test_self_hosted_asset_mode_has_no_remote_runtime_dependency() -> None:
@@ -704,3 +706,9 @@ def test_large_static_assets_are_gzip_compressed() -> None:
         )
         assert stylesheet.status_code == 200
         assert stylesheet.headers["content-encoding"] == "gzip"
+        layout_stylesheet = client.get(
+            "/static/forgeui-layout.css",
+            headers={"Accept-Encoding": "gzip"},
+        )
+        assert layout_stylesheet.status_code == 200
+        assert layout_stylesheet.headers["content-encoding"] == "gzip"

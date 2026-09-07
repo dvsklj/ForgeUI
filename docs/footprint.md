@@ -1,17 +1,18 @@
 # Package footprint
 
-Measured from the locked Python 3.12 build for `0.1.0a2` on 1 September 2026:
+Measured from the locked Python 3.12 build for `0.1.0a5` on 7 September 2026:
 
 | Boundary | Size |
 | --- | ---: |
-| ForgeUI wheel | 124,415 bytes (121.5 KiB) |
-| Source distribution | 268,750 bytes (262.5 KiB) |
+| ForgeUI wheel | 140,851 bytes (137.5 KiB) |
+| Source distribution | 314,685 bytes (307.3 KiB) |
 | Installed ForgeUI package (base imports) | about 0.8 MiB |
 | Installed ForgeUI package (all imports/bytecode) | about 1.1 MiB |
 | Cold base environment (`forgeui`) | about 10.3 MiB |
 | Cold web environment (`forgeui[web]`) | about 30.7 MiB |
 | Cold standalone environment (`forgeui[app]`) | about 33.4 MiB |
-| CSS | 29,100 bytes raw / 5,713 bytes gzip |
+| Core CSS | 32,726 bytes raw / 6,136 bytes gzip |
+| Optional typed layout CSS | 5,797 bytes raw / about 1.3 KiB gzip |
 | Dashboard JavaScript | 10,022 bytes raw / about 2.9 KiB gzip |
 | Optional iframe host helper | 1,244 bytes raw / about 0.6 KiB gzip |
 
@@ -23,7 +24,7 @@ Ollama transport, and standalone serving are optional `web`, `http`, `ollama`, a
 `app` installs the complete reference-service set. These environment figures are deliberately
 pessimistic cold installs. In a typical FastAPI container, pip reuses compatible Pydantic and
 Jinja2 packages already in the environment, so the incremental cost of core ForgeUI is principally
-its 121.5 KiB wheel and roughly 0.8-1.1 MiB extracted package.
+its 137.5 KiB wheel and roughly 0.8-1.1 MiB extracted package.
 
 For a single dashboard card that receives trusted application data and calls `render_manifest`,
 install only the base package. Use `web` when ForgeUI owns routes, revisions, or persistence; add
@@ -43,17 +44,19 @@ bytes are gzip-compressed when the client supports it.
 Contract tests enforce the following raw budgets:
 
 - complete shipped source tree: at most 1 MiB;
-- CSS: at most 32 KiB;
+- Core CSS: at most 32 KiB;
 - dashboard JavaScript: at most 16 KiB;
 - iframe host helper: at most 4 KiB;
 - no Typer dependency or Uvicorn standard extras.
 
-They also enforce gzip transfer budgets of 6 KiB for CSS, 4 KiB for dashboard JavaScript, and
-1 KiB for the optional iframe helper. This keeps visual polish affordable without rewarding
-source-level minification that would make the UI harder to maintain.
+They also enforce a 6 KiB gzip transfer budget for core CSS, 4 KiB for dashboard JavaScript, and
+1 KiB for the optional iframe helper. The typed layout extension is a separately cacheable asset;
+it keeps the core stylesheet within its existing budget while making advanced layouts opt-in for
+fragment hosts. The extension has no runtime dependency and is loaded automatically by the trusted
+document shell.
 
 The post-build CI smoke test separately caps the compressed wheel at 144 KiB, then installs that
-wheel into clean base, mounted-web, and complete environments. The current 121.5 KiB wheel uses
+wheel into clean base, mounted-web, and complete environments. The current 137.5 KiB wheel uses
 about 95% of that budget. New integrations should therefore stay optional and avoid vendored
 client libraries or browser frameworks.
 

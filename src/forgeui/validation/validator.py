@@ -625,7 +625,11 @@ def validate_manifest(
     issues: list[ValidationIssue] = []
     _validate_graph(manifest, issues)
     _validate_semantics(manifest, issues, policy)
-    if not issues and dry_render is not None:
+    if not any(issue.severity == "error" for issue in issues):
+        from forgeui.validation.layout import validate_layout
+
+        validate_layout(manifest, issues)
+    if not any(issue.severity == "error" for issue in issues) and dry_render is not None:
         try:
             dry_render(manifest)
         except Exception as exc:  # renderer is an integration boundary, not trusted input
@@ -633,7 +637,7 @@ def validate_manifest(
     return ValidationReport(
         not any(issue.severity == "error" for issue in issues),
         tuple(issues),
-        manifest if not issues else None,
+        manifest if not any(issue.severity == "error" for issue in issues) else None,
     )
 
 

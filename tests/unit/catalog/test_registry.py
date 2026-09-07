@@ -30,6 +30,24 @@ def test_generated_schema_has_per_component_prop_branches() -> None:
     assert "Props_heading" in schema["$defs"]
 
 
+def test_auto_grid_contract_is_shared_by_validation_schema_and_prompt() -> None:
+    assert component_registry.parse_props("grid", {"columns": "auto"}).columns == "auto"
+    assert component_registry.parse_props("grid", {}).columns == 2
+    schema = manifest_json_schema()["$defs"]["Props_grid"]["properties"]["columns"]
+    docs = next(item for item in component_registry.prompt_docs() if item["type"] == "grid")
+    assert schema["enum"] == [1, 2, 3, 4, "auto"]
+    assert docs["props"]["properties"]["columns"] == schema
+
+
+@pytest.mark.parametrize(
+    "columns",
+    [0, 5, "2", "16rem", "repeat(auto-fit, 1fr)", {"kind": "ref", "path": "state.columns"}],
+)
+def test_grid_rejects_untrusted_layout_values(columns: object) -> None:
+    with pytest.raises(ValueError, match="invalid props"):
+        component_registry.parse_props("grid", {"columns": columns})
+
+
 def test_planned_dashboard_form_and_extended_surfaces_are_registered() -> None:
     expected = {
         "page",

@@ -43,8 +43,8 @@ jobs, and bounded Google A2UI importer call the same validation and rendering bo
 
 - Flat ID-indexed manifests, graph validation, a finite component registry, declarative state,
   conditions, repeaters, actions, app CRUD, server-side revisions, SQLite, design tokens,
-  light/dark themes, accessible error states, server-rendered charts, and a pinned Google A2UI
-  snapshot importer.
+  light/dark themes, accessible error states, server-rendered charts, typed responsive layout
+  controls, passive disclosures, and a pinned Google A2UI snapshot importer.
 - A component registry is the single source for Pydantic props, renderer dispatch, JSON Schema,
   prompt documentation, and catalog tests.
 - Model JSON repair is a real bounded pipeline. Invalid candidates are never saved or rendered.
@@ -55,6 +55,9 @@ jobs, and bounded Google A2UI importer call the same validation and rendering bo
 - State is server-owned and uses optimistic concurrency.
 - Styling is limited to four complete, tested profiles: `ops-compact`, `signal-cards`,
   `executive-summary`, and `calm-neutral`.
+- Layout remains model-selectable only through bounded catalog tokens: responsive or auto-fit grid
+  counts, 1-4 column/row spans, equal/2:1 track ratios, spacing/density/alignment presets, card
+  slots, content annotations, and native disclosures. No arbitrary CSS or HTML enters a manifest.
 - Charts use trusted server-generated SVG with an accessible table summary.
 - External operations use operator-registered data sources and capabilities.
 
@@ -134,6 +137,9 @@ renderer and LLM integrations consume them.
   data states, with filtering, refresh, selection, pagination, and theme persistence.
 - Light and dark modes pass automated accessibility and contrast checks at mobile and desktop
   widths.
+- Auto-fit and responsive grids reflow from their container width in full documents and fragments;
+  numeric span/ratio layouts clamp safely as columns collapse; card slots, content annotations, and
+  disclosures retain semantic relationships and keyboard support.
 - Invalid model output is attempted no more than three times total and is never persisted or
   rendered.
 - XSS strings render as inert text; manifest/network escape attempts trigger validation errors and

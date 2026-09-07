@@ -46,6 +46,20 @@ def test_renderer_uses_stable_boundaries_and_evaluates_data() -> None:
     assert ">12</h1>" in output
 
 
+def test_auto_grid_renders_through_existing_trusted_dispatch() -> None:
+    manifest = _manifest(
+        {
+            "root": {"type": "grid", "props": {"columns": "auto"}, "children": ["label"]},
+            "label": {"type": "text", "props": {"text": "Fluid content"}},
+        }
+    )
+    soup = BeautifulSoup(render_manifest(manifest), "html.parser")
+    grid = soup.select_one(".forge-grid--auto")
+    assert grid is not None
+    assert grid.get_text(strip=True) == "Fluid content"
+    assert "style" not in grid.attrs
+
+
 def test_renderer_can_compose_one_safe_manifest_subtree() -> None:
     manifest = _manifest(
         {
@@ -106,6 +120,7 @@ def test_document_shell_has_theme_controls() -> None:
     output = Renderer().render_document(manifest)
     assert 'data-theme="system"' in output
     assert "forgeui.css" in output
+    assert "forgeui-layout.css" in output
     assert "forge-main" in output
     assert output.count('class="forge-theme-icon"') == 3
     assert output.count('class="forge-theme-button"') == 1
@@ -221,6 +236,8 @@ def test_every_catalog_component_has_a_meaningful_render(
         "inline": {},
         "grid": {},
         "card": {},
+        "content-group": {"caption": "Related context"},
+        "disclosure": {"title": "Details"},
         "section": {},
         "divider": {},
         "heading": {"text": "Heading"},

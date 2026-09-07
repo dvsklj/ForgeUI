@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "forgeui"
-version = "0.1.0a4"
+version = "0.1.0a5"
 description = "Safe, model-generated dashboards rendered by FastAPI, Jinja2, and HTMX."
 readme = "README.md"
 license = "MIT"

@@ -11,7 +11,8 @@ API and `forgeui/1` contract are being exercised by early adopters.
 The default presentation uses compact system typography, deep-teal accents, cool neutral surfaces,
 restrained 6 px radii, dense data tables, and a charcoal application shell. Light, dark, and system
 themes are built in, and model-selected profiles may change composition and density only through
-trusted combinations.
+trusted combinations. Typed responsive grids, ratio-based columns, card slots, attached content
+annotations, and passive disclosures make dynamic layouts reusable without custom application CSS.
 
 It runs on FastAPI, Jinja2, HTMX, trusted self-hosted CSS with an optional Tailwind CDN mode,
 SQLite, and a separately configured Ollama model (default: `qwen3.5:9b`). A bounded Google A2UI
@@ -45,8 +46,8 @@ adds essentially ForgeUI's own package files rather than another framework copy.
 For a locally built wheel:
 
 ```dockerfile
-COPY dist/forgeui-0.1.0a4-py3-none-any.whl /tmp/
-RUN pip install --no-cache-dir '/tmp/forgeui-0.1.0a4-py3-none-any.whl[web,ollama]'
+COPY dist/forgeui-0.1.0a5-py3-none-any.whl /tmp/
+RUN pip install --no-cache-dir '/tmp/forgeui-0.1.0a5-py3-none-any.whl[web,ollama]'
 ```
 
 Published releases use the same extras syntax from PyPI. Private company integrations should live

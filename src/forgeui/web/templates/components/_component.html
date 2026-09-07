@@ -1,5 +1,8 @@
 {% set p = component.props %}
 {% set element_id = 'forge-element-' ~ component.element_id %}
+{% macro layout_classes() -%}
+{% if p.get('padding') is not none %} forge-padding--{{ p.padding }}{% endif %}{% if p.get('density', 'inherit') != 'inherit' %} forge-density--{{ p.density }}{% endif %}{% if p.get('gap_x') is not none %} forge-gap-x--{{ p.gap_x }}{% endif %}{% if p.get('gap_y') is not none %} forge-gap-y--{{ p.gap_y }}{% endif %}
+{%- endmacro %}
 {% macro control_disabled(condition=false) -%}
 {% if not interactive or condition %} disabled{% endif %}
 {%- endmacro %}
@@ -7,23 +10,32 @@
 {% if component.action %}<button{{ control_disabled() }} type="button" class="forge-surface-action" {% if interactive %}data-forge-action="{{ component.action }}"{% endif %} aria-label="{{ aria_label }}"><span>View details</span>{{ component.action_icon }}</button>{% endif %}
 {%- endmacro %}
 {% if component.type == 'page' %}
-<div id="{{ element_id }}" class="forge-page">{{ children }}</div>
+<div id="{{ element_id }}" class="forge-page{{ layout_classes() }}">{{ children }}</div>
 {% elif component.type == 'container' %}
-<div id="{{ element_id }}" class="forge-container forge-container--{{ p.width }}">{{ children }}</div>
+<div id="{{ element_id }}" class="forge-container forge-container--{{ p.width }}{{ layout_classes() }}">{{ children }}</div>
 {% elif component.type in ['stack', 'inline'] %}
-<div id="{{ element_id }}" class="forge-{{ component.type }} forge-gap--{{ p.gap }} forge-align--{{ p.align }}{% if component.type == 'inline' and p.wrap %} forge-wrap{% endif %}">{{ children }}</div>
+<div id="{{ element_id }}" class="forge-{{ component.type }} forge-gap--{{ p.gap }} forge-align--{{ p.align }}{% if component.type == 'inline' and p.wrap %} forge-wrap{% endif %}{{ layout_classes() }}">{{ children }}</div>
 {% elif component.type == 'grid' %}
-<div id="{{ element_id }}" class="forge-grid forge-grid--{{ p.columns }} forge-gap--{{ p.gap }}">{{ children }}</div>
+<div class="forge-grid-frame"><div id="{{ element_id }}" class="forge-grid forge-grid--{{ p.columns }} forge-gap--{{ p.gap }} forge-grid-align--{{ p.align }}{% if p.columns == 'auto' %} forge-grid-min--{{ p.min_item_width }}{% endif %}{% if extra.managed_layout %} forge-grid--managed forge-grid-small--{{ p.responsive.small if p.responsive else 1 }} forge-grid-medium--{{ p.responsive.medium if p.responsive else ([p.columns, 2]|min) }} forge-grid-large--{{ p.responsive.large if p.responsive else p.columns }} forge-grid-ratio--{{ p.ratio }}{% endif %}{% if p.equal_height %} forge-grid--equal-height{% endif %}{{ layout_classes() }}">{{ children }}</div></div>
+{% elif component.type == 'grid-item' %}
+<div id="{{ element_id }}" class="forge-grid-item forge-column-span--{{ p.column_span }} forge-row-span--{{ p.row_span }}{{ layout_classes() }}">{{ children }}</div>
 {% elif component.type == 'card' %}
-<section id="{{ element_id }}" class="forge-card forge-card--{{ p.tone }}{% if component.action %} forge-has-action{% endif %}">{% if p.title %}<h2 class="forge-card-title">{{ p.title }}</h2>{% endif %}{{ children }}{{ drilldown('View details for ' ~ p.title if p.title else 'View card details') }}</section>
+<section id="{{ element_id }}" class="forge-card forge-card--{{ p.tone }}{% if component.action %} forge-has-action{% endif %}{{ layout_classes() }}">{% if p.title %}<h2 class="forge-card-title">{{ p.title }}</h2>{% endif %}{{ children }}{{ drilldown('View details for ' ~ p.title if p.title else 'View card details') }}</section>
+{% elif component.type in ['card-header', 'card-body', 'card-footer'] %}
+{% set tag = 'header' if component.type == 'card-header' else ('footer' if component.type == 'card-footer' else 'div') %}
+<{{ tag }} id="{{ element_id }}" class="forge-{{ component.type }}{{ layout_classes() }}">{{ children }}</{{ tag }}>
+{% elif component.type == 'content-group' %}
+<figure id="{{ element_id }}" class="forge-content-group{{ layout_classes() }}" aria-describedby="{{ element_id }}-annotation">{{ children }}<figcaption id="{{ element_id }}-annotation">{% if p.description %}<p class="forge-content-description">{{ p.description }}</p>{% endif %}{% if p.caption %}<p class="forge-content-caption">{{ p.caption }}</p>{% endif %}</figcaption></figure>
+{% elif component.type == 'disclosure' %}
+<details id="{{ element_id }}" class="forge-disclosure{{ layout_classes() }}"{% if p.expanded %} open{% endif %}><summary aria-labelledby="{{ element_id }}-title"{% if p.summary %} aria-describedby="{{ element_id }}-summary"{% endif %}><span id="{{ element_id }}-title">{{ p.title }}</span>{% if p.summary %}<span id="{{ element_id }}-summary" class="forge-disclosure-summary">{{ p.summary }}</span>{% endif %}</summary><div class="forge-disclosure-content{% if p.gap_x is not none %} forge-gap-x--{{ p.gap_x }}{% endif %}{% if p.gap_y is not none %} forge-gap-y--{{ p.gap_y }}{% endif %}">{{ children }}</div></details>
 {% elif component.type == 'section' %}
-<section id="{{ element_id }}" class="forge-section">{% if p.title %}<header class="forge-section-header"><h2>{{ p.title }}</h2>{% if p.description %}<p>{{ p.description }}</p>{% endif %}</header>{% endif %}{{ children }}</section>
+<section id="{{ element_id }}" class="forge-section{{ layout_classes() }}">{% if p.title %}<header class="forge-section-header"><h2>{{ p.title }}</h2>{% if p.description %}<p>{{ p.description }}</p>{% endif %}</header>{% endif %}{{ children }}</section>
 {% elif component.type == 'page-header' %}
 <header id="{{ element_id }}" class="forge-page-header"><h1>{{ p.title }}</h1>{% if p.subtitle %}<p class="forge-subtitle">{{ p.subtitle }}</p>{% endif %}</header>
 {% elif component.type == 'divider' %}
 <hr id="{{ element_id }}" class="forge-divider">
 {% elif component.type == 'repeat' %}
-<div id="{{ element_id }}" class="forge-repeat">{{ children }}</div>
+<div id="{{ element_id }}" class="forge-repeat{{ layout_classes() }}">{{ children }}</div>
 {% elif component.type == 'heading' %}
 <h{{ p.level }} id="{{ element_id }}" class="forge-heading forge-heading--{{ p.level }}">{{ p.text }}</h{{ p.level }}>
 {% elif component.type == 'text' %}

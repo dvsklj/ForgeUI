@@ -10,7 +10,7 @@ def test_public_distribution_exposes_expected_install_layers() -> None:
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
 
     assert project["name"] == "forgeui"
-    assert project["version"] == "0.1.0a4"
+    assert project["version"] == "0.1.0a5"
     assert (
         f'__version__ = "{project["version"]}"'
         in (ROOT / "src" / "forgeui" / "__init__.py").read_text()

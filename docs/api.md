@@ -41,6 +41,12 @@ The A2UI endpoint requires administrator credentials and
 validated `device-health/1` data model. Unsupported catalogs, components, actions, functions,
 progressive updates, active content, and unpinned protocol versions return a stable 422 error.
 
+`POST /api/validate` returns `{valid, issues}`. Each issue includes a stable code, JSON path,
+repair message, and `severity` (`error` or `warning`). Layout parentage, slot order, spans, and
+ambiguous grid modes are blocking errors. A provably empty decorative wrapper returns an
+`empty_layout` warning while remaining valid, so callers can show repair feedback without losing a
+renderable manifest.
+
 ```bash
 curl --fail-with-body -X POST http://127.0.0.1:8000/api/a2ui/import \
   -H "Authorization: Bearer $FORGEUI_ADMIN_TOKEN" \

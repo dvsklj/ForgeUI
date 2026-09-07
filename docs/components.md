@@ -1,6 +1,6 @@
 # Component catalog and design profiles
 
-ForgeUI ships 48 catalog entries. The catalog is server-owned: it maps an element type to strict
+ForgeUI ships 54 catalog entries. The catalog is server-owned: it maps an element type to strict
 Pydantic props, a fixed Jinja template, schema/prompt documentation, and allowed design profiles.
 Models select a profile ID, never individual colors, fonts, classes, CSS, or SVG paths.
 
@@ -26,7 +26,7 @@ incompatible `executive-summary` combination.
 
 | Group | Types |
 | --- | --- |
-| Structure | `page`, `page-header`, `container`, `stack`, `inline`, `grid`, `card`, `section`, `divider`, `repeat` |
+| Structure | `page`, `page-header`, `container`, `stack`, `inline`, `grid`, `grid-item`, `card`, `card-header`, `card-body`, `card-footer`, `content-group`, `disclosure`, `section`, `divider`, `repeat` |
 | Content | `heading`, `text`, `badge`, `icon`, `key-value`, `metric`, `alert`, `progress`, `empty-state` |
 | Data and charts | `table`, `status-list`, `timeline`, `sparkline`, `line-chart`, `bar-chart`, `donut-chart`, `aggregate-metric`, `mermaid` |
 | Controls | `button`, `modal`, `form`, `field-group`, `field`, `text-input`, `textarea`, `number-input`, `select`, `radio-group`, `checkbox`, `toggle`, `search`, `tabs`, `date-range`, `breadcrumbs`, `pagination`, `toast` |
@@ -56,6 +56,95 @@ the selected slice's value to pointer and keyboard users.
 Table columns and key/value rows may select one renderer-owned display format: `text`, `number`,
 `percent`, `status`, `datetime`, `temperature`, or `duration-ms`. These are fixed enum choices,
 not user-defined format strings, expressions, or locale templates.
+
+## Layout controls
+
+Compose `page`, `container`, `stack`, `inline`, `repeat`, and `grid` with typed props. Layout props are semantic
+tokens; they never contain CSS, widths, breakpoint maps, or expressions. They render through the
+same trusted stylesheet in hosted documents, standalone pages, embedded fragments, and the HTML
+adapter.
+
+### Responsive grids and sizing
+
+`grid.columns` accepts `1`, `2`, `3`, `4`, or `"auto"`; the default remains `2`. Numeric columns
+retain the established responsive presets. `"auto"` uses `min_item_width` (`"sm"`, `"md"`, or
+`"lg"`) and `repeat(auto-fit, ...)` internally, so cards wrap as the grid's container changes.
+The preferred minimums are 12 rem, 16 rem, and 24 rem. A narrow container can shrink a single
+track to fit; the mobile surface always uses one column.
+
+```json
+{
+  "type": "grid",
+  "props": {"columns": "auto", "min_item_width": "md", "gap": "md"},
+  "children": ["summary", "details"]
+}
+```
+
+For explicit compositions, set `responsive` to bounded counts at renderer-owned container widths:
+
+```json
+{"responsive": {"small": 1, "medium": 2, "large": 3}, "ratio": "equal"}
+```
+
+`ratio` is `"equal"`, `"main-start"`, or `"main-end"`. A main-column ratio is permitted only
+when every responsive size has one or two columns. `main-start` gives the first track a 2:1 ratio;
+`main-end` gives the second track 2:1. Use `grid-item` directly inside a grid for bounded
+`column_span` and `row_span` values from 1 through 4. Spans clamp to the active column count.
+Auto-fit grids require `column_span: 1`, because their track count is data-independent and may
+change at any width.
+
+### Spacing and alignment
+
+`gap` remains the compact all-direction token (`none`, `sm`, `md`, `lg`). `gap_x` and `gap_y`
+override horizontal and vertical gaps separately. `padding` uses the same four tokens. `density`
+is `inherit`, `compact`, `comfortable`, or `spacious`, and adjusts the trusted spacing scale for
+the subtree. Grid and stack alignment accepts `start`, `end`, `center`, and `stretch` (stack and
+inline also support `baseline`). `grid.equal_height: true` gives its rows equal height and must
+be paired with `align: "stretch"`.
+
+```json
+{
+  "type": "grid",
+  "props": {
+    "responsive": {"small": 1, "medium": 2, "large": 2},
+    "ratio": "main-end",
+    "gap_x": "lg",
+    "gap_y": "sm",
+    "padding": "md",
+    "density": "comfortable",
+    "align": "stretch",
+    "equal_height": true
+  }
+}
+```
+
+### Card and content grouping
+
+Cards can keep ordinary children for a simple card. For consistent composition, use optional
+`card-header`, exactly one `card-body`, and optional `card-footer`, in that order. Slot components
+must be direct card children; slot mode cannot mix loose children. The body grows to align footers
+across equal-height grid rows.
+
+`content-group` associates a `description` and/or `caption` with exactly one child. It renders a
+semantic `figure`/`figcaption` boundary and an `aria-describedby` relationship, keeping explanatory
+text with the chart, metric, or other component it explains. Use a `stack` child when one
+description should cover several pieces of content.
+
+### Passive disclosure
+
+`disclosure` renders native `<details>/<summary>` markup. It takes a required `title`, optional
+`summary`, nested children, and an `expanded` boolean. It deliberately has no action field or
+action runtime dependency. Browser keyboard behavior, focus treatment, and reduced-motion policy
+come from native semantics and trusted CSS.
+
+### Layout diagnostics
+
+Validation reports actionable `layout_parent`, `card_slots`, `content_group_child`,
+`auto_grid_span`, and `empty_layout` diagnostics. Structural mistakes are errors and prevent
+persistence or rendering. `empty_layout` is a warning when a wrapper is provably empty (for
+example, a card containing only a divider and a literal-hidden child); data-driven visibility is
+left valid because it may produce content at runtime. Warnings remain visible in API and adapter
+results while valid output can still render.
 
 ## Accessibility behavior
 

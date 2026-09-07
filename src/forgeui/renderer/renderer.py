@@ -88,7 +88,13 @@ def _asset_version() -> str:
     digest = sha256()
     static_directory = _template_directory().parent / "static"
     try:
-        for filename in ("forgeui.css", "forgeui.js", "forgeui-embed.js", "favicon.svg"):
+        for filename in (
+            "forgeui.css",
+            "forgeui-layout.css",
+            "forgeui.js",
+            "forgeui-embed.js",
+            "favicon.svg",
+        ):
             digest.update((static_directory / filename).read_bytes())
     except OSError:
         return __version__
@@ -288,6 +294,19 @@ class Renderer:
         try:
             children = self._render_children(manifest, element_id, context, trail | {element_id})
             extra = self._component_extra(element.type, props, context)
+            if element.type == "grid":
+                extra = dict(extra)
+                extra["managed_layout"] = bool(
+                    props.get("responsive")
+                    or props.get("ratio") != "equal"
+                    or (
+                        props.get("columns") != "auto"
+                        and any(
+                            manifest.elements[child].type == "grid-item"
+                            for child in element.children
+                        )
+                    )
+                )
         except (KeyError, ValueError, TypeError, OverflowError) as exc:
             return self._failure(element_id, "Component data could not be rendered.", exc)
         view = _ComponentView(

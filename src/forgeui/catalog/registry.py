@@ -6,7 +6,15 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Annotated, Any, Literal, TypeAlias
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 
 from forgeui.expressions.ast import Expression, RefExpr
 
@@ -61,17 +69,31 @@ class EmptyProps(Props):
     pass
 
 
-class StackProps(Props):
+SpacingToken = Literal["none", "sm", "md", "lg"]
+
+
+class LayoutProps(Props):
+    padding: SpacingToken | None = None
+    density: Literal["inherit", "compact", "comfortable", "spacious"] = "inherit"
+    gap_x: SpacingToken | None = None
+    gap_y: SpacingToken | None = None
+
+
+class PageProps(LayoutProps):
+    pass
+
+
+class StackProps(LayoutProps):
     gap: Literal["none", "sm", "md", "lg"] = "md"
-    align: Literal["start", "stretch", "center", "baseline"] = "stretch"
+    align: Literal["start", "end", "stretch", "center", "baseline"] = "stretch"
 
 
 class InlineProps(StackProps):
-    align: Literal["start", "stretch", "center", "baseline"] = "center"
+    align: Literal["start", "end", "stretch", "center", "baseline"] = "center"
     wrap: bool = True
 
 
-class ContainerProps(Props):
+class ContainerProps(LayoutProps):
     width: Literal["narrow", "standard", "wide"] = "standard"
 
 
@@ -80,17 +102,78 @@ class PageHeaderProps(Props):
     subtitle: TextValue | None = None
 
 
-class GridProps(Props):
-    columns: Literal[1, 2, 3, 4] = 2
-    gap: Literal["sm", "md", "lg"] = "md"
+class ResponsiveColumns(Props):
+    small: Literal[1, 2, 3, 4] = 1
+    medium: Literal[1, 2, 3, 4] = 2
+    large: Literal[1, 2, 3, 4] = 3
+
+    @field_validator("small", "medium", "large", mode="before")
+    @classmethod
+    def strict_counts(cls, value: object) -> object:
+        if type(value) is not int:
+            raise ValueError("column counts must be integers from 1 to 4")
+        return value
 
 
-class CardProps(Props):
+class GridProps(LayoutProps):
+    columns: Literal[1, 2, 3, 4, "auto"] = 2
+    gap: SpacingToken = "md"
+    responsive: ResponsiveColumns | None = None
+    min_item_width: Literal["sm", "md", "lg"] = "md"
+    ratio: Literal["equal", "main-start", "main-end"] = "equal"
+    align: Literal["start", "end", "center", "stretch"] = "stretch"
+    equal_height: bool = False
+
+    @field_validator("columns", mode="before")
+    @classmethod
+    def strict_columns(cls, value: object) -> object:
+        if type(value) is not int and value != "auto":
+            raise ValueError("columns must be an integer from 1 to 4 or auto")
+        return value
+
+    @model_validator(mode="after")
+    def consistent_grid_modes(self) -> GridProps:
+        if self.columns == "auto" and self.responsive is not None:
+            raise ValueError("choose auto wrapping or responsive column counts, not both")
+        if self.columns != "auto" and self.min_item_width != "md":
+            raise ValueError("min_item_width requires columns auto")
+        if self.ratio != "equal":
+            counts = self.responsive.model_dump().values() if self.responsive else [self.columns]
+            if any(count not in (1, 2) for count in counts) or self.columns == "auto":
+                raise ValueError("main-column ratios require one or two columns at every width")
+        if self.equal_height and self.align != "stretch":
+            raise ValueError("equal_height requires align stretch")
+        return self
+
+
+class GridItemProps(LayoutProps):
+    column_span: int = Field(default=1, ge=1, le=4)
+    row_span: int = Field(default=1, ge=1, le=4)
+
+
+class DisclosureProps(LayoutProps):
+    title: TextValue
+    summary: TextValue | None = None
+    expanded: bool = False
+
+
+class ContentGroupProps(LayoutProps):
+    description: TextValue | None = None
+    caption: TextValue | None = None
+
+    @model_validator(mode="after")
+    def has_annotation(self) -> ContentGroupProps:
+        if not self.description and not self.caption:
+            raise ValueError("content-group requires a description or caption")
+        return self
+
+
+class CardProps(LayoutProps):
     title: TextValue | None = None
     tone: Literal["default", "subtle", "highlight"] = "default"
 
 
-class SectionProps(Props):
+class SectionProps(LayoutProps):
     title: TextValue | None = None
     description: TextValue | None = None
 
@@ -368,7 +451,7 @@ class PaginationProps(FilteredProps):
         return self
 
 
-class RepeatProps(FilteredProps):
+class RepeatProps(FilteredProps, LayoutProps):
     data: RefExpr
     empty_message: SafeText | None = None
     filter_state: StatePath | None = None
@@ -538,13 +621,35 @@ def _spec(
 
 component_registry = ComponentRegistry(
     (
-        _spec("page", EmptyProps, children=True),
+        _spec("page", PageProps, children=True),
         _spec("page-header", PageHeaderProps),
         _spec("container", ContainerProps, children=True),
         _spec("stack", StackProps, children=True),
         _spec("inline", InlineProps, children=True),
         _spec("grid", GridProps, children=True),
+        _spec(
+            "grid-item",
+            GridItemProps,
+            children=True,
+            note="Direct grid child; spans clamp to responsive columns. "
+            "Auto grids require column_span 1.",
+        ),
         _spec("card", CardProps, children=True, action=True),
+        _spec("card-header", LayoutProps, children=True),
+        _spec("card-body", LayoutProps, children=True),
+        _spec("card-footer", LayoutProps, children=True),
+        _spec(
+            "content-group",
+            ContentGroupProps,
+            children=True,
+            note="Attach description/caption to exactly one content child.",
+        ),
+        _spec(
+            "disclosure",
+            DisclosureProps,
+            children=True,
+            note="Native passive disclosure; keyboard works without scripts or actions.",
+        ),
         _spec("section", SectionProps, children=True),
         _spec("divider", EmptyProps),
         _spec("repeat", RepeatProps, children=True, profiles=DATA_PROFILES),

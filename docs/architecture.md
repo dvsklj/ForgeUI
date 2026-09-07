@@ -42,12 +42,16 @@ Google renderers, accept arbitrary catalogs, or claim general A2UI conformance.
 - `forgeui.runtime` freezes contract/source/capability authority and derives the one manifest
   policy consumed by prompts, JSON Schema, validation, persistence, rendering, and actions.
 - `forgeui.catalog` is the component source of truth. It supplies prop parsing, JSON Schema,
-  prompt documentation, profile compatibility, and renderer template names.
+  prompt documentation, profile compatibility, and renderer template names. The 0.1.0a5 catalog
+  adds typed responsive grids, grid items, card slots, content groups, and passive disclosures.
 - `forgeui.validation` parses exact JSON envelopes, checks size/graph/path/action/profile limits,
-  and accepts an optional side-effect-free dry renderer.
+  validates layout parent/slot/span contracts, reports actionable empty-layout warnings, and
+  accepts an optional side-effect-free dry renderer.
 - `forgeui.renderer` maps catalog entries to fixed Jinja templates. It renders trusted SVG charts
   and uses an explicit immutable render context. Trusted hosts may render a complete manifest or
-  one existing element subtree; neither path changes template selection or validation.
+  one existing element subtree; neither path changes template selection or validation. Hosted
+  documents load the core stylesheet and a separately cacheable typed layout stylesheet; portable
+  adapters advertise both assets.
 - `forgeui.data` and `forgeui.services` provide injected SQLAlchemy/SQLite repositories,
   immutable revisions, server-owned state, snapshots, job state, action handling, and audit data.
 - `forgeui.llm` supplies the configured Ollama client and a bounded generation loop. A provider

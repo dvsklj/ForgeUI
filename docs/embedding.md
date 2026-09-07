@@ -96,10 +96,16 @@ shell:
 ></section>
 ```
 
-The fragment route injects no scripts or external assets. Load ForgeUI's stylesheet yourself, map
-the emitted `.forge-*` classes into the host design system, or use the iframe mode for complete
-style isolation. Stateful ForgeUI controls should use the document/iframe routes because those
-routes carry the signed session, CSRF metadata, and scoped interaction runtime.
+The fragment route injects no scripts or external assets. Load both `forgeui.css` and
+`forgeui-layout.css` yourself; the second file contains the optional typed grid, spacing, card-slot,
+and disclosure styles. You may map the emitted `.forge-*` classes into the host design system, or
+use the iframe mode for complete style isolation. Stateful ForgeUI controls should use the
+document/iframe routes because those routes carry the signed session, CSRF metadata, and scoped
+interaction runtime.
+
+The layout stylesheet is still renderer-owned: its classes are emitted only from validated catalog
+tokens. It uses container queries so nested fragments respond to their actual available width,
+independent of the host viewport.
 
 ## Compose directly in trusted Python
 
@@ -113,6 +119,10 @@ card_html = render_manifest(
     element_id="pressure-chart",
 )
 ```
+
+The portable `HtmlRendererAdapter` advertises both stylesheet assets in `RenderResult.assets`:
+`("forgeui.css", "forgeui-layout.css")`. Static exports and fragments remain script-free; include
+those two files in the host document when rendering the returned HTML.
 
 `render_manifest` accepts only a validated `ForgeManifest`. Element IDs can select an existing
 subtree but cannot select templates, classes, URLs, or arbitrary code.

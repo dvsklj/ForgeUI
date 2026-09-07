@@ -1,0 +1,214 @@
+{
+  "metadata": {
+    "title": "Typed layout controls"
+  },
+  "design": {
+    "name": "calm-neutral"
+  },
+  "root": "page",
+  "elements": {
+    "page": {
+      "type": "page",
+      "children": [
+        "title",
+        "composition",
+        "cards"
+      ]
+    },
+    "title": {
+      "type": "page-header",
+      "props": {
+        "title": "Service workspace",
+        "subtitle": "Grouped context and passive details"
+      }
+    },
+    "composition": {
+      "type": "grid",
+      "props": {
+        "responsive": {
+          "small": 1,
+          "medium": 2,
+          "large": 3
+        },
+        "gap_x": "lg",
+        "gap_y": "md",
+        "equal_height": true
+      },
+      "children": [
+        "main",
+        "side"
+      ]
+    },
+    "main": {
+      "type": "grid-item",
+      "props": {
+        "column_span": 2
+      },
+      "children": [
+        "service"
+      ]
+    },
+    "side": {
+      "type": "grid-item",
+      "children": [
+        "notes"
+      ]
+    },
+    "service": {
+      "type": "card",
+      "props": {
+        "density": "comfortable"
+      },
+      "children": [
+        "service-header",
+        "service-body",
+        "service-footer"
+      ]
+    },
+    "service-header": {
+      "type": "card-header",
+      "children": [
+        "service-title"
+      ]
+    },
+    "service-title": {
+      "type": "heading",
+      "props": {
+        "text": "Service details",
+        "level": 2
+      }
+    },
+    "service-body": {
+      "type": "card-body",
+      "children": [
+        "description",
+        "disclosure"
+      ]
+    },
+    "description": {
+      "type": "text",
+      "props": {
+        "text": "Review the service context before making a change."
+      }
+    },
+    "disclosure": {
+      "type": "disclosure",
+      "props": {
+        "title": "Maintenance guidance",
+        "summary": "Read before scheduling work.",
+        "expanded": false,
+        "density": "compact"
+      },
+      "children": [
+        "guidance"
+      ]
+    },
+    "guidance": {
+      "type": "text",
+      "props": {
+        "text": "Confirm the maintenance window with the service owner."
+      }
+    },
+    "service-footer": {
+      "type": "card-footer",
+      "children": [
+        "footer-text"
+      ]
+    },
+    "footer-text": {
+      "type": "text",
+      "props": {
+        "text": "Keep the service owner informed.",
+        "tone": "muted"
+      }
+    },
+    "notes": {
+      "type": "card",
+      "props": {
+        "title": "Reference",
+        "density": "comfortable"
+      },
+      "children": [
+        "annotation"
+      ]
+    },
+    "annotation": {
+      "type": "content-group",
+      "props": {
+        "description": "Context stays attached to this content.",
+        "caption": "Service handbook"
+      },
+      "children": [
+        "reference"
+      ]
+    },
+    "reference": {
+      "type": "text",
+      "props": {
+        "text": "Use the agreed maintenance process for this service."
+      }
+    },
+    "cards": {
+      "type": "grid",
+      "props": {
+        "columns": "auto",
+        "min_item_width": "sm",
+        "gap_x": "md",
+        "gap_y": "lg"
+      },
+      "children": [
+        "prepare",
+        "review",
+        "confirm"
+      ]
+    },
+    "prepare": {
+      "type": "card",
+      "props": {
+        "title": "Prepare",
+        "padding": "md"
+      },
+      "children": [
+        "prepare-text"
+      ]
+    },
+    "prepare-text": {
+      "type": "text",
+      "props": {
+        "text": "Gather the service details."
+      }
+    },
+    "review": {
+      "type": "card",
+      "props": {
+        "title": "Review",
+        "padding": "md"
+      },
+      "children": [
+        "review-text"
+      ]
+    },
+    "review-text": {
+      "type": "text",
+      "props": {
+        "text": "Check the maintenance window."
+      }
+    },
+    "confirm": {
+      "type": "card",
+      "props": {
+        "title": "Confirm",
+        "padding": "md"
+      },
+      "children": [
+        "confirm-text"
+      ]
+    },
+    "confirm-text": {
+      "type": "text",
+      "props": {
+        "text": "Agree on the next step with the owner."
+      }
+    }
+  }
+}

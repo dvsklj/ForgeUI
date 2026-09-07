@@ -103,6 +103,7 @@ def test_shell_versions_local_assets_for_safe_cache_invalidation() -> None:
     ).read_text()
 
     assert "forgeui.css?v={{ asset_version }}" in template
+    assert "forgeui-layout.css?v={{ asset_version }}" in template
     assert "forgeui.js?v={{ asset_version }}" in template
     assert "favicon.svg?v={{ asset_version }}" in template
     assert (

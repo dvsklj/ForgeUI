@@ -17,6 +17,12 @@ persistence are separate, host-selected settings; neither is available to the mo
 Every surface remains responsive. `desktop` and `mobile` are intentional host hints, not fixed
 pixel canvases; narrow windows still reflow and wide mobile previews stay constrained.
 
+Typed layout controls are surface-independent. Auto-fit grids and responsive counts use the
+available container width, so a nested embed can choose different tracks than the same manifest in
+a full dashboard. `mobile` additionally forces managed and auto grids to one column. Static
+exports retain the same layout classes and native disclosure markup while disabling action and
+state runtimes.
+
 ## Persistence matrix
 
 | Mode | State owner | Interaction behavior | Reload behavior | Capabilities |

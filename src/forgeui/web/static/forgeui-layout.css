@@ -1,0 +1,126 @@
+/* Optional typed layout extensions. Loaded after forgeui.css by the trusted shell. */
+.forge-grid-frame {
+  container: forge-grid / inline-size;
+  min-width: 0;
+  width: 100%;
+}
+
+.forge-grid--auto > * { min-width: 0; }
+.forge-grid-min--sm { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+.forge-grid-min--md { grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
+.forge-grid-min--lg { grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); }
+.forge-grid-align--start { align-items: start; }
+.forge-grid-align--end { align-items: end; }
+.forge-grid-align--center { align-items: center; }
+.forge-grid-align--stretch { align-items: stretch; }
+.forge-grid--equal-height { grid-auto-rows: 1fr; }
+
+.forge-grid-frame > .forge-grid--managed { grid-template-columns: var(--forge-tracks); }
+.forge-grid-item {
+  display: grid;
+  gap: var(--space-md);
+  min-width: 0;
+  grid-column: span min(var(--forge-column-span, 1), var(--forge-columns, 1));
+}
+
+.forge-grid-small--1 { --forge-columns: 1; --forge-tracks: repeat(1, minmax(0, 1fr)); }
+.forge-grid-small--2 { --forge-columns: 2; --forge-tracks: repeat(2, minmax(0, 1fr)); }
+.forge-grid-small--3 { --forge-columns: 3; --forge-tracks: repeat(3, minmax(0, 1fr)); }
+.forge-grid-small--4 { --forge-columns: 4; --forge-tracks: repeat(4, minmax(0, 1fr)); }
+.forge-grid-small--2:where(.forge-grid-ratio--main-start) { --forge-tracks: minmax(0, 2fr) minmax(0, 1fr); }
+.forge-grid-small--2:where(.forge-grid-ratio--main-end) { --forge-tracks: minmax(0, 1fr) minmax(0, 2fr); }
+
+@container forge-grid (min-width: 40rem) {
+  .forge-grid-medium--1 { --forge-columns: 1; --forge-tracks: repeat(1, minmax(0, 1fr)); }
+  .forge-grid-medium--2 { --forge-columns: 2; --forge-tracks: repeat(2, minmax(0, 1fr)); }
+  .forge-grid-medium--3 { --forge-columns: 3; --forge-tracks: repeat(3, minmax(0, 1fr)); }
+  .forge-grid-medium--4 { --forge-columns: 4; --forge-tracks: repeat(4, minmax(0, 1fr)); }
+  .forge-grid-medium--2:where(.forge-grid-ratio--main-start) { --forge-tracks: minmax(0, 2fr) minmax(0, 1fr); }
+  .forge-grid-medium--2:where(.forge-grid-ratio--main-end) { --forge-tracks: minmax(0, 1fr) minmax(0, 2fr); }
+}
+
+@container forge-grid (min-width: 64rem) {
+  .forge-grid-large--1 { --forge-columns: 1; --forge-tracks: repeat(1, minmax(0, 1fr)); }
+  .forge-grid-large--2 { --forge-columns: 2; --forge-tracks: repeat(2, minmax(0, 1fr)); }
+  .forge-grid-large--3 { --forge-columns: 3; --forge-tracks: repeat(3, minmax(0, 1fr)); }
+  .forge-grid-large--4 { --forge-columns: 4; --forge-tracks: repeat(4, minmax(0, 1fr)); }
+  .forge-grid-large--2:where(.forge-grid-ratio--main-start) { --forge-tracks: minmax(0, 2fr) minmax(0, 1fr); }
+  .forge-grid-large--2:where(.forge-grid-ratio--main-end) { --forge-tracks: minmax(0, 1fr) minmax(0, 2fr); }
+}
+
+.forge-column-span--1 { --forge-column-span: 1; }
+.forge-column-span--2 { --forge-column-span: 2; }
+.forge-column-span--3 { --forge-column-span: 3; }
+.forge-column-span--4 { --forge-column-span: 4; }
+.forge-row-span--1 { grid-row: span 1; }
+.forge-row-span--2 { grid-row: span 2; }
+.forge-row-span--3 { grid-row: span 3; }
+.forge-row-span--4 { grid-row: span 4; }
+
+[data-forge-surface="mobile"] .forge-grid-frame > .forge-grid--managed,
+[data-forge-surface="mobile"] .forge-grid-frame > .forge-grid--auto {
+  --forge-columns: 1;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.forge-density--compact {
+  --space-sm: 8px; --space-md: 12px; --space-lg: 16px;
+  --space-fluid-md: 12px; --space-fluid-lg: 16px; --panel-padding: 12px;
+}
+.forge-density--comfortable {
+  --space-sm: 12px; --space-md: 16px; --space-lg: 24px;
+  --space-fluid-md: 16px; --space-fluid-lg: 24px; --panel-padding: 20px;
+}
+.forge-density--spacious {
+  --space-sm: 16px; --space-md: 24px; --space-lg: 32px;
+  --space-fluid-md: 24px; --space-fluid-lg: 32px; --panel-padding: 28px;
+}
+
+.forge-padding--none { padding: 0 !important; }
+.forge-padding--sm { padding: var(--space-sm) !important; }
+.forge-padding--md { padding: var(--space-md) !important; }
+.forge-padding--lg { padding: var(--space-lg) !important; }
+.forge-gap-x--none { column-gap: 0 !important; }
+.forge-gap-x--sm { column-gap: var(--space-sm) !important; }
+.forge-gap-x--md { column-gap: var(--space-md) !important; }
+.forge-gap-x--lg { column-gap: var(--space-lg) !important; }
+.forge-gap-y--none { row-gap: 0 !important; }
+.forge-gap-y--sm { row-gap: var(--space-sm) !important; }
+.forge-gap-y--md { row-gap: var(--space-md) !important; }
+.forge-gap-y--lg { row-gap: var(--space-lg) !important; }
+
+.forge-card-header, .forge-card-body, .forge-card-footer,
+.forge-content-group, .forge-disclosure-content {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-md);
+}
+.forge-card:has(> .forge-card-body) { display: flex; flex-direction: column; }
+.forge-card-body { flex: 1; align-content: start; }
+.forge-card-footer { padding-top: var(--space-sm); border-top: 1px solid var(--rule); }
+.forge-content-group { margin: 0; }
+.forge-content-group > figcaption { color: var(--muted); font-size: 14px; }
+.forge-content-description, .forge-content-caption { margin: 0; }
+.forge-content-caption { font-size: 12px; }
+.forge-disclosure {
+  min-width: 0;
+  border: 1px solid var(--rule);
+  border-radius: var(--control-radius);
+  padding: var(--panel-padding);
+  background: var(--surface);
+  color: var(--ink);
+}
+.forge-disclosure > summary {
+  min-height: 44px;
+  align-content: center;
+  cursor: pointer;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.forge-disclosure > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+.forge-disclosure-summary { display: block; margin-top: 4px; color: var(--muted); font-weight: 400; }
+.forge-disclosure-content { padding-top: var(--space-sm); }

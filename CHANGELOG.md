@@ -3,6 +3,32 @@
 All notable changes to ForgeUI are documented here. Versions follow
 [PEP 440](https://peps.python.org/pep-0440/).
 
+## 0.1.0a5 — 2026-09-07
+
+### Added
+
+- Typed responsive grids support numeric presets, container-aware `auto` wrapping with bounded
+  minimum item widths, and small/medium/large column counts. `grid-item` adds bounded column and
+  row spans; equal, first-main 2:1, and second-main 2:1 ratios are renderer-owned tokens.
+- Layout spacing and alignment now expose separate horizontal/vertical gaps, padding, density,
+  vertical alignment, and equal-height rows without model-authored CSS.
+- Cards support ordered `card-header`, `card-body`, and `card-footer` slots. `content-group`
+  associates a description or caption with one child through semantic figure markup.
+- Passive `disclosure` uses native `<details>/<summary>` keyboard semantics with optional summary,
+  nested children, and an initial expanded state.
+- Layout validation reports actionable parent, slot, span, and provably empty-wrapper diagnostics.
+  Empty layout warnings preserve valid rendering; structural errors remain blocking.
+- Added `examples/manifests/layout-controls.json` and a separately cacheable
+  `forgeui-layout.css` asset. Hosted documents and portable renderers expose the same layout
+  behavior in dashboard, standalone, embedded, and static-export contexts.
+
+### Changed
+
+- Component catalog, generated JSON Schema, prompt documentation, and API catalog now contain 54
+  synchronized entries.
+- Portable render results preserve validation warning severity and render when no blocking error is
+  present. Core CSS remains within its existing footprint budget.
+
 ## 0.1.0a4 — 2026-09-06
 
 ### Fixed

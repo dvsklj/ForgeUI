@@ -36,6 +36,7 @@ class RenderIssue:
     code: str
     path: str
     message: str
+    severity: Literal["error", "warning"] = "error"
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,7 +52,7 @@ class RenderResult:
 
     @property
     def ok(self) -> bool:
-        return not self.issues
+        return not any(issue.severity == "error" for issue in self.issues)
 
 
 class RendererAdapter(Protocol):
@@ -103,7 +104,7 @@ class HtmlRendererAdapter:
         raw = manifest.model_dump(mode="json") if isinstance(manifest, ForgeManifest) else manifest
         report = validate_manifest(raw, policy=self.policy)
         issues.extend(
-            RenderIssue("validation", issue.code, issue.path, issue.message)
+            RenderIssue("validation", issue.code, issue.path, issue.message, issue.severity)
             for issue in report.issues
         )
         validated = report.manifest
@@ -128,7 +129,7 @@ class HtmlRendererAdapter:
                         )
                     )
         output = ""
-        if not issues and validated is not None:
+        if not any(issue.severity == "error" for issue in issues) and validated is not None:
             supplied = context or RenderContext()
             render_context = RenderContext(
                 data=supplied.data,
@@ -152,7 +153,7 @@ class HtmlRendererAdapter:
             output,
             caps.renderer,
             caps.version,
-            assets=("forgeui.css",),
+            assets=("forgeui.css", "forgeui-layout.css"),
             issues=tuple(issues),
             interaction=options.interaction,
         )
