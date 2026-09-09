@@ -18,8 +18,9 @@
 .forge-sankey-unit { padding: 4px 12px; border-radius: 99px; background: var(--raised); color: var(--muted); font-size: 12px; }
 .forge-sankey-description, .forge-sankey-note { color: var(--muted); font-size: 12px; }
 .forge-sankey-description { margin: 4px 0 16px; }
-.forge-sankey-scroll { overflow: auto; max-height: 340px; border-radius: 12px; background: var(--raised); }
-.forge-sankey-svg { display: block; user-select: none; -webkit-user-select: none; }
+.forge-sankey-scroll { overflow: auto; border-radius: 12px; background: var(--raised); }
+.forge-sankey-scroll--dense { max-height: 340px; }
+.forge-sankey-svg { display: block; min-width: 100%; height: auto; user-select: none; -webkit-user-select: none; }
 .forge-sankey-label { fill: var(--ink); font-size: 13px; font-weight: 600; }
 .forge-sankey-value { fill: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .forge-sankey-node rect { fill-opacity: .8; }

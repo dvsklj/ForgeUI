@@ -56,13 +56,14 @@ def sankey_extra(props: Mapping[str, Any]) -> dict[str, Any]:
     scale = 176 / largest_layer if largest_layer else 0.0
     gap, top, node_width, step = 44, 32, 18, 300
     height = max(280, 212 + max(len(layer) for layer in layers) * gap)
-    width = max(640, last_layer * step + 260)
+    width = max(640, last_layer * step + 78)
     positions: dict[str, tuple[float, float]] = {}
     for index, layer in enumerate(layers):
         used = sum(normalized[node.id] * scale for node in layer) + (len(layer) - 1) * gap
         y = top + (height - top - 30 - used) / 2
         for node in layer:
-            positions[node.id] = (30 + index * step, y)
+            x = 30 + index * (width - 78) / last_layer if last_layer else 30
+            positions[node.id] = (x, y)
             y += normalized[node.id] * scale + gap
 
     labels = {node.id: node.label for node in graph.nodes}
@@ -140,6 +141,9 @@ def sankey_extra(props: Mapping[str, Any]) -> dict[str, Any]:
             }
         )
         shown = node.label if len(node.label) <= 25 else node.label[:24] + "…"
+        # End labels face inward, keeping the final bars close to the canvas edge.
+        at_end = last_layer > 0 and depth[node.id] == last_layer
+        label_x, anchor = (x + node_width, "end") if at_end else (x, "start")
         parts.append(
             f'<g class="forge-sankey-node forge-chart-series--{colors[node.id]}" '
             f'tabindex="0" role="img" aria-label="{escape(annotation)}" '
@@ -147,8 +151,10 @@ def sankey_extra(props: Mapping[str, Any]) -> dict[str, Any]:
             f"<title>{escape(annotation)}</title>"
             f'<rect x="{x}" y="{y}" width="{node_width}" height="{normalized[node.id] * scale}" '
             'rx="3" fill="currentColor"/>'
-            f'<text class="forge-sankey-label" x="{x}" y="{y - 26}">{escape(shown)}</text>'
-            f'<text class="forge-sankey-value" x="{x}" y="{y - 9}">'
+            f'<text class="forge-sankey-label" x="{label_x}" y="{y - 26}" '
+            f'text-anchor="{anchor}">{escape(shown)}</text>'
+            f'<text class="forge-sankey-value" x="{label_x}" y="{y - 9}" '
+            f'text-anchor="{anchor}">'
             f"{escape(_quantity(total))}</text></g>"
         )
     parts.append("</svg>")
@@ -157,4 +163,5 @@ def sankey_extra(props: Mapping[str, Any]) -> dict[str, Any]:
         "links": link_rows,
         "nodes": node_rows,
         "has_flow": any(values),
+        "dense": height > 340,
     }

@@ -35,6 +35,20 @@ def test_sankey_annotations_keyboard_themes_and_mobile(page, theme, width, tmp_p
         expect(diagram).to_be_visible()
         assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
         assert page.locator(".forge-sankey-link").count() == 4
+        svg = page.locator(".forge-sankey-svg")
+        if width == 1280:
+            assert svg.bounding_box()["width"] == pytest.approx(diagram.bounding_box()["width"])
+            assert diagram.evaluate("el => el.scrollHeight <= el.clientHeight")
+            # Both outer bars reach the canvas edges with equal, modest insets.
+            bounds = page.locator(".forge-sankey-node rect").evaluate_all(
+                "nodes => nodes.map(node => { const r = node.getBoundingClientRect(); "
+                "return {left: r.left, right: r.right}; })"
+            )
+            canvas = svg.bounding_box()
+            left_gap = min(bar["left"] for bar in bounds) - canvas["x"]
+            right_gap = canvas["x"] + canvas["width"] - max(bar["right"] for bar in bounds)
+            assert left_gap == pytest.approx(right_gap)
+            assert right_gap < canvas["width"] * 0.05
         node_bar = page.locator(".forge-sankey-node rect").first
         expect(node_bar).to_have_attribute("width", "18")
         node_bar.click()

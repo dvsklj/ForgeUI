@@ -61,7 +61,7 @@
   <figcaption class="forge-sankey-header"><span>{{ p.title }}</span><span class="forge-sankey-unit">{{ p.unit }}</span></figcaption>
   <p class="forge-sankey-description">{{ p.description }}</p>
   {% if extra.has_flow %}
-  <div class="forge-sankey-scroll" tabindex="0" role="region" aria-label="{{ p.title }} diagram">{{ extra.svg }}</div>
+  <div class="forge-sankey-scroll{% if extra.dense %} forge-sankey-scroll--dense{% endif %}" tabindex="0" role="region" aria-label="{{ p.title }} diagram">{{ extra.svg }}</div>
   <div class="forge-sankey-inspection"><span>Ribbon width = quantity · Hover or use Tab for details</span><output data-forge-chart-tooltip aria-live="polite" hidden></output></div>
   {% else %}<p role="status">No positive flow to display. See Flow data for declared nodes and quantities.</p>{% endif %}
   <details class="forge-sankey-data">
