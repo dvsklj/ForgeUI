@@ -15,7 +15,8 @@ STATIC = ROOT / "src/forgeui/web/static"
 
 @pytest.mark.browser
 @pytest.mark.parametrize(
-    ("theme", "width"), [("light", 1280), ("dark", 1280), ("light", 390), ("dark", 390)]
+    ("theme", "width"),
+    [("light", 1280), ("dark", 1280), ("light", 390), ("dark", 390), ("system", 1280)],
 )
 def test_sankey_annotations_keyboard_themes_and_mobile(page, theme, width, tmp_path):
     runtime = build_runtime(lambda _: DEMO_SNAPSHOT, lambda _: True)
@@ -24,7 +25,9 @@ def test_sankey_annotations_keyboard_themes_and_mobile(page, theme, width, tmp_p
     raw["elements"] = {"revenue_flow": raw["elements"]["revenue_flow"]}
     adapter = HtmlRendererAdapter(policy=runtime.policy)
     page.set_viewport_size({"width": width, "height": 1000})
-    page.emulate_media(reduced_motion="reduce")
+    page.emulate_media(
+        reduced_motion="reduce", color_scheme="dark" if theme != "light" else "light"
+    )
     for interaction in ("inert", "events"):
         result = adapter.render(raw, RenderContext(data=DEMO_SNAPSHOT), RenderOptions(interaction))
         assert result.ok
@@ -49,6 +52,14 @@ def test_sankey_annotations_keyboard_themes_and_mobile(page, theme, width, tmp_p
             right_gap = canvas["x"] + canvas["width"] - max(bar["right"] for bar in bounds)
             assert left_gap == pytest.approx(right_gap)
             assert right_gap < canvas["width"] * 0.05
+        for viewport in (width, 1600, width):
+            page.set_viewport_size({"width": viewport, "height": 1000})
+            for selector, size in ((".forge-sankey-label", 13), (".forge-sankey-value", 12)):
+                rendered_sizes = page.locator(selector).evaluate_all(
+                    "labels => labels.map(el => parseFloat(getComputedStyle(el).fontSize) * "
+                    "el.getScreenCTM().a)"
+                )
+                assert rendered_sizes == pytest.approx([size] * 5)
         node_bar = page.locator(".forge-sankey-node rect").first
         expect(node_bar).to_have_attribute("width", "18")
         node_bar.click()
@@ -58,7 +69,13 @@ def test_sankey_annotations_keyboard_themes_and_mobile(page, theme, width, tmp_p
         )
         page.locator(".forge-sankey-label").first.dblclick()
         assert page.evaluate("window.getSelection().toString()") == ""
-        contrast = page.locator(".forge-sankey-node rect").evaluate_all("""nodes => {
+        assert (
+            page.locator(".forge-sankey-label").first.evaluate("el => getComputedStyle(el).cursor")
+            == "default"
+        )
+        contrast = page.locator(
+            ".forge-sankey-node rect, .forge-sankey-annotations text"
+        ).evaluate_all("""nodes => {
             const rgb = value => {
                 const channels = value.match(/[\\d.]+/g).map(Number).slice(0, 3);
                 return value.startsWith('color(srgb') ? channels.map(v => v * 255) : channels;
@@ -81,15 +98,16 @@ def test_sankey_annotations_keyboard_themes_and_mobile(page, theme, width, tmp_p
                 return (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
             });
         }""")
-        assert min(contrast) >= 3
+        assert min(contrast[:5]) >= 3
+        assert min(contrast[5:]) >= 4.5
         assert page.locator(".forge-sankey-link").first.evaluate(
             "el => Number(getComputedStyle(el).fillOpacity)"
-        ) == pytest.approx(0.65)
+        ) == pytest.approx(0.65 if theme == "light" else 1)
         assert (
             page.locator(".forge-sankey-svg stop").evaluate_all(
                 "stops => stops.map(stop => Number(getComputedStyle(stop).stopOpacity))"
             )
-            == [0.16, 0.32] * 4
+            == ([0.16, 0.32] if theme == "light" else [0.3, 0.5]) * 4
         )
         palette = page.locator(".forge-sankey-svg stop").evaluate_all(
             "stops => [...new Set(stops.map(stop => getComputedStyle(stop).stopColor))]"
@@ -112,6 +130,9 @@ def test_sankey_annotations_keyboard_themes_and_mobile(page, theme, width, tmp_p
             assert link.evaluate("el => getComputedStyle(el).strokeWidth") == "2px"
             page.keyboard.press("Escape")
             expect(tooltip).to_be_hidden()
+            page.locator(".forge-sankey-header").hover()
+            page.locator(".forge-sankey-label").first.hover()
+            expect(tooltip).to_have_text("EMEA: inflow 0 CHF; outflow 65,000 CHF")
         disclosure = page.locator(".forge-sankey-data > summary")
         disclosure.focus()
         page.keyboard.press("Enter")

@@ -194,7 +194,7 @@ def test_gradient_endpoints_match_nodes_and_composed_fragments_have_unique_paint
     gradients = soup.find_all("lineargradient")
     assert len(gradients) == 4
     assert len({gradient["id"] for gradient in gradients}) == 4
-    for svg in soup.select("svg"):
+    for svg in soup.select(".forge-sankey-svg"):
         links = svg.select(".forge-sankey-link")
         nodes = svg.select(".forge-sankey-node")
         for index, link in enumerate(links):
@@ -207,7 +207,7 @@ def test_gradient_endpoints_match_nodes_and_composed_fragments_have_unique_paint
             assert stops[1]["class"][-1] == nodes[index + 1]["class"][-1]
             assert all(stop["stop-color"] == "currentColor" for stop in stops)
     # Only paint identifiers vary; the same flow keeps identical geometry.
-    shapes = [svg.select(".forge-sankey-link") for svg in soup.select("svg")]
+    shapes = [svg.select(".forge-sankey-link") for svg in soup.select(".forge-sankey-svg")]
     assert [path["d"] for path in shapes[0]] == [path["d"] for path in shapes[1]]
 
 

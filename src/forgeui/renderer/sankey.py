@@ -69,6 +69,7 @@ def sankey_extra(props: Mapping[str, Any]) -> dict[str, Any]:
     labels = {node.id: node.label for node in graph.nodes}
     colors = {node.id: index % 6 + 1 for index, node in enumerate(graph.nodes)}
     parts = [
+        '<div class="forge-sankey-canvas">',
         f'<svg class="forge-sankey-svg" width="{width}" height="{height}" '
         f'viewBox="0 0 {width} {height}" role="group" aria-label="{escape(graph.title)}">',
         f"<title>{escape(graph.title)}</title>",
@@ -124,6 +125,7 @@ def sankey_extra(props: Mapping[str, Any]) -> dict[str, Any]:
             f"<title>{escape(annotation)}</title></path>"
         )
     node_rows = []
+    annotations = []
     for node in graph.nodes:
         x, y = positions[node.id]
         total = capacity[node.id]
@@ -150,14 +152,24 @@ def sankey_extra(props: Mapping[str, Any]) -> dict[str, Any]:
             f'data-forge-chart-point data-forge-chart-label="{escape(annotation)}">'
             f"<title>{escape(annotation)}</title>"
             f'<rect x="{x}" y="{y}" width="{node_width}" height="{normalized[node.id] * scale}" '
-            'rx="3" fill="currentColor"/>'
-            f'<text class="forge-sankey-label" x="{label_x}" y="{y - 26}" '
+            'rx="3" fill="currentColor"/></g>'
+        )
+        # A separate SVG without a viewBox keeps type in CSS pixels as shapes grow.
+        # Percentage anchors follow the same canvas; fixed offsets stay above each bar.
+        annotations.append(
+            f'<g data-forge-chart-point data-forge-chart-label="{escape(annotation)}">'
+            f"<title>{escape(annotation)}</title>"
+            f'<text class="forge-sankey-label" x="{label_x / width * 100}%" '
+            f'y="{y / height * 100}%" dy="-26" '
             f'text-anchor="{anchor}">{escape(shown)}</text>'
-            f'<text class="forge-sankey-value" x="{label_x}" y="{y - 9}" '
+            f'<text class="forge-sankey-value" x="{label_x / width * 100}%" '
+            f'y="{y / height * 100}%" dy="-9" '
             f'text-anchor="{anchor}">'
             f"{escape(_quantity(total))}</text></g>"
         )
-    parts.append("</svg>")
+    parts.append('</svg><svg class="forge-sankey-annotations" aria-hidden="true">')
+    parts.extend(annotations)
+    parts.append("</svg></div>")
     return {
         "svg": "".join(parts),
         "links": link_rows,

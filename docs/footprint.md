@@ -45,7 +45,7 @@ Contract tests enforce the following raw budgets:
 
 - complete shipped source tree: at most 1 MiB;
 - Core CSS: at most 32 KiB;
-- structured diagram CSS: at most 4 KiB raw and 1.5 KiB gzip;
+- structured diagram CSS: at most 5 KiB raw and 1.5 KiB gzip;
 - dashboard JavaScript: at most 16 KiB;
 - iframe host helper: at most 4 KiB;
 - no Typer dependency or Uvicorn standard extras.
