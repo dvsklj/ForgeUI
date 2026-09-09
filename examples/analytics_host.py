@@ -23,6 +23,16 @@ class SalesRow(BaseModel):
     orders: int = Field(ge=0)
 
 
+class RevenueFlow(BaseModel):
+    """Provider-aggregated August revenue in CHF, grouped on both sides of a junction."""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+    emea: float = Field(ge=0, le=1_000_000_000, allow_inf_nan=False)
+    americas: float = Field(ge=0, le=1_000_000_000, allow_inf_nan=False)
+    direct: float = Field(ge=0, le=1_000_000_000, allow_inf_nan=False)
+    partners: float = Field(ge=0, le=1_000_000_000, allow_inf_nan=False)
+
+
 class SalesSnapshot(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     title: str = Field(max_length=120)
@@ -32,6 +42,7 @@ class SalesSnapshot(BaseModel):
     previous_revenue: float = Field(ge=0, allow_inf_nan=False)
     orders: int = Field(ge=0)
     rows: list[SalesRow] = Field(max_length=100)
+    revenue_flow: RevenueFlow
 
 
 DEMO_SNAPSHOT = {
@@ -41,6 +52,12 @@ DEMO_SNAPSHOT = {
     "revenue": 185000.0,
     "previous_revenue": 162000.0,
     "orders": 740,
+    "revenue_flow": {
+        "emea": 65000.0,
+        "americas": 120000.0,
+        "direct": 111000.0,
+        "partners": 74000.0,
+    },
     "rows": [
         {"region": "emea", "period": "June", "revenue": 42000.0, "orders": 168},
         {"region": "emea", "period": "July", "revenue": 51000.0, "orders": 204},
@@ -72,6 +89,10 @@ def build_runtime(
             "data.rows.period",
             "data.rows.revenue",
             "data.rows.orders",
+            "data.revenue_flow.emea",
+            "data.revenue_flow.americas",
+            "data.revenue_flow.direct",
+            "data.revenue_flow.partners",
         },
         example=DEMO_SNAPSHOT,
     )

@@ -41,6 +41,68 @@ pagination. Legacy `filter_state` + `filter_key` remain supported and combine wi
 Row keys must belong to the registered contract. Filtering applies to the first 100 rows before
 pagination; hosts must query/aggregate upstream to explore larger datasets.
 
+## Sankey diagrams
+
+Use `sankey` for quantitative flows, with structured `nodes` and `links`; use `mermaid` for
+unweighted process connections. Required annotations are `title`, `description` (scope, reporting
+period and freshness) and `unit` (one common unit for every link). A minimal props object is:
+
+```json
+{
+  "title": "Material allocation",
+  "description": "Synthetic example · September 2026 · measured at period end",
+  "unit": "kg",
+  "nodes": [
+    {"id": "input", "label": "Material input"},
+    {"id": "used", "label": "Production"},
+    {"id": "recovered", "label": "Recovered"}
+  ],
+  "links": [
+    {"source": "input", "target": "used", "value": 75, "label": "Manufacturing"},
+    {"source": "input", "target": "recovered", "value": 25}
+  ]
+}
+```
+
+Declare 1–40 nodes (`id`, `label`) and up to 80 links (`source`, `target`, `value`, optional
+`label`). IDs and source-target pairs must be unique and endpoints must exist. Cycles, including
+self links, are rejected before persistence/rendering. Aggregate parallel flows upstream, or
+use distinct intermediate nodes when the paths have separate meaning. Disconnected graphs and
+empty link lists are valid.
+
+Values are numbers or existing typed ForgeUI expressions referencing approved data/state paths.
+Every resolved value must be finite, non-boolean, between zero and 1,000,000,000 inclusive.
+Provider values are checked again before geometry; invalid data produces a component-local error
+and a render issue, preserving siblings. Unknown data paths fail normal manifest validation.
+No raw Sankey/Mermaid syntax, SVG paths, colors, URLs, callbacks or layout code are accepted.
+
+The trusted renderer uses deterministic left-to-right layers and a shared proportional width
+scale. Ribbons blend from their source node color to their destination node color using trusted,
+theme-aware SVG gradients in a desaturated palette. Very pale ribbons have slim, rounded node bars
+and contrasting labels, with stronger emphasis on hover/focus; manifests cannot choose paint values.
+Node bars/labels represent
+`max(inflow, outflow)`; the Flow data tables report both totals
+and their difference. Intermediate-node imbalance is displayed without normalization or invented
+balancing links. Do not sum link values across stages as an overall total: that double-counts
+the same flow. Zero links remain in the connection table and have no visible ribbon; no positive
+values produces an explicit empty state. Extremely small relative flows may be subpixel but
+remain in annotations and tables. The layout is bounded and deterministic, not a crossing optimizer;
+for dense graphs, order nodes/links intentionally and simplify upstream where appropriate.
+
+Hover or focus a ribbon to inspect its endpoints, quantity, unit and annotation using the existing
+chart tooltip runtime. Full labels and exact displayed quantities also remain available in native
+SVG titles and keyboard-expandable Flow data tables without JavaScript, including inert exports.
+The diagram and tables scroll within their containers on narrow screens. Trusted light/dark
+tokens provide colors and visible focus, and the diagram introduces no animation or network
+dependency. `action` supports the usual host-registered whole-diagram drilldown.
+
+Sankey has no local row filters: topology is declared in the manifest and values come from typed
+expressions or upstream aggregation. The reference `sales-analytics.json` uses provider fields in
+`SalesSnapshot.revenue_flow` from `examples/analytics_host.py`, explicitly independent of the
+regional row filter. Use fresh immutable manifest revisions when the topology changes. Include
+`forgeui-charts.css` with portable fragments (returned in `RenderResult.assets`); the hosted shell
+loads and versions it automatically.
+
 ## Mermaid-compatible flowcharts
 
 `mermaid` is a structured component, not a raw language escape hatch. Props are `title`,

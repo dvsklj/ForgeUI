@@ -1,6 +1,6 @@
 # Component catalog and design profiles
 
-ForgeUI ships 54 catalog entries. The catalog is server-owned: it maps an element type to strict
+ForgeUI ships 55 catalog entries. The catalog is server-owned: it maps an element type to strict
 Pydantic props, a fixed Jinja template, schema/prompt documentation, and allowed design profiles.
 Models select a profile ID, never individual colors, fonts, classes, CSS, or SVG paths.
 
@@ -28,7 +28,7 @@ incompatible `executive-summary` combination.
 | --- | --- |
 | Structure | `page`, `page-header`, `container`, `stack`, `inline`, `grid`, `grid-item`, `card`, `card-header`, `card-body`, `card-footer`, `content-group`, `disclosure`, `section`, `divider`, `repeat` |
 | Content | `heading`, `text`, `badge`, `icon`, `key-value`, `metric`, `alert`, `progress`, `empty-state` |
-| Data and charts | `table`, `status-list`, `timeline`, `sparkline`, `line-chart`, `bar-chart`, `donut-chart`, `aggregate-metric`, `mermaid` |
+| Data and charts | `table`, `status-list`, `timeline`, `sparkline`, `line-chart`, `bar-chart`, `donut-chart`, `aggregate-metric`, `mermaid`, `sankey` |
 | Controls | `button`, `modal`, `form`, `field-group`, `field`, `text-input`, `textarea`, `number-input`, `select`, `radio-group`, `checkbox`, `toggle`, `search`, `tabs`, `date-range`, `breadcrumbs`, `pagination`, `toast` |
 | Assets | `image`, `file-upload` |
 
@@ -157,6 +157,10 @@ the renderer and validator use.
 
 ## Analytics additions
 
-`aggregate-metric` and structured `mermaid` flowcharts share the canonical catalog/schema.
+`aggregate-metric`, structured `mermaid` flowcharts and weighted `sankey` diagrams share the
+canonical catalog/schema. Sankey supports annotated acyclic flows with provider expressions,
+proportional ribbons, keyboard inspection and accessible connection/node tables. Hosts loading
+portable fragments must load `forgeui-charts.css` from the adapter asset list alongside the
+core and layout stylesheets; hosted documents load it automatically.
 Common filters apply to collection components; metrics support formatting and comparisons.
 See [analytics and diagram authoring](analytics.md) for all fields and limits.

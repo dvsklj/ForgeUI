@@ -45,6 +45,7 @@ Contract tests enforce the following raw budgets:
 
 - complete shipped source tree: at most 1 MiB;
 - Core CSS: at most 32 KiB;
+- structured diagram CSS: at most 4 KiB raw and 1.5 KiB gzip;
 - dashboard JavaScript: at most 16 KiB;
 - iframe host helper: at most 4 KiB;
 - no Typer dependency or Uvicorn standard extras.
@@ -55,10 +56,11 @@ it keeps the core stylesheet within its existing budget while making advanced la
 fragment hosts. The extension has no runtime dependency and is loaded automatically by the trusted
 document shell.
 
-The post-build CI smoke test separately caps the compressed wheel at 144 KiB, then installs that
-wheel into clean base, mounted-web, and complete environments. The current 137.5 KiB wheel uses
-about 95% of that budget. New integrations should therefore stay optional and avoid vendored
-client libraries or browser frameworks.
+The post-build CI smoke test separately caps the compressed wheel at 152 KiB, then installs that
+wheel into clean base, mounted-web, and complete environments. The budget increased from 144 KiB
+for the structured Sankey renderer and its presentation styles. Sankey adds no runtime dependencies
+and its separately cacheable `forgeui-charts.css` has independent raw/gzip budgets. The release measurements above remain the original a5 baseline.
+New integrations should stay optional and avoid vendored client libraries or browser frameworks.
 
 The Docker image size is not listed because it must be measured from an actual built image and the
 local Docker daemon was unavailable. The multi-stage Dockerfile copies only the locked production

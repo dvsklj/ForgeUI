@@ -56,6 +56,30 @@
 {% if p.state_path %}<label class="forge-input-label">Select node<select{{ control_disabled() }} class="forge-input" name="{{ p.state_path }}" aria-label="Select node"><option value="">No selection</option>{% for node in extra.nodes %}<option value="{{ node.id }}"{% if node.id == extra.selected %} selected{% endif %}>{{ node.label }}</option>{% endfor %}</select></label>{% endif %}
 <div class="forge-table-wrap" tabindex="0"><table class="forge-table"><caption>Connections</caption><thead><tr><th scope="col">From</th><th scope="col">To</th><th scope="col">Relationship</th></tr></thead><tbody>{% for edge in extra.edges %}<tr><td>{% for node in extra.nodes if node.id == edge.source %}{{ node.label }}{% endfor %}</td><td>{% for node in extra.nodes if node.id == edge.target %}{{ node.label }}{% endfor %}</td><td>{{ edge.label or '→' }}</td></tr>{% else %}<tr><td colspan="3">No connections</td></tr>{% endfor %}</tbody></table></div>
 {% else %}<p role="status">No nodes match the current filter.</p>{% endif %}</figure>
+{% elif component.type == 'sankey' %}
+<figure id="{{ element_id }}" class="forge-chart forge-sankey{% if component.action %} forge-has-action{% endif %}">
+  <figcaption class="forge-sankey-header"><span>{{ p.title }}</span><span class="forge-sankey-unit">{{ p.unit }}</span></figcaption>
+  <p class="forge-sankey-description">{{ p.description }}</p>
+  {% if extra.has_flow %}
+  <div class="forge-sankey-scroll" tabindex="0" role="region" aria-label="{{ p.title }} diagram">{{ extra.svg }}</div>
+  <div class="forge-sankey-inspection"><span>Ribbon width = quantity · Hover or use Tab for details</span><output data-forge-chart-tooltip aria-live="polite" hidden></output></div>
+  {% else %}<p role="status">No positive flow to display. See Flow data for declared nodes and quantities.</p>{% endif %}
+  <details class="forge-sankey-data">
+    <summary><span>Flow data</span><span class="forge-sankey-count">{{ extra.links|length }} connections · {{ extra.nodes|length }} nodes</span></summary>
+    <div class="forge-table-wrap" tabindex="0" role="region" aria-label="Flow connections">
+      <table class="forge-table"><caption>Connections<span>{{ p.unit }} · Source to destination</span></caption><thead><tr><th scope="col">From</th><th scope="col">To</th><th scope="col">Quantity</th><th scope="col">Annotation</th></tr></thead>
+        <tbody>{% for link in extra.links %}<tr><td>{{ link.source }}</td><td>{{ link.target }}</td><td>{{ link.value }}</td><td>{{ link.label }}</td></tr>{% else %}<tr><td colspan="4">No connections</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+    <div class="forge-table-wrap" tabindex="0" role="region" aria-label="Node flow totals">
+      <table class="forge-table forge-sankey-totals"><caption>Node totals<span>{{ p.unit }} · Balance = inflow minus outflow</span></caption><thead><tr><th scope="col">Node</th><th scope="col">Inflow</th><th scope="col">Outflow</th><th scope="col">Balance</th></tr></thead>
+        <tbody>{% for node in extra.nodes %}<tr><th scope="row">{{ node.label }}</th><td>{{ node.incoming }}</td><td>{{ node.outgoing }}</td><td>{{ node.balance }}</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+    <p class="forge-sankey-note">Node values in the diagram show the larger of inflow and outflow. Sources and sinks normally have a nonzero balance; an intermediate-node balance indicates quantities entering or leaving the displayed flow. Values are not normalized.</p>
+  </details>
+  {{ drilldown('View details for ' ~ p.title) }}
+</figure>
 {% elif component.type == 'metric' %}
 <article id="{{ element_id }}" class="forge-metric forge-metric--{{ p.status }}{% if component.action %} forge-has-action{% endif %}"><p>{{ p.label }}</p><strong>{{ extra.value }}</strong>{% if extra.delta is not none %}<small class="forge-metric-comparison">{{ extra.delta }} vs comparison</small>{% endif %}{% if p.detail %}<small>{{ p.detail }}</small>{% endif %}{{ drilldown('View details for ' ~ p.label) }}</article>
 {% elif component.type == 'alert' %}

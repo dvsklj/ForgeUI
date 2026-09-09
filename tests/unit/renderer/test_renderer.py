@@ -248,6 +248,12 @@ def test_every_catalog_component_has_a_meaningful_render(
         "metric": {"label": "Total", "value": 1},
         "aggregate-metric": {"label": "Total", "data": {"kind": "ref", "path": "data.devices"}},
         "mermaid": {"title": "Flow", "nodes": [{"id": "start", "label": "Start"}]},
+        "sankey": {
+            "title": "Flow",
+            "description": "Test scope",
+            "unit": "items",
+            "nodes": [{"id": "start", "label": "Start"}],
+        },
         "alert": {"title": "Note", "message": "Detail"},
         "progress": {"label": "Usage", "value": 4},
         "empty-state": {"title": "Empty", "message": "None"},

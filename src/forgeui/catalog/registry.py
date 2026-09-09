@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
+from graphlib import CycleError, TopologicalSorter
 from typing import Annotated, Any, Literal, TypeAlias
 
 from pydantic import (
@@ -303,6 +304,51 @@ class DiagramProps(Props):
             raise ValueError("diagram node IDs must be unique")
         if any(edge.source not in ids or edge.target not in ids for edge in self.edges):
             raise ValueError("diagram edges must reference declared nodes")
+        return self
+
+
+class SankeyNode(Props):
+    """A named flow junction; geometry and colors belong to the renderer."""
+
+    id: DataKey
+    label: ShortText
+
+
+class SankeyLink(Props):
+    source: DataKey
+    target: DataKey
+    value: Annotated[int | float, Field(ge=0, le=1_000_000_000, allow_inf_nan=False)] | Expression
+    label: ShortText | None = None
+
+
+class SankeyProps(Props):
+    """An annotated, bounded DAG of quantities in one common unit."""
+
+    title: SafeText
+    description: SafeText
+    unit: ShortText
+    nodes: list[SankeyNode] = Field(min_length=1, max_length=40)
+    links: list[SankeyLink] = Field(default_factory=list, max_length=80)
+
+    @model_validator(mode="after")
+    def graph_is_valid(self) -> SankeyProps:
+        ids = {node.id for node in self.nodes}
+        if len(ids) != len(self.nodes):
+            raise ValueError("Sankey node IDs must be unique")
+        predecessors: dict[str, set[str]] = {node.id: set() for node in self.nodes}
+        pairs: set[tuple[str, str]] = set()
+        for link in self.links:
+            if link.source not in ids or link.target not in ids:
+                raise ValueError("Sankey links must reference declared nodes")
+            pair = (link.source, link.target)
+            if pair in pairs:
+                raise ValueError("Sankey source-target pairs must be unique; aggregate upstream")
+            pairs.add(pair)
+            predecessors[link.target].add(link.source)
+        try:
+            tuple(TopologicalSorter(predecessors).static_order())
+        except CycleError as exc:
+            raise ValueError("Sankey links must be acyclic, including no self links") from exc
         return self
 
 
@@ -704,6 +750,21 @@ component_registry = ComponentRegistry(
             action=True,
             profiles=DATA_PROFILES,
             note="One series of non-negative parts; each row is a slice.",
+        ),
+        _spec(
+            "sankey",
+            SankeyProps,
+            action=True,
+            profiles=DATA_PROFILES,
+            note=(
+                "Weighted left-to-right flow: unique node IDs and source-target pairs, "
+                "declared endpoints, no cycles or self links. Each link value is finite, "
+                "non-negative and at most 1e9, including resolved expressions. "
+                "Use one common unit; description names scope, period and freshness. "
+                "Widths share a common scale; nodes use max(inflow, outflow). "
+                "Imbalances are reported, never silently normalized. Zero links appear "
+                "only in the data table. Use approved data refs for provider quantities."
+            ),
         ),
         _spec("button", ButtonProps, action=True),
         _spec("modal", DialogProps, children=True),

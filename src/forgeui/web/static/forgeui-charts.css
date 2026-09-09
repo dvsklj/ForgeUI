@@ -1,0 +1,50 @@
+/* Trusted structured diagram styles. Paint and geometry are renderer-owned. */
+.forge-sankey {
+  min-width: 0;
+  --chart-1: color-mix(in srgb, var(--accent) 40%, var(--muted));
+  --chart-2: color-mix(in srgb, var(--good) 40%, var(--muted));
+  --chart-3: color-mix(in srgb, var(--warn) 40%, var(--muted));
+  --chart-4: color-mix(in srgb, var(--bad) 40%, var(--muted));
+  --chart-5: color-mix(in srgb, var(--info) 40%, var(--muted));
+  --chart-6: var(--muted);
+}
+.forge-chart.forge-sankey {
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.forge-sankey-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.forge-sankey-unit { padding: 4px 12px; border-radius: 99px; background: var(--raised); color: var(--muted); font-size: 12px; }
+.forge-sankey-description, .forge-sankey-note { color: var(--muted); font-size: 12px; }
+.forge-sankey-description { margin: 4px 0 16px; }
+.forge-sankey-scroll { overflow: auto; max-height: 340px; border-radius: 12px; background: var(--raised); }
+.forge-sankey-svg { display: block; user-select: none; -webkit-user-select: none; }
+.forge-sankey-label { fill: var(--ink); font-size: 13px; font-weight: 600; }
+.forge-sankey-value { fill: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.forge-sankey-node rect { fill-opacity: .8; }
+.forge-sankey-link { fill-opacity: .65; }
+.forge-sankey-link, .forge-sankey-node { cursor: default; }
+.forge-sankey-link:hover, .forge-sankey-link:focus-visible { fill-opacity: 1; stroke: var(--muted); stroke-width: 2px; outline: none; }
+.forge-sankey-node:focus-visible { outline: none; }
+.forge-sankey-node:focus-visible rect { stroke: var(--ink); stroke-width: 2px; }
+.forge-sankey-inspection { position: relative; min-height: 32px; padding-block: 8px; color: var(--muted); font-size: 12px; }
+.forge-sankey-inspection:has(output:not([hidden])) > span { visibility: hidden; }
+.forge-sankey-inspection output { position: absolute; inset: 8px 0 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Native disclosure keeps keyboard behavior while the table details stay quiet. */
+.forge-sankey-data { border-top: 1px solid var(--rule); }
+.forge-sankey-data > summary { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px 0; cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 500; list-style: none; }
+.forge-sankey-data > summary::-webkit-details-marker { display: none; }
+.forge-sankey-data > summary:hover { color: var(--ink); }
+.forge-sankey-data > summary:focus-visible { outline: 1px solid var(--muted); outline-offset: 2px; border-radius: 3px; }
+.forge-sankey-count { margin-left: auto; color: var(--muted); font-size: 12px; font-weight: 400; }
+.forge-sankey-data > summary::after { content: ""; width: 6px; height: 6px; margin: 0 4px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); }
+.forge-sankey-data[open] > summary::after { transform: rotate(225deg); }
+.forge-sankey-data caption { padding: 16px; text-align: left; color: var(--ink); font-size: 13px; font-weight: 600; }
+.forge-sankey-data caption span { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; font-weight: 400; }
+.forge-sankey-data .forge-table-wrap { margin: 8px 0 16px; border-radius: 6px; }
+.forge-sankey-data :is(th, td) { padding: 12px 16px; border-bottom: 1px solid var(--rule); }
+.forge-sankey-data thead { background: transparent; }
+.forge-sankey-data tbody th { color: var(--ink); font-size: 13px; font-weight: 500; text-transform: none; letter-spacing: normal; }
+.forge-sankey-data tbody tr:last-child > * { border-bottom: 0; }
+.forge-sankey-data :is(th, td):nth-child(3), .forge-sankey-totals :is(th, td):not(:first-child) { text-align: right; }

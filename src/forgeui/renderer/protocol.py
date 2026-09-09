@@ -153,7 +153,7 @@ class HtmlRendererAdapter:
             output,
             caps.renderer,
             caps.version,
-            assets=("forgeui.css", "forgeui-layout.css"),
+            assets=("forgeui.css", "forgeui-layout.css", "forgeui-charts.css"),
             issues=tuple(issues),
             interaction=options.interaction,
         )

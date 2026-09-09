@@ -3,6 +3,16 @@
 All notable changes to ForgeUI are documented here. Versions follow
 [PEP 440](https://peps.python.org/pep-0440/).
 
+## Unreleased
+
+### Added
+
+- Structured `sankey` diagrams with bounded acyclic nodes/links, checked provider expressions,
+  shared-scale ribbons, required units/context, link annotations and accessible flow/balance
+  tables. Hosted and portable renderers share trusted SVG, keyboard inspection and theme styles.
+- Sales analytics now demonstrates a provider-backed revenue Sankey; the catalog, generated
+  schema and generation prompt include the new component and its constraints.
+
 ## 0.1.0a5 — 2026-09-07
 
 ### Added

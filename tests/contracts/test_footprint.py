@@ -10,6 +10,7 @@ STATIC = ROOT / "src" / "forgeui" / "web" / "static"
 
 def test_browser_assets_stay_within_explicit_raw_size_budgets() -> None:
     assert (STATIC / "forgeui.css").stat().st_size <= 32 * 1024
+    assert (STATIC / "forgeui-charts.css").stat().st_size <= 4 * 1024
     assert (STATIC / "forgeui.js").stat().st_size <= 16 * 1024
     assert (STATIC / "forgeui-embed.js").stat().st_size <= 4 * 1024
 
@@ -17,6 +18,7 @@ def test_browser_assets_stay_within_explicit_raw_size_budgets() -> None:
 def test_browser_assets_stay_within_compressed_transfer_budgets() -> None:
     budgets = {
         "forgeui.css": 6 * 1024,
+        "forgeui-charts.css": 1536,
         "forgeui.js": 4 * 1024,
         "forgeui-embed.js": 1024,
     }

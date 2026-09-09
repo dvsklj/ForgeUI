@@ -36,7 +36,7 @@ uv add 'forgeui[web,ollama]>=0.1,<0.2'
 
 ## Publishing public releases to PyPI
 
-The `publish.yml` workflow builds and tests a release, enforces the 144 KiB wheel budget, uploads
+The `publish.yml` workflow builds and tests a release, enforces the 152 KiB wheel budget, uploads
 the verified artifacts between isolated jobs, and publishes with short-lived GitHub OIDC
 credentials. It contains no PyPI API token.
 

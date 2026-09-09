@@ -46,6 +46,7 @@ def test_analytics_filters_and_diagram_selection_with_reference_script(
         'data-forge-state-url="/state/__STATE_KEY__">' + render() + "</main></body></html>"
     )
     page.add_style_tag(content=STATIC.joinpath("forgeui.css").read_text())
+    page.add_style_tag(content=STATIC.joinpath("forgeui-charts.css").read_text())
     page.evaluate("theme => localStorage.setItem('forgeui-theme', theme)", theme)
     page.add_script_tag(content=STATIC.joinpath("forgeui.js").read_text())
     expect(page.locator("#forge-element-sample strong")).to_have_text("476,000")
@@ -88,6 +89,7 @@ def test_adapter_exports_are_accessible_and_donut_inspection_works(page, theme, 
         assert result.ok
         page.set_content(f'<html data-theme="{theme}"><body>{result.output}</body></html>')
         page.add_style_tag(content=STATIC.joinpath("forgeui.css").read_text())
+        page.add_style_tag(content=STATIC.joinpath("forgeui-charts.css").read_text())
         # Role lookup excludes nodes hidden by HTML's inert attribute, unlike visibility checks.
         expect(page.get_by_role("heading", name=DEMO_SNAPSHOT["title"], exact=True)).to_be_visible()
         expect(page.get_by_role("table")).to_have_count(2)
@@ -116,7 +118,7 @@ def test_adapter_exports_are_accessible_and_donut_inspection_works(page, theme, 
             page.add_script_tag(content=STATIC.joinpath("forgeui.js").read_text())
             point = page.locator("circle[data-forge-chart-point]").last
             point.focus()
-            tooltip = page.locator("[data-forge-chart-tooltip]").first
+            tooltip = page.locator("#forge-element-trend [data-forge-chart-tooltip]")
             expect(tooltip).to_have_text("Revenue — August: 120,000")
             expect(tooltip).to_be_visible()
             page.keyboard.press("Escape")

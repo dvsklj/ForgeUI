@@ -28,6 +28,7 @@ from forgeui.expressions import EvaluationError, evaluate_expression
 from forgeui.expressions.ast import CallExpr, ExpressionAdapter, LiteralExpr, OpExpr, RefExpr
 from forgeui.icons import render_heroicon
 from forgeui.renderer.diagrams import diagram_svg
+from forgeui.renderer.sankey import sankey_extra
 from forgeui.surfaces import PersistenceMode, SurfaceMode, surface_presentation
 
 MAX_RENDER_ROWS = 100
@@ -91,6 +92,7 @@ def _asset_version() -> str:
         for filename in (
             "forgeui.css",
             "forgeui-layout.css",
+            "forgeui-charts.css",
             "forgeui.js",
             "forgeui-embed.js",
             "favicon.svg",
@@ -481,6 +483,11 @@ class Renderer:
                     str(props.get("state_path", "")).removeprefix("state."), ""
                 ),
             }
+
+        if component_type == "sankey":
+            extra = sankey_extra(props)
+            extra["svg"] = _trusted_markup(extra["svg"])
+            return extra
 
         if component_type == "key-value":
             items = props.get("items", [])

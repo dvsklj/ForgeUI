@@ -28,6 +28,7 @@
         "scope",
         "freshness",
         "totals",
+        "revenue_flow",
         "details"
       ]
     },
@@ -239,6 +240,74 @@
           }
         ],
         "edges": []
+      }
+    },
+    "revenue_flow": {
+      "type": "sankey",
+      "props": {
+        "title": "August revenue flow",
+        "description": "Synthetic provider totals \u00b7 August 2026 \u00b7 all permitted regions \u00b7 as of 1 September 2026. Independent of the regional sample filter.",
+        "unit": "CHF",
+        "nodes": [
+          {
+            "id": "emea",
+            "label": "EMEA"
+          },
+          {
+            "id": "americas",
+            "label": "Americas"
+          },
+          {
+            "id": "booked",
+            "label": "Booked revenue"
+          },
+          {
+            "id": "direct",
+            "label": "Direct sales"
+          },
+          {
+            "id": "partners",
+            "label": "Partner sales"
+          }
+        ],
+        "links": [
+          {
+            "source": "emea",
+            "target": "booked",
+            "value": {
+              "kind": "ref",
+              "path": "data.revenue_flow.emea"
+            },
+            "label": "Regional contribution"
+          },
+          {
+            "source": "americas",
+            "target": "booked",
+            "value": {
+              "kind": "ref",
+              "path": "data.revenue_flow.americas"
+            },
+            "label": "Regional contribution"
+          },
+          {
+            "source": "booked",
+            "target": "direct",
+            "value": {
+              "kind": "ref",
+              "path": "data.revenue_flow.direct"
+            },
+            "label": "Sales channel allocation"
+          },
+          {
+            "source": "booked",
+            "target": "partners",
+            "value": {
+              "kind": "ref",
+              "path": "data.revenue_flow.partners"
+            },
+            "label": "Sales channel allocation"
+          }
+        ]
       }
     }
   }
