@@ -158,3 +158,49 @@ def test_sankey_annotations_keyboard_themes_and_mobile(page, theme, width, tmp_p
         disclosure.focus()
         page.keyboard.press("Enter")
         expect(page.get_by_role("table")).to_have_count(0)
+
+
+@pytest.mark.browser
+def test_sankey_palette_tracks_live_theme_and_system_changes(page):
+    runtime = build_runtime(lambda _: DEMO_SNAPSHOT, lambda _: True)
+    raw = json.loads((ROOT / "examples/manifests/sales-analytics.json").read_text())
+    raw["root"] = "revenue_flow"
+    raw["elements"] = {"revenue_flow": raw["elements"]["revenue_flow"]}
+    result = HtmlRendererAdapter(policy=runtime.policy).render(
+        raw, RenderContext(data=DEMO_SNAPSHOT), RenderOptions("events")
+    )
+    assert result.ok
+    page.emulate_media(color_scheme="light")
+    page.set_content(
+        '<html data-theme="light"><body><button data-forge-theme-toggle>Theme</button>'
+        f"{result.output}</body></html>"
+    )
+    for asset in result.assets:
+        page.add_style_tag(content=(STATIC / asset).read_text())
+    page.add_script_tag(content=(STATIC / "forgeui.js").read_text())
+
+    def palette():
+        return page.locator(".forge-sankey").evaluate("""chart => {
+            const styles = selector => [...chart.querySelectorAll(selector)].map(el => {
+                const s = getComputedStyle(el);
+                return [s.fill, s.fillOpacity, s.stopColor, s.stopOpacity];
+            });
+            return [styles('.forge-sankey-node rect'), styles('.forge-sankey-svg stop'),
+                    styles('.forge-sankey-link'), styles('.forge-sankey-annotations text')];
+        }""")
+
+    light = palette()
+    page.emulate_media(color_scheme="dark")
+    assert palette() == light  # An explicit choice overrides the OS.
+    page.get_by_role("button", name="Switch to dark theme", exact=True).click()
+    dark = palette()
+    assert all(before != after for before, after in zip(light, dark, strict=True))
+    page.get_by_role("button", name="Switch to light theme", exact=True).click()
+    assert palette() == light
+    # Portable hosts can select system mode without replacing the rendered fragment.
+    page.evaluate("document.documentElement.dataset.theme = 'system'")
+    assert palette() == dark
+    page.emulate_media(color_scheme="light")
+    assert palette() == light
+    page.emulate_media(color_scheme="dark")
+    assert palette() == dark
